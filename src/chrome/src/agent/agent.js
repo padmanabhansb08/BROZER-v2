@@ -35,6 +35,8 @@ import { classifyCompletionForm, completionDoneBlock, completionPlainFinalBlock,
 import { cdpClient } from '../cdp/cdp-client.js';
 import { findLastGmailResultPage, getActiveAdapter, getAdapterWorkflowRouting, getCarouselNavigationPolicy, getCarouselNavigationTarget, getFullPageCapturePolicy, getGmailResultCountPolicy, getGmailResultPageUrl, getMessageRecipientGuardPolicy, parseCarouselSlideCount, parseGmailPaginationRange, resolveAdapterWorkflowJob, UNIVERSAL_PREAMBLE } from './adapters.js';
 import { formatAdapterWorkflowExecutionPolicy } from './adapter-workflow.js';
+import { SecretStore } from './secret-store.js';
+import { ActionValidator } from './action-validator.js';
 import {
   invalidateWorkflowInventoryCompleteness,
   isExhaustiveAccessibilityInventoryRead,
@@ -32597,6 +32599,21 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
       throwIfEarlyCdpAborted();
     };
     args = this._normalizeContinuationToolArgs(name, args);
+    const phase3Validation = ActionValidator.validate({
+      tool: name,
+      args,
+      origin: '',
+      target: dispatchContext?.target || null
+    });
+    if (!phase3Validation.valid) {
+      return {
+        success: false,
+        denied: true,
+        noDispatch: true,
+        error: phase3Validation.error || '[REDACTED: Action validation failed]'
+      };
+    }
+    args = SecretStore.resolvePlaceholders(args, phase3Validation.authorizedPlaceholders);
     const coordinates = this._prepareClickCoordinates(tabId, name, args);
     if (coordinates.block) return coordinates.block;
     args = coordinates.args;
