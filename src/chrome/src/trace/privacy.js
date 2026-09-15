@@ -1,11 +1,4 @@
-/**
- * Privacy projection for durable trace records.
- *
- * The default trace tier is metadata-only. Keep the policy at the recorder
- * boundary so IndexedDB, the Traces UI, JSON exports, and OTLP exports all
- * start from the same safe event log. The lossless tier is an explicit opt-in
- * and intentionally bypasses these projections.
- */
+import { PrivacyEngine } from '../providers/privacy-engine.js';
 
 const RUN_CONTENT_FIELDS = [
   'userMessage', 'finalContent', 'tabUrl', 'tabTitle', 'attachments',
@@ -88,6 +81,12 @@ function projectToolResultMetadata(result) {
 
 export function projectTraceRun(run, { includeContent = false } = {}) {
   const projected = run && typeof run === 'object' ? { ...run } : {};
+  if (typeof projected.userMessage === 'string') {
+    projected.userMessage = PrivacyEngine.sanitizeText(projected.userMessage);
+  }
+  if (typeof projected.finalContent === 'string') {
+    projected.finalContent = PrivacyEngine.sanitizeText(projected.finalContent);
+  }
   if (!includeContent) {
     for (const field of RUN_CONTENT_FIELDS) delete projected[field];
   }
@@ -95,16 +94,25 @@ export function projectTraceRun(run, { includeContent = false } = {}) {
 }
 
 export function projectTraceEventData(kind, data, { includeContent = false } = {}) {
-  if (includeContent || data == null) return data;
-  const source = data && typeof data === 'object' && !Array.isArray(data) ? data : {};
+  if (data == null) return data;
+
+  const source = data && typeof data === 'object' && !Array.isArray(data) ? { ...data } : {};
+
+  // Always sanitize event text fields before persistence
+  const sanitized = PrivacyEngine.sanitizeSync(source);
+
+  // Lossless trace tier returns sanitized payload (never raw un-sanitized content)
+  if (includeContent) return sanitized;
+
+  const sourceSanitized = sanitized && typeof sanitized === 'object' ? sanitized : source;
 
   if (kind === 'llm_request') {
-    const projected = pick(source, REQUEST_METADATA_FIELDS);
-    if (source.promptProvenance && typeof source.promptProvenance === 'object') {
-      projected.promptProvenance = projectPromptProvenance(source.promptProvenance);
+    const projected = pick(sourceSanitized, REQUEST_METADATA_FIELDS);
+    if (sourceSanitized.promptProvenance && typeof sourceSanitized.promptProvenance === 'object') {
+      projected.promptProvenance = projectPromptProvenance(sourceSanitized.promptProvenance);
     }
-    if (source.localWikipediaRag && typeof source.localWikipediaRag === 'object') {
-      projected.localWikipediaRag = pick(source.localWikipediaRag, [
+    if (sourceSanitized.localWikipediaRag && typeof sourceSanitized.localWikipediaRag === 'object') {
+      projected.localWikipediaRag = pick(sourceSanitized.localWikipediaRag, [
         'status', 'attempted', 'matchCount', 'multiSource', 'archiveDates',
       ]);
     }
@@ -112,40 +120,40 @@ export function projectTraceEventData(kind, data, { includeContent = false } = {
   }
 
   if (kind === 'llm_response') {
-    const projected = pick(source, RESPONSE_METADATA_FIELDS);
-    if (source.usage && typeof source.usage === 'object') projected.usage = projectUsage(source.usage);
+    const projected = pick(sourceSanitized, RESPONSE_METADATA_FIELDS);
+    if (sourceSanitized.usage && typeof sourceSanitized.usage === 'object') projected.usage = projectUsage(sourceSanitized.usage);
     return projected;
   }
 
   if (kind === 'tool') {
     return {
-      ...pick(source, ['step', 'name', 'latencyMs']),
-      ...projectToolResultMetadata(source.result),
+      ...pick(sourceSanitized, ['step', 'name', 'latencyMs']),
+      ...projectToolResultMetadata(sourceSanitized.result),
     };
   }
-  if (kind === 'error') return pick(source, ['step', 'phase', 'code']);
-  if (kind === 'streaming') return pick(source, STREAMING_METADATA_FIELDS);
+  if (kind === 'error') return pick(sourceSanitized, ['step', 'phase', 'code']);
+  if (kind === 'streaming') return pick(sourceSanitized, STREAMING_METADATA_FIELDS);
   if (kind === 'note') {
-    const projected = pick(source, ['step', 'note']);
-    const extra = projectNoteExtra(source.extra);
+    const projected = pick(sourceSanitized, ['step', 'note']);
+    const extra = projectNoteExtra(sourceSanitized.extra);
     if (Object.keys(extra).length) projected.extra = extra;
     return projected;
   }
-  if (kind === 'screenshot') return pick(source, ['step', 'caption']);
+  if (kind === 'screenshot') return pick(sourceSanitized, ['step', 'caption']);
   if (kind === 'vision_sub_call') {
-    return pick(source, [
+    return pick(sourceSanitized, [
       'step', 'context', 'visionRoute', 'captureId', 'fallbackReason', 'model',
       'baseUrl', 'latencyMs', 'errorCode', 'recoveryOutcome',
     ]);
   }
   if (kind === 'vision_route') {
-    return pick(source, ['step', 'context', 'visionRoute', 'captureId', 'model', 'fallbackReason']);
+    return pick(sourceSanitized, ['step', 'context', 'visionRoute', 'captureId', 'model', 'fallbackReason']);
   }
   if (kind === 'turn_start' || kind === 'turn_end' || kind === 'step_start' || kind === 'step_end') {
-    return pick(source, STEP_METADATA_FIELDS);
+    return pick(sourceSanitized, STEP_METADATA_FIELDS);
   }
   if (kind === 'terminal_runtime') {
-    return pick(source, ['step', 'status', 'toolName', 'callId', 'errorCode', 'durationMs', 'success']);
+    return pick(sourceSanitized, ['step', 'status', 'toolName', 'callId', 'errorCode', 'durationMs', 'success']);
   }
   return {};
 }

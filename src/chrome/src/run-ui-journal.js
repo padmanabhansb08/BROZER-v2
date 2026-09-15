@@ -1,3 +1,5 @@
+import { PrivacyEngine } from './providers/privacy-engine.js';
+
 export const RUN_UI_EVENT_LIMIT = 256;
 export const RUN_UI_TEXT_DELTA_PERSIST_DELAY_MS = 200;
 export const RUN_UI_STREAM_TEXT_LIMIT = 100000;
@@ -80,45 +82,73 @@ function compactRunUiToolResult(result) {
 
 export function compactRunUiData(type, data) {
   if (!data || typeof data !== 'object') return data;
+  const sanitized = PrivacyEngine.sanitizeSync(data);
   if (type === 'tool_result') {
     return {
-      name: data.name,
-      result: compactRunUiToolResult(data.result),
+      name: sanitized.name,
+      result: compactRunUiToolResult(sanitized.result),
     };
   }
   if (type === 'text' || type === 'text_delta') {
-    return { ...data, content: String(data.content || '').slice(0, 30000) };
+    return { ...sanitized, content: String(sanitized.content || '').slice(0, 30000) };
   }
-  return data;
+  return sanitized;
 }
 
 export function compactRunUiSnapshotForPersist(snapshot, options = {}) {
-  const tight = options.tight === true;
-  const budget = tight ? RUN_UI_PERSIST_RETRY_BUDGET : RUN_UI_PERSIST_BUDGET;
-  const clone = typeof structuredClone === 'function'
-    ? structuredClone(snapshot || {})
-    : JSON.parse(JSON.stringify(snapshot || {}));
-  clone.finalContent = String(clone.finalContent || '').slice(0, tight ? 8000 : 30000);
-  clone.streamedText = String(clone.streamedText || '').slice(0, tight ? 30000 : RUN_UI_STREAM_TEXT_LIMIT);
-  const eventCap = tight ? 64 : RUN_UI_EVENT_LIMIT;
-  clone.events = (Array.isArray(clone.events) ? clone.events : []).slice(-eventCap).map(event => {
-    const data = compactRunUiData(event?.type, event?.data);
-    if (tight && data && typeof data === 'object' && typeof data.content === 'string') {
-      data.content = data.content.slice(0, 4000);
+  try {
+    const tight = options.tight === true;
+    const budget = tight ? RUN_UI_PERSIST_RETRY_BUDGET : RUN_UI_PERSIST_BUDGET;
+    const clone = typeof structuredClone === 'function'
+      ? structuredClone(snapshot || {})
+      : JSON.parse(JSON.stringify(snapshot || {}));
+
+    clone.status = String(clone.status || (snapshot ? '' : 'error') || 'running');
+
+    if (typeof clone.finalContent === 'string') {
+      clone.finalContent = PrivacyEngine.sanitizeText(clone.finalContent);
     }
-    return { ...event, data };
-  });
-  const removedBoundary = Number((Array.isArray(snapshot?.events) ? snapshot.events : []).at(-(clone.events.length + 1))?.seq || 0);
-  if (removedBoundary > 0) {
-    clone.discardedBeforeSeq = Math.max(runUiDiscardedBeforeSeq(clone), removedBoundary);
-    clone.truncatedBeforeSeq = clone.discardedBeforeSeq;
+    if (typeof clone.streamedText === 'string') {
+      clone.streamedText = PrivacyEngine.sanitizeText(clone.streamedText);
+    }
+    if (typeof clone.lastError === 'string') {
+      clone.lastError = PrivacyEngine.sanitizeText(clone.lastError);
+    }
+
+    clone.finalContent = String(clone.finalContent || '').slice(0, tight ? 8000 : 30000);
+    clone.streamedText = String(clone.streamedText || '').slice(0, tight ? 30000 : RUN_UI_STREAM_TEXT_LIMIT);
+    const eventCap = tight ? 64 : RUN_UI_EVENT_LIMIT;
+    clone.events = (Array.isArray(clone.events) ? clone.events : []).slice(-eventCap).map(event => {
+      const data = compactRunUiData(event?.type, event?.data);
+      if (tight && data && typeof data === 'object' && typeof data.content === 'string') {
+        data.content = data.content.slice(0, 4000);
+      }
+      return { ...event, data };
+    });
+    const removedBoundary = Number((Array.isArray(snapshot?.events) ? snapshot.events : []).at(-(clone.events.length + 1))?.seq || 0);
+    if (removedBoundary > 0) {
+      clone.discardedBeforeSeq = Math.max(runUiDiscardedBeforeSeq(clone), removedBoundary);
+      clone.truncatedBeforeSeq = clone.discardedBeforeSeq;
+    }
+    while (clone.events.length && JSON.stringify(clone).length > budget) {
+      const removed = clone.events.shift();
+      clone.discardedBeforeSeq = Math.max(runUiDiscardedBeforeSeq(clone), Number(removed?.seq || 0));
+      clone.truncatedBeforeSeq = clone.discardedBeforeSeq;
+    }
+    return clone;
+  } catch (err) {
+    // Fail closed on persistence error
+    return {
+      tabId: snapshot?.tabId || null,
+      requestId: snapshot?.requestId || '',
+      status: 'error',
+      events: [],
+      finalContent: '',
+      streamedText: '',
+      hadError: true,
+      lastError: 'UI journal snapshot sanitization failed',
+    };
   }
-  while (clone.events.length && JSON.stringify(clone).length > budget) {
-    const removed = clone.events.shift();
-    clone.discardedBeforeSeq = Math.max(runUiDiscardedBeforeSeq(clone), Number(removed?.seq || 0));
-    clone.truncatedBeforeSeq = clone.discardedBeforeSeq;
-  }
-  return clone;
 }
 
 export class RunUiPersistenceScheduler {

@@ -1,3 +1,5 @@
+import { PrivacyEngine } from '../providers/privacy-engine.js';
+
 export const SESSION_CONVERSATION_BUDGET_BYTES = 1_500_000;
 export const SESSION_CONVERSATION_RETRY_BUDGET_BYTES = 450_000;
 
@@ -8,10 +10,11 @@ function byteLength(value) {
 }
 
 function capText(value, maxChars, marker, state) {
-  const sanitized = String(value || '').replace(DATA_URL_RE, () => {
+  let sanitized = String(value || '').replace(DATA_URL_RE, () => {
     state.compacted = true;
     return '[embedded binary data omitted from session recovery]';
   });
+  sanitized = PrivacyEngine.sanitizeText(sanitized);
   if (sanitized.length <= maxChars) return sanitized;
   state.compacted = true;
   return `${sanitized.slice(0, Math.max(0, maxChars - marker.length - 1))}\n${marker}`;
@@ -170,15 +173,39 @@ function reduceToBudget(messages, maxBytes, state, preserveMessageIndices = []) 
 }
 
 export function serializeConversationForSession(messages, options = {}) {
-  const maxBytes = Number.isFinite(options.maxBytes) ? Math.max(100_000, options.maxBytes) : SESSION_CONVERSATION_BUDGET_BYTES;
-  const tight = maxBytes <= SESSION_CONVERSATION_RETRY_BUDGET_BYTES;
-  const caps = tight
-    ? { textChars: 16_000, toolChars: 8_000, toolArgsChars: 8_000 }
-    : { textChars: 96_000, toolChars: 32_000, toolArgsChars: 24_000 };
-  const state = { compacted: false };
-  const sanitized = Array.isArray(messages) ? messages.map(message => sanitizeMessage(message, state, caps)) : [];
-  const bounded = reduceToBudget(sanitized, maxBytes, state, options.preserveMessageIndices);
-  return { messages: bounded, bytes: byteLength(bounded), compacted: state.compacted };
+  try {
+    const maxBytes = Number.isFinite(options.maxBytes) ? Math.max(100_000, options.maxBytes) : SESSION_CONVERSATION_BUDGET_BYTES;
+    const tight = maxBytes <= SESSION_CONVERSATION_RETRY_BUDGET_BYTES;
+    const caps = tight
+      ? { textChars: 16_000, toolChars: 8_000, toolArgsChars: 8_000 }
+      : { textChars: 96_000, toolChars: 32_000, toolArgsChars: 24_000 };
+    const state = { compacted: false };
+
+    // Write Boundary Enforcement: Sanitize messages array using PrivacyEngine
+    const rawInput = Array.isArray(messages) ? messages : [];
+    const sanitizedInput = PrivacyEngine.sanitizeSync(rawInput);
+
+    const sanitized = sanitizedInput.map(message => sanitizeMessage(message, state, caps));
+    const bounded = reduceToBudget(sanitized, maxBytes, state, options.preserveMessageIndices);
+    return { messages: bounded, bytes: byteLength(bounded), compacted: state.compacted };
+  } catch (err) {
+    // Fail closed: return safe empty structure on error without exposing raw input
+    return { messages: [], bytes: 0, compacted: true, error: 'Persistence sanitization failed' };
+  }
+}
+
+export function sanitizeLoadedConversation(conversation) {
+  if (!conversation || typeof conversation !== 'object') return null;
+  try {
+    const copy = { ...conversation };
+    if (Array.isArray(copy.messages)) {
+      copy.messages = PrivacyEngine.sanitizeSync(copy.messages);
+    }
+    return copy;
+  } catch (err) {
+    // Fail closed: purge un-sanitized legacy record on read error
+    return null;
+  }
 }
 
 export function isSessionQuotaError(error) {

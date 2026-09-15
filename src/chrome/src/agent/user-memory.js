@@ -1,3 +1,5 @@
+import { PrivacyEngine } from '../providers/privacy-engine.js';
+
 export const USER_MEMORY_STORAGE_KEY = 'wb_user_memory_v1';
 export const USER_MEMORY_ENABLED_KEY = 'userMemoryEnabled';
 export const USER_MEMORY_AUTO_CAPTURE_KEY = 'userMemoryAutoCaptureEnabled';
@@ -65,8 +67,17 @@ export function looksLikeSensitiveMemoryText(value) {
   const text = normalizeUserMemoryText(value, 1000);
   if (!text) return true;
   const lower = text.toLowerCase();
-  if (/\b(password|passcode|api\s*key|secret|token|otp|2fa|mfa|recovery\s*code|private\s*key|seed\s*phrase)\b/.test(lower)) return true;
-  if (/\b(sk-[a-z0-9_-]{12,}|xox[baprs]-[a-z0-9-]{12,}|gh[pousr]_[a-z0-9_]{20,})\b/i.test(text)) return true;
+  // Credentials, secrets, API keys, tokens, passwords, auth headers
+  if (/\b(password|passcode|api\s*key|secret|token|otp|2fa|mfa|recovery\s*code|private\s*key|seed\s*phrase|auth|bearer|credential|login)\b/.test(lower)) return true;
+  // Specific API key patterns (OpenAI, Slack, GitHub, Anthropic, Canary keys)
+  if (/\b(sk-[a-z0-9_-]{12,}|xox[baprs]-[a-z0-9-]{12,}|gh[pousr]_[a-z0-9_]{20,}|PHASE\d+_CANARY_[A-Za-z0-9_]+)\b/i.test(text)) return true;
+  // Credit Card Numbers
+  if (/\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b|\b(?:\d{4}[- ]){3}\d{4}\b/.test(text)) return true;
+  // Raw Email Addresses
+  if (/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/.test(text)) return true;
+  // Raw Phone Numbers
+  if (/(?<![0-9.-])(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}(?![0-9.-])/.test(text)) return true;
+  // Base64 long key tokens
   if (/\b[A-Za-z0-9+/]{32,}={0,2}\b/.test(text)) return true;
   return false;
 }
@@ -78,8 +89,9 @@ function normalizeTimestamp(value, fallback) {
 
 export function normalizeUserMemoryRecord(input, opts = {}) {
   const ts = normalizeTimestamp(opts.now, nowMs());
-  const text = normalizeUserMemoryText(input?.text);
+  let text = normalizeUserMemoryText(input?.text);
   if (!text || looksLikeSensitiveMemoryText(text)) return null;
+  text = PrivacyEngine.sanitizeText(text);
   const createdAt = normalizeTimestamp(input?.createdAt, ts);
   const updatedAt = normalizeTimestamp(input?.updatedAt, createdAt);
   const archivedAt = input?.archivedAt == null ? null : normalizeTimestamp(input.archivedAt, ts);

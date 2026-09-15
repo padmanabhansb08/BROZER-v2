@@ -1,3 +1,5 @@
+import { PrivacyEngine } from '../providers/privacy-engine.js';
+
 export const STAGED_SCREENSHOT_STORAGE_PREFIX = 'stagedScreenshotAttachments:';
 
 function storagePrefix(tabId) {
@@ -25,13 +27,15 @@ function normalizeRecord(attachment) {
       || (modelDataUrl && !/^data:image\/(?:png|jpeg);base64,/i.test(modelDataUrl))
       || !(Number.isFinite(size) && size > 0)) return null;
   const deliveryState = attachment?.deliveryState === 'sending' ? 'sending' : 'pending';
+  const name = PrivacyEngine.sanitizeText(String(attachment?.name || 'webbrain-screenshot.png')).slice(0, 240);
+  const requestId = attachment?.requestId ? PrivacyEngine.sanitizeText(String(attachment.requestId)).slice(0, 200) : '';
   return {
     version: 1,
     kind: 'image',
     source: 'slash_screenshot',
     stagedAttachmentId,
     dataUrl,
-    name: String(attachment?.name || 'webbrain-screenshot.png').slice(0, 240),
+    name,
     mimeType: String(attachment?.mimeType || '').startsWith('image/jpeg') ? 'image/jpeg' : 'image/png',
     size,
     capturedAt: Number(attachment?.capturedAt) || Date.now(),
@@ -39,8 +43,8 @@ function normalizeRecord(attachment) {
     redactionSnapshotReady: attachment?.redactionSnapshotReady === true,
     modelRedactionReady: attachment?.modelRedactionReady === true,
     deliveryState,
-    ...(deliveryState === 'sending' && attachment?.requestId
-      ? { requestId: String(attachment.requestId).slice(0, 200) }
+    ...(deliveryState === 'sending' && requestId
+      ? { requestId }
       : {}),
     ...(attachment?.redactionSnapshot ? { redactionSnapshot: attachment.redactionSnapshot } : {}),
     ...(attachment?.modelRedactionReady === true && modelDataUrl ? { modelDataUrl } : {}),
