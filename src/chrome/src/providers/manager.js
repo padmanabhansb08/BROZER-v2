@@ -27,6 +27,7 @@ import {
   webgpuModelRuntime,
 } from './webgpu.js';
 import { ADDITIONAL_PROVIDER_DEFAULTS } from './provider-catalog.js';
+import { decorateProviderWithPrivacyEngine } from './privacy-engine.js';
 import { purgeShareGenerations } from '../trace/webbrain-share-outbox.js';
 import {
   DEEPSEEK_BASE_URL,
@@ -1299,32 +1300,42 @@ export class ProviderManager {
           : 'auto');
       delete normalizedConfig.supportsVision;
     }
+    let providerInstance;
     switch (normalizedConfig.type) {
       case 'llamacpp':
-        return new LlamaCppProvider(normalizedConfig);
+        providerInstance = new LlamaCppProvider(normalizedConfig);
+        break;
       case 'webgpu':
-        return new WebGPUProvider(normalizedConfig);
+        providerInstance = new WebGPUProvider(normalizedConfig);
+        break;
       case 'openai':
         // All non-local DeepSeek cards use the dedicated capability hooks. Only
         // direct cards opt into DeepSeek's native request contract; router cards
         // retain their existing OpenRouter compatibility preset.
-        return (isDirectDeepSeekConfig(normalizedConfig)
+        providerInstance = (isDirectDeepSeekConfig(normalizedConfig)
           || (normalizedConfig.category !== 'local' && isDeepSeekModel(normalizedConfig.model)))
           ? new DeepSeekProvider(normalizedConfig)
           : new OpenAICompatibleProvider(normalizedConfig);
+        break;
       case 'azure_openai':
-        return new AzureOpenAIProvider(normalizedConfig);
+        providerInstance = new AzureOpenAIProvider(normalizedConfig);
+        break;
       case 'aws_bedrock':
-        return new AwsBedrockProvider(normalizedConfig);
+        providerInstance = new AwsBedrockProvider(normalizedConfig);
+        break;
       case 'anthropic':
-        return new AnthropicProvider(normalizedConfig);
+        providerInstance = new AnthropicProvider(normalizedConfig);
+        break;
       case 'anthropic_oauth':
-        return new AnthropicOAuthProvider(normalizedConfig);
+        providerInstance = new AnthropicOAuthProvider(normalizedConfig);
+        break;
       case 'vertex_anthropic':
-        return new VertexAnthropicProvider(normalizedConfig);
+        providerInstance = new VertexAnthropicProvider(normalizedConfig);
+        break;
       default:
         throw new Error(`Unknown provider type: ${normalizedConfig.type}`);
     }
+    return decorateProviderWithPrivacyEngine(providerInstance);
   }
 
   /**
@@ -1335,14 +1346,14 @@ export class ProviderManager {
     if (!provider) {
       throw new Error(`No active provider: ${this.activeProviderId}`);
     }
-    return provider;
+    return decorateProviderWithPrivacyEngine(provider);
   }
 
   /** Get a provider without changing the user's globally selected provider. */
   getProvider(id) {
     const provider = this.providers.get(id);
     if (!provider) throw new Error(`Provider not found: ${id}`);
-    return provider;
+    return decorateProviderWithPrivacyEngine(provider);
   }
 
   /**
@@ -1600,7 +1611,7 @@ export class ProviderManager {
       // explicit override. Keep accepting it through getLocalVisionFallbackProvider.
       if (visionModel.type === 'webgpu') return null;
       if (!visionModel.baseUrl || !visionModel.model) return null;
-      return new OpenAICompatibleProvider({
+      return decorateProviderWithPrivacyEngine(new OpenAICompatibleProvider({
         type: 'openai',
         category: 'cloud',
         label: 'Vision Model',
@@ -1612,7 +1623,7 @@ export class ProviderManager {
         // Advertise vision support regardless of model-name heuristics — the
         // user explicitly configured this endpoint for vision.
         supportsVision: true,
-      });
+      }));
     } catch (e) {
       console.warn('[providers] getVisionProvider failed:', e);
       return null;
@@ -1624,7 +1635,7 @@ export class ProviderManager {
     try {
       const readiness = await this.getWebgpuVisionReadiness();
       if (readiness.enabled && readiness.consented && readiness.status === 'ready') {
-        return new WebGPUVisionProvider();
+        return decorateProviderWithPrivacyEngine(new WebGPUVisionProvider());
       }
     } catch (e) {
       console.warn('[providers] getLocalVisionFallbackProvider failed:', e);
