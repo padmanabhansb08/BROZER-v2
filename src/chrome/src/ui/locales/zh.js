@@ -269,7 +269,7 @@ export default {
   'st.account.not_signed_in': '未登录',
   'st.account.sign_in': '登录 / 注册',
   'st.account.sign_out': '退出',
-  'st.account.provider_name': 'WebBrain Compass',
+  'st.account.provider_name': 'BROZER NAVIGATOR',
   'st.account.billing_managed': '此浏览器配置文件的账单、卡片信息、电子邮件和取消均由 Stripe 管理。',
   'st.account.billing_preparing': '正在为此浏览器配置文件准备 Stripe 账单链接。',
   'st.account.manage_billing': '管理账单',

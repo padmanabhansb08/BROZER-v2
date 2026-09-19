@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "WebBrain",
+  "name": "BROZER",
   "version": "36.5.0",
   "description": "Open-source AI browser agent — chat with pages, automate tasks, multi-provider LLM support.",
   "permissions": [
@@ -19,7 +19,6 @@
     "alarms",
     "unlimitedStorage",
     "offscreen",
-    "privateNetworkAccess",
     "tabCapture",
     "clipboardWrite",
     "clipboardRead"
@@ -45,13 +44,19 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["src/content/file-picker-guard-page.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/content/file-picker-guard-page.js"
+      ],
       "run_at": "document_start",
       "world": "MAIN"
     },
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "<all_urls>"
+      ],
       "js": [
         "src/content/rich-text-toolbar-heuristic.js",
         "src/content/accessibility-tree.js",
@@ -64,13 +69,21 @@
       "run_at": "document_idle"
     },
     {
-      "matches": ["<all_urls>"],
-      "js": ["src/content/selection-shortcut.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/content/selection-shortcut.js"
+      ],
       "run_at": "document_start"
     },
     {
-      "matches": ["<all_urls>"],
-      "js": ["src/content/redaction-regions.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/content/redaction-regions.js"
+      ],
       "run_at": "document_idle",
       "all_frames": true,
       "match_about_blank": true
@@ -86,7 +99,9 @@
         "*://*.youtube.com/*",
         "*://youtu.be/*"
       ],
-      "js": ["src/agent/social-media-downloader.js"],
+      "js": [
+        "src/agent/social-media-downloader.js"
+      ],
       "run_at": "document_start",
       "world": "MAIN"
     }
@@ -133,8 +148,15 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["vendor/pdfjs/pdf.mjs", "vendor/pdfjs/pdf.worker.mjs", "skills/*"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "vendor/pdfjs/pdf.mjs",
+        "vendor/pdfjs/pdf.worker.mjs",
+        "skills/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
-  ]
+  ],
+  "short_name": "BROZER"
 }

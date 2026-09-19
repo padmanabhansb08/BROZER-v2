@@ -269,7 +269,7 @@ export default {
   'st.account.not_signed_in': '로그인되어 있지 않습니다',
   'st.account.sign_in': '로그인 / 가입',
   'st.account.sign_out': '로그아웃',
-  'st.account.provider_name': 'WebBrain Compass',
+  'st.account.provider_name': 'BROZER NAVIGATOR',
   'st.account.billing_managed': '이 브라우저 프로필의 청구, 카드 정보, 이메일 및 해지는 Stripe에서 관리합니다.',
   'st.account.billing_preparing': '이 브라우저 프로필의 Stripe 청구 링크를 준비하는 중입니다.',
   'st.account.manage_billing': '청구 관리',

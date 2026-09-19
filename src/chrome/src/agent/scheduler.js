@@ -148,7 +148,7 @@ function doneOutcomeFromUpdate(type, data) {
 // is derived here (once, at the source) instead of being guessed downstream.
 // Billing patterns mirror the side panel's parseSubscribeError and
 // parseCostAllowanceError exclusions.
-const SCHEDULED_ASK_SUBSCRIBE_ERROR_RE = /(Subscribe for more usage|Upgrade to WebBrain Plus):\s*(https?:\/\/\S+)/i;
+const SCHEDULED_ASK_SUBSCRIBE_ERROR_RE = /(Subscribe for more usage|Upgrade to BROZER Plus):\s*(https?:\/\/\S+)/i;
 const SCHEDULED_ASK_COST_ALLOWANCE_ERROR_RE = /Cloud cost allowance reached:\s*(this session|total cloud\/router usage)\s+is\s+\$[\d.]+\s+against\s+the\s+\$([\d.]+)\s+limit\./i;
 
 function askRunSucceeded(result, sawFailureLikeUpdate = false, error = null) {
@@ -598,11 +598,11 @@ export class ScheduledJobManager {
     this.api?.alarms?.onAlarm?.addListener?.((alarm) => {
       const run = this.handleAlarm(alarm?.name);
       run.catch((e) => {
-        console.warn('[WebBrain] scheduled job alarm failed:', e);
+        console.warn('[BROZER] scheduled job alarm failed:', e);
       });
       return run;
     });
-    this.restoreAlarms().catch((e) => console.warn('[WebBrain] restore scheduled alarms failed:', e));
+    this.restoreAlarms().catch((e) => console.warn('[BROZER] restore scheduled alarms failed:', e));
   }
 
   isRunning(tabId) {
@@ -1501,7 +1501,7 @@ export class ScheduledJobManager {
             style: updated.watch?.beepStyle || 'default',
           });
         } catch (error) {
-          console.warn('[WebBrain] watch alert playback failed:', error);
+          console.warn('[BROZER] watch alert playback failed:', error);
         }
       }
       return;
@@ -1545,7 +1545,7 @@ export class ScheduledJobManager {
             style: completed.watch?.beepStyle || 'default',
           });
         } catch (error) {
-          console.warn('[WebBrain] watch alert playback failed:', error);
+          console.warn('[BROZER] watch alert playback failed:', error);
         }
       }
     }
@@ -1816,7 +1816,7 @@ export class ScheduledJobManager {
         })).then((waiting) => {
           if (waiting?.status === 'needs_user_input') this._emit(waiting, 'needs_user_input');
         }).catch((e) => {
-          console.warn('[WebBrain] failed to mark scheduled job as waiting for input:', e);
+          console.warn('[BROZER] failed to mark scheduled job as waiting for input:', e);
         });
       } else if (type === 'clarify_timeout_extended') {
         const clarifyId = String(data?.clarifyId || '');
@@ -1835,7 +1835,7 @@ export class ScheduledJobManager {
                 : {}),
             },
           })).catch((e) => {
-            console.warn('[WebBrain] failed to extend scheduled clarify timeout:', e);
+            console.warn('[BROZER] failed to extend scheduled clarify timeout:', e);
           });
         }
       } else if (type === 'clarify_auto') {
@@ -1854,7 +1854,7 @@ export class ScheduledJobManager {
           // the original scheduled message and leaves a blank spinner open.
           if (resumed?.status === 'running') this._emit(resumed, 'updated');
         }).catch((e) => {
-          console.warn('[WebBrain] failed to resume scheduled job after clarify timeout:', e);
+          console.warn('[BROZER] failed to resume scheduled job after clarify timeout:', e);
         });
       }
       // Tag scheduled clarify prompts and planner fallbacks with the job id so

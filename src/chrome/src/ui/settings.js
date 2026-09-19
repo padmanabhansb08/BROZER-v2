@@ -1,5 +1,5 @@
 /**
- * WebBrain Settings Page — provider configuration + display settings.
+ * BROZER Settings Page — provider configuration + display settings.
  */
 
 import { t, getLocale, setLocale, LANGUAGES } from './i18n.js';
@@ -3377,7 +3377,7 @@ function renderProviders() {
     if (!keys.has('contextWindow')) definition.fields.push(CONTEXT_WINDOW_FIELD);
     if (!keys.has('maxOutputTokens')) definition.fields.push(MAX_OUTPUT_TOKENS_FIELD);
     // Voluntary research sharing is opt-in per provider and never shown for
-    // WebBrain Compass itself.
+    // BROZER NAVIGATOR itself.
     if (!keys.has('shareQueriesForResearch')) definition.fields.push(SHARE_RESEARCH_FIELD);
   }
 

@@ -269,7 +269,7 @@ export default {
   'st.account.not_signed_in': 'サインインしていません',
   'st.account.sign_in': 'サインイン / 登録',
   'st.account.sign_out': 'サインアウト',
-  'st.account.provider_name': 'WebBrain Compass',
+  'st.account.provider_name': 'BROZER NAVIGATOR',
   'st.account.billing_managed': 'このブラウザープロファイルの請求、カード情報、メール、解約は Stripe が管理します。',
   'st.account.billing_preparing': 'このブラウザープロファイルの Stripe 請求リンクを準備しています。',
   'st.account.manage_billing': '請求を管理',

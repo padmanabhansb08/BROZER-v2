@@ -269,7 +269,7 @@ export default {
   'st.account.not_signed_in': 'Hindi naka-sign in',
   'st.account.sign_in': 'Mag-sign In / Magrehistro',
   'st.account.sign_out': 'Mag-sign Out',
-  'st.account.provider_name': 'WebBrain Compass',
+  'st.account.provider_name': 'BROZER NAVIGATOR',
   'st.account.billing_managed': 'Ang pagsingil, mga detalye ng card, email, at pagkansela ay pinamamahalaan ng Stripe para sa profile ng browser na ito.',
   'st.account.billing_preparing': 'Inihahanda ang link ng pagsingil ng Stripe para sa profile ng browser na ito.',
   'st.account.manage_billing': 'Pamahalaan ang pagsingil',

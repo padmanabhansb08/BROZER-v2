@@ -673,7 +673,7 @@ export async function openKiwixZim(source, metadata = {}) {
   const imagesIncluded = wikipediaArchiveIncludesImages(metadata, embedded);
 
   // Kiwix bakes a Xapian full-text index into most ZIMs as an ordinary entry, so
-  // WebBrain's own reader can tell whether one is present without loading any
+  // BROZER's own reader can tell whether one is present without loading any
   // search runtime. libzim 0.95 exposes no equivalent check and its search()
   // swallows the error, which makes "this archive has no index" indistinguishable
   // from "nothing matched". Probing here keeps that distinction honest and lets

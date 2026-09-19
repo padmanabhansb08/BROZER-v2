@@ -78,7 +78,7 @@ import {
 } from './connection-test-assets.js';
 
 const WEBBRAIN_CLOUD_PROVIDER_ID = 'webbrain_cloud';
-const WEBBRAIN_CLOUD_PROVIDER_LABEL = 'WebBrain Compass';
+const WEBBRAIN_CLOUD_PROVIDER_LABEL = 'BROZER NAVIGATOR';
 const DUPLICATE_PROVIDER_SUFFIX = '__duplicate';
 const LOCAL_MODEL_LIST_PROVIDER_IDS = ['llamacpp', 'ollama', 'lmstudio', 'jan', 'vllm', 'sglang', 'localai', 'gpt4all', 'local_openai_proxy', 'unsloth'];
 const WEBBRAIN_CLOUD_CONTEXT_WINDOW = 1000000;
@@ -372,7 +372,7 @@ export class ProviderManager {
         configured,
       };
       // Voluntary research sharing is opt-in per provider and default-off
-      // (never on for WebBrain Compass itself, which already shares via its
+      // (never on for WebBrain NAVIGATOR itself, which already shares via its
       // own outbox). Applied in the field-level merge so existing stored
       // configs without the key inherit the off state without polluting the
       // default catalog snapshots.
@@ -496,14 +496,14 @@ export class ProviderManager {
         label: WEBBRAIN_CLOUD_PROVIDER_LABEL,
         providerName: 'webbrain-cloud',
         baseUrl: 'https://api.webbrain.one/v1',
-        model: 'webbrain-cloud 1.0',
+        model: 'brozer-navigator 1.0',
         contextWindow: WEBBRAIN_CLOUD_CONTEXT_WINDOW,
         inputCostPerMillionUsd: 0.20,
         outputCostPerMillionUsd: 1.15,
         supportsStreamUsageOptions: true,
         supportsAskStreaming: true,
         supportsVision: true,
-        // WebBrain Compass proxies to OpenRouter, whose upstream models
+        // BROZER NAVIGATOR proxies to OpenRouter, whose upstream models
         // (minimax, stepfun, …) handle tools + images together fine. Dropping
         // tools on image turns forced the model into prompt-based tool calling,
         // which leaks raw tool-call template tokens (e.g. `]<]minimax[>[`) into
@@ -1013,7 +1013,7 @@ export class ProviderManager {
         outputCostPerMillionUsd: 0.56,
       };
     }
-    // WebGPU now ships Compass Tiny v2.1 only (32k). Migrate untouched
+    // WebGPU now ships NAVIGATOR Tiny v2.1 only (32k). Migrate untouched
     // LFM2.5 2.6B 16k defaults so fresh and uncustomized installs land on
     // Compass without wiping an explicitly chosen model.
     if (migrated.webgpu
@@ -1026,7 +1026,7 @@ export class ProviderManager {
         contextWindow: 32768,
       };
     }
-    // Compass itself shipped at 16k before the 32k default. Bump untouched
+    // NAVIGATOR itself shipped at 16k before the 32k default. Bump untouched
     // Compass 16k configs to 32k.
     if (migrated.webgpu
       && String(migrated.webgpu.model || '').trim() === WEBGPU_COMPASS_TINY_V2_MODEL_ID

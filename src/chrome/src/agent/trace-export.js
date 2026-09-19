@@ -276,7 +276,7 @@ export function tracesToMarkdown(runsWithEvents, {
   const runs = Array.isArray(runsWithEvents) ? runsWithEvents : [];
   let md = `# ${title}\n\n`;
   const exportVersion = oneLine(exportedByWebBrainVersion);
-  if (exportVersion) md += `_Exported with WebBrain v${exportVersion}_\n\n`;
+  if (exportVersion) md += `_Exported with BROZER v${exportVersion}_\n\n`;
   let turnCount = 0;
   let toolCount = 0;
   let unknownEventCount = 0;
@@ -330,7 +330,7 @@ export function tracesToMarkdown(runsWithEvents, {
         } else if (d.phase === 'read_scope') {
           md += `**Read scope:**\n${fencedBlock(content)}\n`;
         } else {
-          md += `**WebBrain:** ${oneLine(content)}\n`;
+          md += `**BROZER:** ${oneLine(content)}\n`;
           lastAssistantContent = content;
         }
       } else if (ev.kind === 'tool') {

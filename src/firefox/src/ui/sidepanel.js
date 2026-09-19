@@ -4,6 +4,10 @@
  * Verbose mode: always-open tool calls with arguments and results.
  */
 
+// Builds the new side-panel presentation. Imported first on purpose: module
+// imports evaluate before this file's body, so every element lookup below
+// resolves against the shell rather than against markup that no longer exists.
+import { shellApi } from './brozer-shell.js';
 import { t, getLocale, setLocale, LANGUAGES, applyDOMTranslations, translationsForKey } from './i18n.js';
 import { CAPABILITY_LABEL } from '../agent/permission-gate.js';
 import { sanitizeMarkdownLinks } from './markdown-link.js';
@@ -1034,6 +1038,24 @@ let currentAssistantEl = null;
 let verboseMode = false;
 let compactProgressVisible = true;
 let agentMode = 'ask'; // 'ask' | 'act' | 'dev'
+
+// Presentation controller for the rebuilt side panel. Owns the six motions
+// and nothing else: it is fed by the state and events below, and can never
+// gate a run, a mode change or a provider stream.
+const brozerPanel = {
+  setMode: (mode, opts) => shellApi?.tabs.setActive(mode, opts),
+  setExecutionState: (label) => { shellApi?.state.set(label); shellApi?.band.classList.remove('is-idle'); },
+  setExecutionLive: (live) => shellApi?.state.setActivity(live ? 'running' : 'paused'),
+  clearExecutionState: () => { shellApi?.state.clear(); shellApi?.stream.clear(); shellApi?.clearError(); shellApi?.band.classList.add('is-idle'); },
+  pushActivity: (label) => { shellApi?.stream.push(label); shellApi?.band.classList.remove('is-idle'); },
+  settleActivity: () => shellApi?.stream.resolveActive(),
+  dissolveComposer: (text) => shellApi?.field.dissolve(text),
+  showError: (message, onRetry) => shellApi?.renderError(message, { onRetry }),
+};
+
+// A tab click only *requests* a mode; setMode() decides and then tells the
+// tabs what was adopted, so the pill can never show an unadopted mode.
+if (shellApi) shellApi.onModeRequest = (mode) => { setMode(mode); };
 let abortRequested = false;
 const awaitingPlanReviewTabs = new Set();
 const processingTabs = new Set();
@@ -8466,7 +8488,13 @@ async function sendMessage(extraChatParams = {}) {
   }
   setTabProcessing(tabId, true);
   setTabAbortRequested(tabId, false);
+  // Order matters and is load-bearing: the command was captured into `text`
+  // and handed to the run above. Only now is the *visible* text dissolved,
+  // and the field is emptied in the same turn — the promise is intentionally
+  // not awaited so nothing downstream can ever wait on an animation.
+  const dissolvedCommand = inputEl.value;
   inputEl.value = '';
+  brozerPanel.dissolveComposer(dissolvedCommand);
   autoResizeInput();
   syncSendButtonState();
 
@@ -10571,6 +10599,21 @@ function looksLikeRawToolCallText(text) {
 
 const streamedAssistantTextByEl = new WeakMap();
 const streamedAssistantRenderFrameByEl = new WeakMap();
+// A pending streamed render is either a rAF handle or a setTimeout handle
+// (see scheduleStreamedAssistantMarkdownRender). The ids are not
+// interchangeable, so the kind is tracked and cancelled accordingly.
+const streamedAssistantRenderKindByEl = new WeakMap();
+const streamedAssistantRenderedLengthByEl = new WeakMap();
+const streamedAssistantLastRenderAtByEl = new WeakMap();
+
+function cancelStreamedAssistantRender(textEl) {
+  const handle = streamedAssistantRenderFrameByEl.get(textEl);
+  if (handle == null) return;
+  if (streamedAssistantRenderKindByEl.get(textEl) === 'timer') clearTimeout(handle);
+  else cancelAnimationFrame(handle);
+  streamedAssistantRenderFrameByEl.delete(textEl);
+  streamedAssistantRenderKindByEl.delete(textEl);
+}
 
 function getStreamedAssistantText(textEl) {
   return streamedAssistantTextByEl.get(textEl) || textEl?.dataset?.streamedAssistantText || '';
@@ -10586,9 +10629,9 @@ function hasStreamedAssistantText(textEl) {
 
 function clearStreamedAssistantText(textEl) {
   if (!textEl) return;
-  const frame = streamedAssistantRenderFrameByEl.get(textEl);
-  if (frame != null) cancelAnimationFrame(frame);
-  streamedAssistantRenderFrameByEl.delete(textEl);
+  cancelStreamedAssistantRender(textEl);
+  streamedAssistantRenderedLengthByEl.delete(textEl);
+  streamedAssistantLastRenderAtByEl.delete(textEl);
   streamedAssistantTextByEl.delete(textEl);
   delete textEl.dataset.streamedAssistantActive;
   delete textEl.dataset.streamedAssistantText;
@@ -10599,25 +10642,85 @@ function renderStreamedAssistantMarkdownNow(textEl) {
   const streamedText = getStreamedAssistantText(textEl);
   if (!streamedText) return;
   textEl.innerHTML = formatMarkdown(streamedText, { enhance: false });
+  streamedAssistantRenderedLengthByEl.set(textEl, streamedText.length);
+  streamedAssistantLastRenderAtByEl.set(textEl, performance.now());
+  revealStreamedTail(textEl);
   scrollToBottom();
+}
+
+// Markdown is block-structured, so a growing response has to be re-parsed
+// rather than appended to. That makes each render O(n) in the text so far —
+// once per frame, it is O(n^2) across a long answer, which is what made long
+// responses stall the panel. Re-parsing is therefore spaced out as the
+// response grows: short answers still render every frame, long ones settle
+// for a slightly coarser cadence. The terminal render always runs, so the
+// final output is byte-identical either way.
+function streamedRenderIntervalMs(length) {
+  if (length < 2_000) return 0;      // every frame
+  if (length < 8_000) return 100;
+  if (length < 20_000) return 250;
+  return 500;
+}
+
+// Words that arrived since the previous parse get the streaming-text reveal.
+// The spans are added to already-rendered nodes rather than replacing them,
+// so the reveal costs one class flip per word and never rebuilds the answer.
+function revealStreamedTail(textEl) {
+  if (!textEl || prefersReducedMotionPanel()) return;
+  const last = textEl.lastElementChild || textEl;
+  const node = last.lastChild;
+  if (!node || node.nodeType !== Node.TEXT_NODE) return;
+  const tail = node.nodeValue;
+  if (!tail || tail.length > 400) return;
+  const parts = tail.split(/(s+)/);
+  const frag = document.createDocumentFragment();
+  for (const part of parts) {
+    if (!part) continue;
+    if (/^s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); continue; }
+    const span = document.createElement('span');
+    span.className = 'bz-token';
+    span.textContent = part;
+    frag.appendChild(span);
+  }
+  node.replaceWith(frag);
+  requestAnimationFrame(() => {
+    for (const el of textEl.querySelectorAll('.bz-token:not(.is-in)')) el.classList.add('is-in');
+  });
+}
+
+function prefersReducedMotionPanel() {
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
 }
 
 function scheduleStreamedAssistantMarkdownRender(textEl) {
   if (!textEl || streamedAssistantRenderFrameByEl.has(textEl)) return;
+  const streamedText = getStreamedAssistantText(textEl);
+  const interval = streamedRenderIntervalMs(streamedText.length);
+  const since = performance.now() - (streamedAssistantLastRenderAtByEl.get(textEl) || 0);
+  if (interval > 0 && since < interval) {
+    // Coalesce into a single deferred render instead of one per delta.
+    const timer = setTimeout(() => {
+      streamedAssistantRenderFrameByEl.delete(textEl);
+      streamedAssistantRenderKindByEl.delete(textEl);
+      renderStreamedAssistantMarkdownNow(textEl);
+    }, interval - since);
+    streamedAssistantRenderFrameByEl.set(textEl, timer);
+    streamedAssistantRenderKindByEl.set(textEl, 'timer');
+    return;
+  }
   const frame = requestAnimationFrame(() => {
     if (streamedAssistantRenderFrameByEl.get(textEl) !== frame) return;
     streamedAssistantRenderFrameByEl.delete(textEl);
     renderStreamedAssistantMarkdownNow(textEl);
   });
   streamedAssistantRenderFrameByEl.set(textEl, frame);
+  streamedAssistantRenderKindByEl.set(textEl, 'frame');
 }
 
 function flushPendingStreamedAssistantMarkdownRenders(root = messagesEl) {
   root?.querySelectorAll?.('.message-text[data-streamed-assistant-active="true"]').forEach((textEl) => {
-    const frame = streamedAssistantRenderFrameByEl.get(textEl);
-    if (frame == null) return;
-    cancelAnimationFrame(frame);
-    streamedAssistantRenderFrameByEl.delete(textEl);
+    if (streamedAssistantRenderFrameByEl.get(textEl) == null) return;
+    cancelStreamedAssistantRender(textEl);
     renderStreamedAssistantMarkdownNow(textEl);
   });
 }
@@ -11818,7 +11921,13 @@ function clearThinkingActivityTimers() {
 
 function setActivityText(text, { announce = false } = {}) {
   const nextText = String(text || '');
-  if (activityText.textContent !== nextText) activityText.textContent = nextText;
+  if (activityText.textContent !== nextText) {
+    activityText.textContent = nextText;
+    // The visible label is the thinking-states swap; the shimmer marks it as
+    // the currently active state. Both are driven only from here, so they
+    // follow real execution events rather than a timer of their own.
+    brozerPanel.setExecutionState(nextText, { live: true });
+  }
   if (announce && activityLiveStatus?.textContent !== nextText) {
     activityLiveStatus.textContent = nextText;
   }
@@ -11852,10 +11961,19 @@ function showActivity(text) {
   activityDisplayMode = 'concrete';
   agentActivity.classList.remove('hidden');
   setActivityText(text, { announce: true });
+  // Concrete statuses are the panel's already-display-safe labels (friendly
+  // tool names, progress notes). Generic rotating "thinking" copy is not an
+  // activity and is deliberately excluded.
+  brozerPanel.pushActivity(text);
 }
 
 function hideActivity() {
   clearThinkingActivityTimers();
+  // The run is over: the last row settles and the shimmer stops, so no
+  // motion outlives the state it was reporting.
+  brozerPanel.settleActivity();
+  brozerPanel.setExecutionLive(false);
+  brozerPanel.clearExecutionState();
   activityDisplayMode = 'idle';
   if (activityLiveStatus) activityLiveStatus.textContent = '';
   if (!compactProgressVisible) setCompactProgressVisible(true);
@@ -12617,11 +12735,14 @@ async function handleGlobalKeydown(e) {
 // --- Mode Toggle ---
 
 function positionModeHighlight(btn, { instant = false } = {}) {
-  if (!modeToggleHighlight || !btn) return;
-  if (instant) modeToggleHighlight.classList.add('instant');
-  modeToggleHighlight.style.width = `${btn.offsetWidth}px`;
-  modeToggleHighlight.style.transform = `translate3d(${btn.offsetLeft}px, 0, 0)`;
-  if (instant) requestAnimationFrame(() => modeToggleHighlight.classList.remove('instant'));
+  // The sliding-tabs controller owns the indicator: it measures the active
+  // tab and tweens transform + width between measured positions. Mode state
+  // stays authoritative in setMode(), which has already committed agentMode
+  // before this runs — the pill only ever reflects an adopted mode.
+  if (!btn) return;
+  const mode = btn.dataset?.mode
+    || (btn === modeAskBtn ? 'ask' : btn === modeActBtn ? 'act' : 'dev');
+  brozerPanel?.setMode(mode, { animate: !instant });
 }
 
 function setMode(mode) {

@@ -554,7 +554,7 @@ export default {
   'st.account.not_signed_in': "Chưa đăng nhập",
   'st.account.sign_in': "Đăng nhập / Đăng ký",
   'st.account.sign_out': "Đăng xuất",
-  'st.account.provider_name': "WebBrain Compass",
+  'st.account.provider_name': "BROZER NAVIGATOR",
   'st.account.billing_managed': "Việc thanh toán, chi tiết thẻ, email và việc hủy do Stripe quản lý cho cấu hình trình duyệt này.",
   'st.account.billing_preparing': "Đang chuẩn bị liên kết thanh toán Stripe cho cấu hình trình duyệt này.",
   'st.account.manage_billing': "Quản lý thanh toán",

@@ -413,7 +413,7 @@ export default {
   'st.account.not_signed_in': 'Nie zalogowano',
   'st.account.sign_in': 'Zaloguj się / Zarejestruj',
   'st.account.sign_out': 'Wyloguj się',
-  'st.account.provider_name': 'WebBrain Compass',
+  'st.account.provider_name': 'BROZER NAVIGATOR',
   'st.account.billing_managed': 'Rozliczenia, dane karty, e-mail i anulowanie są zarządzane przez Stripe dla tego profilu przeglądarki.',
   'st.account.billing_preparing': 'Przygotowywanie linku rozliczeniowego Stripe dla tego profilu przeglądarki.',
   'st.account.manage_billing': 'Zarządzaj rozliczeniami',

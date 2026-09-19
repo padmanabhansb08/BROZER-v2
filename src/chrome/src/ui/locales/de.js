@@ -550,7 +550,7 @@ export default {
   'st.account.not_signed_in': 'Nicht angemeldet',
   'st.account.sign_in': 'Anmelden / Registrieren',
   'st.account.sign_out': 'Abmelden',
-  'st.account.provider_name': 'WebBrain Compass',
+  'st.account.provider_name': 'BROZER NAVIGATOR',
   'st.account.billing_managed': 'Abrechnung, Karteninformationen, E-Mail und Kündigung werden von Stripe für dieses Browser-Profil verwaltet.',
   'st.account.billing_preparing': 'Stripe-Abrechnungslink für dieses Browser-Profil wird vorbereitet.',
   'st.account.manage_billing': 'Abrechnung verwalten',

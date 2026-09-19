@@ -523,7 +523,7 @@ export default {
   'ob.btn.done': "आरंभ करें",
   'ob.btn.skip': "अभी के लिए छोड़ें",
   'ob.btn.start': 'प्रारंभ',
-  'ob.cloud.body': 'WebBrain Compass एक निःशुल्क दैनिक भत्ते के साथ तैयार है। चयनित Compass बातचीत बनाए रखी जा सकती है और WebBrain में सुधार के लिए उपयोग की जा सकती है जबकि Help Improve WebBrain डिफ़ॉल्ट रूप से चालू है। आप इसे Settings → General में बंद कर सकते हैं।',
+  'ob.cloud.body': 'WebBrain Compass एक निःशुल्क दैनिक भत्ते के साथ तैयार है। चयनित Compass बातचीत बनाए रखी जा सकती है और WebBrain में सुधार के लिए उपयोग की जा सकती है जबकि Help Improve BROZER डिफ़ॉल्ट रूप से चालू है। आप इसे Settings → General में बंद कर सकते हैं।',
   'ob.cloud.change': 'बदलें',
   'ob.cloud.using': 'WebBrain Compass का उपयोग कर रहा है।',
 
@@ -554,7 +554,7 @@ export default {
   'st.account.not_signed_in': "साइन इन नहीं है",
   'st.account.sign_in': "साइन इन/रजिस्टर करें",
   'st.account.sign_out': "साइन आउट करें",
-  'st.account.provider_name': "WebBrain Compass",
+  'st.account.provider_name': "BROZER NAVIGATOR",
   'st.account.billing_managed': "इस ब्राउज़र प्रोफ़ाइल के लिए बिलिंग, कार्ड विवरण, ईमेल और रद्दीकरण Stripe द्वारा प्रबंधित किया जाता है।",
   'st.account.billing_preparing': "इस ब्राउज़र प्रोफ़ाइल के लिए Stripe बिलिंग लिंक तैयार किया जा रहा है।",
   'st.account.manage_billing': "बिलिंग प्रबंधित करें",

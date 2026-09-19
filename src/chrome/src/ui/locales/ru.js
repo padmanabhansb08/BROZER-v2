@@ -269,7 +269,7 @@ export default {
   'st.account.not_signed_in': 'Вы не вошли',
   'st.account.sign_in': 'Войти / Зарегистрироваться',
   'st.account.sign_out': 'Выйти',
-  'st.account.provider_name': 'WebBrain Compass',
+  'st.account.provider_name': 'BROZER NAVIGATOR',
   'st.account.billing_managed': 'Оплата, данные карты, электронная почта и отмена управляются Stripe для этого профиля браузера.',
   'st.account.billing_preparing': 'Подготовка ссылки на оплату Stripe для этого профиля браузера.',
   'st.account.manage_billing': 'Управление оплатой',

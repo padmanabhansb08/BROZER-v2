@@ -2,7 +2,7 @@ const TERMINAL_RUN_STATUSES = new Set(['completed', 'stopped', 'failed', 'cancel
 
 export function isBackgroundConnectionError(error) {
   const message = String(error?.message || error || '');
-  return /Could not establish connection|Receiving end does not exist|Extension context invalidated|message (?:channel|port) closed|No response from WebBrain background|background script may have restarted|extension connection was lost/i.test(message);
+  return /Could not establish connection|Receiving end does not exist|Extension context invalidated|message (?:channel|port) closed|No response from BROZER background|background script may have restarted|extension connection was lost/i.test(message);
 }
 
 function defaultWait(ms) {

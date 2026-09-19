@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebBrain</title>
+  <title>BROZER</title>
   <!-- Theme bootstrap MUST load before the stylesheet so data-theme is set
        on <html> before any paint. External classic script (not inline,
        not module) — MV3's default CSP forbids inline scripts, and modules
@@ -17,6 +17,15 @@
        call them after inserting message HTML. -->
   <script defer src="../../vendor/katex/katex.min.js"></script>
   <script defer src="../../vendor/katex/auto-render.min.js"></script>
+  <link rel="stylesheet" href="../../styles/brozer-components.css">
+  <link rel="stylesheet" href="../../styles/brozer-shell.css">
+  <style>
+    /* The retained secondary controls are not part of the new design. They
+       exist so their subsystems keep working, and are revealed only by the
+       logic that owns them (chat navigation, recommended actions and the
+       store-review prompt manage their own visibility). */
+    .bz-legacy { position: absolute; left: -9999px; top: 0; width: 1px; height: 1px; overflow: hidden; }
+  </style>
 </head>
 <body>
   <!-- Shown before the regular onboarding when the install page opens the
@@ -37,8 +46,8 @@
     </svg>
     <div class="pin-coachmark-card">
       <p class="pin-coachmark-kicker" data-i18n="install.eyebrow">One small setup step</p>
-      <h2 id="pin-coachmark-title" data-i18n="install.pin.title">Pin WebBrain to your toolbar</h2>
-      <p id="pin-coachmark-description" data-i18n="install.pin.body">Click the pin in the side panel header above. This adds WebBrain to your browser toolbar for one-click access.</p>
+      <h2 id="pin-coachmark-title" data-i18n="install.pin.title">Pin BROZER to your toolbar</h2>
+      <p id="pin-coachmark-description" data-i18n="install.pin.body">Click the pin in the side panel header above. This adds BROZER to your browser toolbar for one-click access.</p>
       <div class="pin-coachmark-actions">
         <button id="pin-coachmark-done" type="button" data-i18n="install.pin.confirm">I pinned it</button>
         <button id="pin-coachmark-skip" class="pin-coachmark-skip" type="button" data-i18n="install.pin.skip">Skip this step</button>
@@ -97,7 +106,7 @@
         <div class="ob-help-improve hidden" id="ob-help-improve">
           <label class="ob-help-improve-control" for="ob-help-improve-checkbox">
             <input type="checkbox" id="ob-help-improve-checkbox" aria-describedby="ob-help-improve-description" checked>
-            <span data-i18n="st.display.help_improve.label">Help Improve WebBrain</span>
+            <span data-i18n="st.display.help_improve.label">Help Improve BROZER</span>
           </label>
           <div class="ob-help-improve-description" id="ob-help-improve-description" data-i18n-html="st.display.help_improve.desc_html"></div>
         </div>
@@ -170,9 +179,77 @@
 
   <div id="app">
     <!-- Header -->
-    <div class="header-shell">
-      <header id="header">
-      <div class="header-left">
+    <!-- header-shell: old presentation removed; rebuilt by brozer-shell.js -->
+
+    <section id="standalone-rag-readiness" class="offline-rag-readiness hidden" aria-live="polite"></section>
+
+    <!-- Page Inspection Banner -->
+    <div id="inspection-banner" class="hidden">
+      <div class="inspection-dot"></div>
+      <span data-i18n="sp.inspection"></span>
+    </div>
+
+    <div id="recording-banner" class="hidden" role="status" aria-live="polite">
+      <span class="recording-dot" aria-hidden="true"></span>
+      <span class="recording-label" data-i18n="sp.record.banner_label"></span>
+      <span class="recording-timer" id="recording-timer">00:00</span>
+      <button id="btn-recording-stop" class="recording-stop" data-i18n="sp.record.stop"></button>
+    </div>
+
+    <div id="scheduled-jobs" class="scheduled-jobs hidden" aria-live="polite"></div>
+
+    <!-- Chat Messages -->
+    <!-- chat-shell: old presentation removed; rebuilt by brozer-shell.js -->
+
+    <!-- Agent Activity Indicator -->
+    <!-- Execution state (thinking-states swap + shimmer) and the sanitized
+         live activity stream. #activity-text is retained as the integration
+         point for the existing setActivityText() path. -->
+    <!-- agent-activity: old presentation removed; rebuilt by brozer-shell.js -->
+
+    <!-- Act Mode Warning Banner -->
+    <div id="act-warning" class="hidden">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <span data-i18n="sp.mode.act.warning"></span>
+      <button id="act-warning-dismiss" type="button" data-i18n-aria-label="sp.review.close" aria-label="Dismiss">×</button>
+    </div>
+
+    <div id="selection-scope-banner" class="selection-scope-banner hidden" role="region" aria-labelledby="selection-scope-title">
+      <div class="selection-scope-banner-icon" aria-hidden="true">⚠</div>
+      <div class="selection-scope-banner-copy" aria-live="polite">
+        <strong id="selection-scope-title" data-i18n="sp.selection_scope.title">Selected text only</strong>
+        <span id="selection-scope-description" data-i18n="sp.selection_scope.description">Start a new conversation to access the page or screen.</span>
+      </div>
+      <button id="selection-scope-restore" type="button" data-i18n="sp.selection_scope.restore">Use broader conversation</button>
+      <button id="selection-scope-new-conversation" type="button" data-i18n="sp.btn.clear">New conversation</button>
+    </div>
+
+    <!-- Input Area -->
+    <!-- input-area: old presentation removed; rebuilt by brozer-shell.js -->
+  </div>
+
+  <button id="selection-ask-action" class="selection-ask-action hidden" type="button"></button>
+
+
+
+  <!--
+    Compatibility mount.
+
+    These controls belong to subsystems outside this rebuild: provider and
+    language selection, UI scale, connection status, chat navigation,
+    recommended actions and the store-review prompt.
+
+    Their old toolbar presentation has been REMOVED from the panel layout —
+    the masthead, chat canvas, execution card, mode row and composer are now
+    built by brozer-shell.js out of the six motion components. These elements
+    are retained here ONLY so the existing panel logic, which binds them by
+    id, keeps working; they are not part of the new design and never render
+    as a toolbar. Provider and language selection remain reachable through
+    Settings. See docs/BROZER_SIDE_PANEL_UI_REBUILD.md.
+  -->
+  <div id="bz-legacy" class="bz-legacy">
         <div class="provider-picker" id="provider-picker">
           <!-- Native select kept as the value source for existing handlers.
                Closed button is text-only; brand icons show only in the open menu. -->
@@ -187,18 +264,6 @@
           </button>
           <div class="provider-picker-menu hidden" id="provider-picker-menu" role="listbox" tabindex="-1"></div>
         </div>
-        <button
-          type="button"
-          id="btn-webgpu-standalone"
-          class="standalone-webgpu-toggle"
-          title="Enable Apocalypse Mode first"
-          aria-label="Use WebGPU for this standalone chat"
-          aria-pressed="false"
-          hidden
-        ><span aria-hidden="true">☢</span></button>
-        <span id="status-dot" class="status-dot offline" data-i18n-title="sp.status.disconnected"></span>
-      </div>
-      <div class="header-right">
         <div id="language-picker" class="language-picker">
           <select id="language-select" class="language-select-native" tabindex="-1" aria-hidden="true"></select>
           <button type="button" id="language-picker-btn" class="language-picker-btn" aria-haspopup="listbox" aria-expanded="false" aria-controls="language-picker-menu" data-i18n-aria-label="sp.btn.language">
@@ -226,46 +291,35 @@
             <button type="button" class="ui-scale-reset" data-ui-scale-action="reset" data-i18n="sp.ui_scale.reset"></button>
           </div>
         </div>
-        <button id="btn-settings" data-i18n-title="sp.btn.settings">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-          </svg>
-        </button>
-        <button id="btn-expand" data-i18n-title="sp.btn.expand" data-i18n-aria-label="sp.btn.expand">
-          <svg data-icon="external-link" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M15 3h6v6"/>
-            <path d="M10 14 21 3"/>
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-          </svg>
-        </button>
+        <span id="status-dot" class="status-dot offline" data-i18n-title="sp.status.disconnected"></span>
+          id="btn-webgpu-standalone"
+          class="standalone-webgpu-toggle"
+          title="Enable Apocalypse Mode first"
+          aria-label="Use WebGPU for this standalone chat"
+          aria-pressed="false"
+          hidden
+        ><span aria-hidden="true">☢</span></button>
+        <span id="status-dot" class="status-dot offline" data-i18n-title="sp.status.disconnected"></span>
       </div>
-      </header>
-    </div>
-
-    <section id="standalone-rag-readiness" class="offline-rag-readiness hidden" aria-live="polite"></section>
-
-    <!-- Page Inspection Banner -->
-    <div id="inspection-banner" class="hidden">
-      <div class="inspection-dot"></div>
-      <span data-i18n="sp.inspection"></span>
-    </div>
-
-    <div id="recording-banner" class="hidden" role="status" aria-live="polite">
-      <span class="recording-dot" aria-hidden="true"></span>
-      <span class="recording-label" data-i18n="sp.record.banner_label"></span>
-      <span class="recording-timer" id="recording-timer">00:00</span>
-      <button id="btn-recording-stop" class="recording-stop" data-i18n="sp.record.stop"></button>
-    </div>
-
-    <div id="scheduled-jobs" class="scheduled-jobs hidden" aria-live="polite"></div>
-
-    <!-- Chat Messages -->
-    <div id="chat-shell">
-      <div id="chat-container">
-        <div id="messages"></div>
-        <section id="chat-empty-state" class="chat-empty-state" aria-labelledby="chat-empty-state-heading">
-          <h2 id="chat-empty-state-heading" class="chat-empty-state-heading" data-i18n="sp.help_message">How can I help with this page?</h2>
+      <div class="header-right">
+        <div id="language-picker" class="language-picker">
+          <select id="language-select" class="language-select-native" tabindex="-1" aria-hidden="true"></select>
+          <button type="button" id="language-picker-btn" class="language-picker-btn" aria-haspopup="listbox" aria-expanded="false" aria-controls="language-picker-menu" data-i18n-aria-label="sp.btn.language">
+            <svg data-icon="globe" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+              <path d="M2 12h20"/>
+            </svg>
+          </button>
+      <div id="chat-navigation" class="chat-navigation hidden">
+        <button id="chat-navigation-action" class="chat-navigation-action" type="button" aria-controls="chat-container">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 19V5M6.5 10.5 12 5l5.5 5.5"/>
+          </svg>
+          <span id="chat-navigation-label">Back to question</span>
+        </button>
+        <button id="chat-navigation-dismiss" class="chat-navigation-dismiss" type="button" data-i18n-aria-label="sp.review.close" aria-label="Dismiss">×</button>
+      </div>
           <div id="recommended-actions" class="recommended-actions hidden" aria-live="polite">
             <div class="recommended-actions-header">
               <div class="recommended-actions-title" data-i18n="sp.recommended.title">Suggested actions</div>
@@ -285,7 +339,6 @@
             </div>
             <div id="recommended-actions-list" class="recommended-actions-list"></div>
           </div>
-        </section>
         <div id="store-review-prompt" class="store-review-prompt hidden" role="dialog" aria-live="polite" aria-labelledby="store-review-title">
           <div class="store-review-card">
             <button type="button" id="store-review-close" class="store-review-close" data-i18n-aria-label="sp.review.close" aria-label="Dismiss">×</button>
@@ -321,108 +374,7 @@
             </div>
           </div>
         </div>
-      </div>
-      <div id="chat-navigation" class="chat-navigation hidden">
-        <button id="chat-navigation-action" class="chat-navigation-action" type="button" aria-controls="chat-container">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 19V5M6.5 10.5 12 5l5.5 5.5"/>
-          </svg>
-          <span id="chat-navigation-label">Back to question</span>
-        </button>
-        <button id="chat-navigation-dismiss" class="chat-navigation-dismiss" type="button" data-i18n-aria-label="sp.review.close" aria-label="Dismiss">×</button>
-      </div>
-    </div>
-
-    <!-- Agent Activity Indicator -->
-    <div id="agent-activity" class="hidden">
-      <button id="activity-progress-toggle" type="button" aria-controls="messages" aria-expanded="true" aria-label="Toggle activity history" data-i18n-aria-label="sp.activity.toggle_history">
-        <span class="activity-spinner" aria-hidden="true"></span>
-        <span id="activity-text" aria-hidden="true" data-i18n="sp.activity.thinking"></span>
-      </button>
-      <span id="activity-live-status" role="status" aria-live="polite" aria-atomic="true"></span>
-      <button id="btn-stop" data-i18n-title="sp.btn.stop.title">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="4" y="4" width="16" height="16" rx="2"/>
-        </svg>
-        <span data-i18n="sp.btn.stop.label"></span>
-      </button>
-    </div>
-
-    <!-- Act Mode Warning Banner -->
-    <div id="act-warning" class="hidden">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-      </svg>
-      <span data-i18n="sp.mode.act.warning"></span>
-      <button id="act-warning-dismiss" type="button" data-i18n-aria-label="sp.review.close" aria-label="Dismiss">×</button>
-    </div>
-
-    <div id="selection-scope-banner" class="selection-scope-banner hidden" role="region" aria-labelledby="selection-scope-title">
-      <div class="selection-scope-banner-icon" aria-hidden="true">⚠</div>
-      <div class="selection-scope-banner-copy" aria-live="polite">
-        <strong id="selection-scope-title" data-i18n="sp.selection_scope.title">Selected text only</strong>
-        <span id="selection-scope-description" data-i18n="sp.selection_scope.description">Start a new conversation to access the page or screen.</span>
-      </div>
-      <button id="selection-scope-restore" type="button" data-i18n="sp.selection_scope.restore">Use broader conversation</button>
-      <button id="selection-scope-new-conversation" type="button" data-i18n="sp.btn.clear">New conversation</button>
-    </div>
-
-    <!-- Input Area -->
-    <div id="input-area">
-      <div class="composer-control-row">
-        <div id="mode-toggle">
-          <button id="btn-mode-ask" class="mode-btn active" data-i18n="sp.mode.ask" data-i18n-title="sp.mode.ask.title"></button>
-          <button id="btn-mode-act" class="mode-btn" data-i18n="sp.mode.act" data-i18n-title="sp.mode.act.title"></button>
-          <button id="btn-mode-dev" class="mode-btn" data-i18n="sp.mode.dev" data-i18n-title="sp.mode.dev.title"></button>
-        </div>
-        <div class="conversation-action-group">
-          <button id="btn-history" class="conversation-action" type="button" data-i18n-title="sp.btn.history_short" data-i18n-aria-label="sp.btn.history_short">
-            <svg data-icon="history" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-              <path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>
-            </svg>
-            <span class="conversation-action-label" data-i18n="sp.btn.history_short">History</span>
-          </button>
-          <button id="btn-clear" class="conversation-action" type="button" data-i18n-title="sp.btn.clear_short" data-i18n-aria-label="sp.btn.clear_short">
-            <svg data-icon="plus" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M5 12h14"/><path d="M12 5v14"/>
-            </svg>
-            <span class="conversation-action-label" data-i18n="sp.btn.clear_short">New chat</span>
-          </button>
-        </div>
-      </div>
-      <div id="queued-messages" class="queued-messages hidden" role="list" aria-live="polite"></div>
-      <div id="slash-command-menu" class="slash-command-menu hidden" role="listbox" data-i18n-aria-label="sp.slash.commands_label"></div>
-      <div id="attachment-preview-list" class="attachment-preview-list hidden"></div>
-      <input type="file" id="file-attach-input" accept="image/*,application/pdf,application/json,text/plain,text/csv,.json,.txt,.csv" multiple hidden>
-      <div id="input-wrapper">
-        <button id="btn-attach" data-i18n-title="sp.btn.attach">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m16 6-8.4 8.6a2 2 0 0 0 2.8 2.8l8.4-8.6a4 4 0 0 0-5.6-5.6l-8.4 8.6a6 6 0 0 0 8.5 8.5l8.4-8.6"/>
-          </svg>
-        </button>
-        <div id="input-text-layer">
-          <div id="input-highlight" aria-hidden="true"></div>
-          <textarea id="user-input" data-i18n-placeholder="sp.input.ask_placeholder" rows="1"></textarea>
-        </div>
-        <button id="btn-mic" data-i18n-title="sp.btn.mic">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-            <path d="M12 19v3"/>
-            <path d="M8 22h8"/>
-          </svg>
-        </button>
-        <button id="btn-send" data-i18n-title="sp.btn.send">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-          </svg>
-        </button>
-      </div>
-    </div>
   </div>
-
-  <button id="selection-ask-action" class="selection-ask-action hidden" type="button"></button>
 
   <script src="sidepanel.js" type="module"></script>
 </body>

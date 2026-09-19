@@ -1,7 +1,7 @@
 import { SecretStore } from './secret-store.js';
 
 /**
- * ActionValidator module for WebBrain (Phase 3).
+ * ActionValidator module for BROZER (Phase 3).
  * Validates tool actions, target fields, origin context, and placeholder authorization BEFORE secret resolution.
  * Enforces strict fail-closed authorization policies and prohibits secrets in URLs, navigation, or arbitrary scripts.
  */

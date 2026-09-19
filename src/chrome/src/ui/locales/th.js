@@ -269,7 +269,7 @@ export default {
   'st.account.not_signed_in': 'ยังไม่ได้เข้าสู่ระบบ',
   'st.account.sign_in': 'เข้าสู่ระบบ / สมัคร',
   'st.account.sign_out': 'ออกจากระบบ',
-  'st.account.provider_name': 'WebBrain Compass',
+  'st.account.provider_name': 'BROZER NAVIGATOR',
   'st.account.billing_managed': 'การเรียกเก็บเงิน รายละเอียดบัตร อีเมล และการยกเลิก จัดการโดย Stripe สำหรับโปรไฟล์เบราว์เซอร์นี้',
   'st.account.billing_preparing': 'กำลังเตรียมลิงก์การเรียกเก็บเงินของ Stripe สำหรับโปรไฟล์เบราว์เซอร์นี้',
   'st.account.manage_billing': 'จัดการการเรียกเก็บเงิน',

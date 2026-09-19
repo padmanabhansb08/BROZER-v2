@@ -135,7 +135,7 @@ export default {
   'ob.btn.done': 'ابدأ',
   'ob.btn.skip': 'تخطي الآن',
   'ob.btn.start': 'بدء',
-  'ob.cloud.body': 'WebBrain Compass جاهز مع بدل يومي مجاني. قد يتم الاحتفاظ بمحادثات Compass المحددة واستخدامها لتحسين WebBrain بينما يكون Help Improve WebBrain قيد التشغيل افتراضيًا. يمكنك إيقاف تشغيله في الإعدادات → عام.',
+  'ob.cloud.body': 'WebBrain Compass جاهز مع بدل يومي مجاني. قد يتم الاحتفاظ بمحادثات Compass المحددة واستخدامها لتحسين WebBrain بينما يكون Help Improve BROZER قيد التشغيل افتراضيًا. يمكنك إيقاف تشغيله في الإعدادات → عام.',
   'ob.cloud.change': 'تغيير',
   'ob.cloud.using': 'استخدام WebBrain Compass.',
 
@@ -269,7 +269,7 @@ export default {
   'st.account.not_signed_in': 'غير مسجّل الدخول',
   'st.account.sign_in': 'تسجيل الدخول / التسجيل',
   'st.account.sign_out': 'تسجيل الخروج',
-  'st.account.provider_name': 'WebBrain Compass',
+  'st.account.provider_name': 'BROZER NAVIGATOR',
   'st.account.billing_managed': 'تتم إدارة الفوترة وبيانات البطاقة والبريد الإلكتروني والإلغاء بواسطة Stripe لملف المتصفح هذا.',
   'st.account.billing_preparing': 'يتم تجهيز رابط الفوترة عبر Stripe لملف المتصفح هذا.',
   'st.account.manage_billing': 'إدارة الفوترة',

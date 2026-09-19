@@ -1,9 +1,13 @@
 /**
- * WebBrain Side Panel — Chat UI logic.
+ * BROZER Side Panel — Chat UI logic.
  * Default: compact history in chat plus the live label; click for status-only mode.
  * Verbose mode: always-open tool calls with arguments and results.
  */
 
+// Builds the new side-panel presentation. Imported first on purpose: module
+// imports evaluate before this file's body, so every element lookup below
+// resolves against the shell rather than against markup that no longer exists.
+import { shellApi } from './brozer-shell.js';
 import { t, getLocale, setLocale, LANGUAGES, applyDOMTranslations, translationsForKey } from './i18n.js';
 import { CAPABILITY_LABEL } from '../agent/permission-gate.js';
 import { sanitizeMarkdownLinks } from './markdown-link.js';
@@ -492,7 +496,7 @@ const pinCoachmarkDismissed = (async function initPinCoachmark() {
         // running" as the same generic network error, so we can't tell them
         // apart — the hint is phrased conditionally. Log the real underlying
         // errors so they're visible in the console for debugging.
-        console.warn('[WebBrain] onboarding local-model scan failed:', errors);
+        console.warn('[BROZER] onboarding local-model scan failed:', errors);
         showProviderFallback('ob.tokens.none_blocked');
       } else {
         showProviderFallback();
@@ -590,6 +594,7 @@ const inputEl = document.getElementById('user-input');
 const inputHighlightEl = document.getElementById('input-highlight');
 const sendBtn = document.getElementById('btn-send');
 const micBtn = document.getElementById('btn-mic');
+const clearInputBtn = document.getElementById('btn-clear-input');
 const clearBtn = document.getElementById('btn-clear');
 const appEl = document.getElementById('app');
 const newConversationConfirmEl = document.getElementById('new-conversation-confirm');
@@ -1175,6 +1180,23 @@ let currentAssistantEl = null;
 let verboseMode = false;
 let compactProgressVisible = true;
 let agentMode = 'ask'; // 'ask' | 'act' | 'dev'
+
+// The shell owns the six motion components. It is fed by the state and events
+// below and can never gate a run, a mode change or a provider stream.
+const brozerPanel = {
+  setMode: (mode, opts) => shellApi?.tabs.setActive(mode, opts),
+  setExecutionState: (label) => { shellApi?.state.set(label); shellApi?.band.classList.remove('is-idle'); },
+  setExecutionLive: (live) => shellApi?.state.setActivity(live ? 'running' : 'paused'),
+  clearExecutionState: () => { shellApi?.state.clear(); shellApi?.stream.clear(); shellApi?.clearError(); shellApi?.band.classList.add('is-idle'); },
+  pushActivity: (label) => { shellApi?.stream.push(label); shellApi?.band.classList.remove('is-idle'); },
+  settleActivity: () => shellApi?.stream.resolveActive(),
+  dissolveComposer: (text) => shellApi?.field.dissolve(text),
+  showError: (message, onRetry) => shellApi?.renderError(message, { onRetry }),
+};
+
+// A tab click only *requests* a mode; setMode() decides and then tells the
+// tabs what was adopted, so the pill can never show an unadopted mode.
+if (shellApi) shellApi.onModeRequest = (mode) => { setMode(mode); };
 let abortRequested = false;
 const awaitingPlanReviewTabs = new Set();
 const processingTabs = new Set();
@@ -1671,7 +1693,13 @@ function updateActWarning() {
     && !actWarningDismissed
     && agentMode !== 'ask'
     && !askBeforeConsequential;
-  actWarning.classList.toggle('hidden', !show);
+  if (typeof runWithViewTransition === 'function') {
+    runWithViewTransition(() => {
+      actWarning.classList.toggle('hidden', !show);
+    });
+  } else {
+    actWarning.classList.toggle('hidden', !show);
+  }
 }
 
 actWarningDismiss?.addEventListener('click', () => {
@@ -2278,9 +2306,17 @@ function enqueueQueuedComposerMessage(tabId, text) {
   if (sameTabId(currentTabId, numericTabId)) {
     saveInputDraftForTab(numericTabId, '');
     hideSlashCommandAutocomplete();
-    inputEl.value = '';
-    autoResizeInput();
-    syncSendButtonState();
+    if (document.startViewTransition && inputEl.value !== '') {
+      document.startViewTransition(() => {
+        inputEl.value = '';
+        autoResizeInput();
+        syncSendButtonState();
+      });
+    } else {
+      inputEl.value = '';
+      autoResizeInput();
+      syncSendButtonState();
+    }
   }
   return true;
 }
@@ -2525,9 +2561,17 @@ async function renderClearedConversationForTab(tabId, { allowCacheClearFailure =
   syncProgressDisplayMode();
   currentAssistantEl = null;
   hideActivity();
-  inputEl.value = '';
-  autoResizeInput();
-  syncSendButtonState();
+  if (document.startViewTransition && inputEl.value !== '') {
+    document.startViewTransition(() => {
+      inputEl.value = '';
+      autoResizeInput();
+      syncSendButtonState();
+    });
+  } else {
+    inputEl.value = '';
+    autoResizeInput();
+    syncSendButtonState();
+  }
   const clearedHtml = messagesEl.innerHTML;
   lastVisibleTabChatSnapshot = { tabId: Number(tabId), html: clearedHtml };
   tabChats.set(Number(tabId), clearedHtml);
@@ -2696,7 +2740,7 @@ function migrateLegacyEmptyStateFromRestoredChat(tabId, root = messagesEl) {
   if (Number.isFinite(numericTabId)) {
     tabChats.set(numericTabId, migratedHtml);
     void persistTabChat(numericTabId, migratedHtml, { allowHidden: true }).catch((error) => {
-      console.warn('[WebBrain] failed to persist restored empty-state migration:', error);
+      console.warn('[BROZER] failed to persist restored empty-state migration:', error);
     });
   }
   return true;
@@ -2836,7 +2880,7 @@ async function persistChatHistorySnapshot(tabId, { refreshTabInfo = false } = {}
     updatedAt: Date.now(),
     messages,
   }).catch((error) => {
-    console.warn('[WebBrain] failed to save chat history:', error);
+    console.warn('[BROZER] failed to save chat history:', error);
   });
 }
 
@@ -2850,7 +2894,7 @@ async function repairRestoredChatHistorySnapshot(tabId) {
   const messages = extractChatHistoryMessages(messagesEl);
   if (!messages.some((message) => message.role === 'user')) return;
   await repairChatHistoryRecordMessages(recordId, messages).catch((error) => {
-    console.warn('[WebBrain] failed to repair restored chat history:', error);
+    console.warn('[BROZER] failed to repair restored chat history:', error);
   });
 }
 
@@ -2897,7 +2941,7 @@ async function resetChatHistoryStateForTab(tabId) {
   ].filter(Boolean));
   await Promise.all(Array.from(recordIdsToDelete).map((recordId) => (
     deleteChatHistoryRecord(recordId).catch((error) => {
-      console.warn('[WebBrain] failed to delete chat history:', error);
+      console.warn('[BROZER] failed to delete chat history:', error);
     })
   )));
   chatHistoryRecordIdsByTab.delete(numericTabId);
@@ -3211,7 +3255,7 @@ async function refreshScheduledJobs({ tabId = null } = {}) {
     renderScheduledJobs(jobs);
     return jobs;
   } catch (e) {
-    console.warn('[WebBrain] failed to refresh scheduled jobs:', e);
+    console.warn('[BROZER] failed to refresh scheduled jobs:', e);
     return [];
   }
 }
@@ -4634,7 +4678,7 @@ if (verboseBtn) {
       try {
         const response = await sendToBackground('get_debug_log');
         if (response?.log?.length) {
-          console.group('%c[WebBrain Deep Verbose] %d entries', 'color:#7c3aed;font-weight:bold', response.log.length);
+          console.group('%c[BROZER Deep Verbose] %d entries', 'color:#7c3aed;font-weight:bold', response.log.length);
           for (const entry of response.log) {
             const label = entry.type || 'unknown';
             const ts = entry.timestamp || '';
@@ -4657,10 +4701,10 @@ if (verboseBtn) {
           }
           console.groupEnd();
         } else {
-          console.log('%c[WebBrain Deep Verbose] No entries yet — run a query first.', 'color:#7c3aed');
+          console.log('%c[BROZER Deep Verbose] No entries yet — run a query first.', 'color:#7c3aed');
         }
       } catch (err) {
-        console.error('[WebBrain Deep Verbose] Failed to fetch debug log:', err);
+        console.error('[BROZER Deep Verbose] Failed to fetch debug log:', err);
       }
       return; // don't toggle verbose mode
     }
@@ -7023,7 +7067,7 @@ function appendProviderPickerOption(id, name, meta, iconProviderId = id) {
   btn.setAttribute('aria-selected', 'false');
 
   // Icons only in the open menu — closed header stays text-only so the
-  // WebBrain mark (and other brand chips) don't compete with the chrome.
+  // BROZER mark (and other brand chips) don't compete with the chrome.
   const iconSrc = providerIconUrl(iconProviderId);
   if (iconSrc) {
     const img = document.createElement('img');
@@ -7237,8 +7281,8 @@ async function loadProviders() {
     providerPickerMenu?.replaceChildren();
     providerPickerLabelById.clear();
 
-    const cloudConfig = res.providers.webbrain_cloud || { label: 'WebBrain Compass' };
-    const cloudLabel = cloudConfig.label || 'WebBrain Compass';
+    const cloudConfig = res.providers.webbrain_cloud || { label: 'BROZER NAVIGATOR' };
+    const cloudLabel = cloudConfig.label || 'BROZER NAVIGATOR';
     const cloudGroup = document.createElement('optgroup');
     cloudGroup.label = t('sp.providers.no_setup_group');
     const cloudOption = document.createElement('option');
@@ -7317,7 +7361,7 @@ function syncStandaloneWebgpuUi() {
     : standaloneWebgpuActive
       ? standaloneWebgpuReady
         ? 'Using WebGPU for this standalone chat'
-        : 'Using WebGPU for this standalone chat · download Compass Tiny v2.1 before sending'
+        : 'Using WebGPU for this standalone chat · download NAVIGATOR Tiny v2.1 before sending'
       : standaloneWebgpuReady
         ? 'Use WebGPU for this standalone chat'
         : 'Use WebGPU for this standalone chat · model download required';
@@ -7699,6 +7743,9 @@ function handleInput() {
   autoResizeInput();
   updateSlashCommandAutocomplete();
   syncSendButtonState();
+  if (clearInputBtn) {
+    clearInputBtn.classList.toggle('hidden', inputEl?.value.trim() === '');
+  }
 }
 
 // --- Message Sending ---
@@ -8458,7 +8505,7 @@ async function parseSlashCommands(text, tabId = currentTabId, options = {}) {
   if (command.value === '/export' && action === 'conversation') {
     const messages = messagesEl.querySelectorAll('.message');
     const webbrainVersion = chrome.runtime.getManifest().version || 'unknown';
-    let md = `# WebBrain Conversation\n\n_Exported with WebBrain v${webbrainVersion}_\n\n`;
+    let md = `# BROZER Conversation\n\n_Exported with BROZER v${webbrainVersion}_\n\n`;
     for (const msg of messages) {
       const textEl = msg.querySelector('.message-text');
       if (!textEl) continue;
@@ -8467,7 +8514,7 @@ async function parseSlashCommands(text, tabId = currentTabId, options = {}) {
       if (msg.classList.contains('user')) {
         md += `**You:** ${content}\n\n`;
       } else if (msg.classList.contains('assistant')) {
-        md += `**WebBrain:** ${content}\n\n`;
+        md += `**BROZER:** ${content}\n\n`;
       } else if (msg.classList.contains('system')) {
         md += `*${content}*\n\n`;
       }
@@ -8812,7 +8859,13 @@ async function sendMessage(extraChatParams = {}) {
   }
   setTabProcessing(tabId, true);
   setTabAbortRequested(tabId, false);
+  // Order matters and is load-bearing: the command was captured into `text`
+  // and handed to the run above. Only now is the *visible* text dissolved,
+  // and the field is emptied in the same turn — the promise is intentionally
+  // not awaited so nothing downstream can ever wait on an animation.
+  const dissolvedCommand = inputEl.value;
   inputEl.value = '';
+  brozerPanel.dissolveComposer(dissolvedCommand);
   autoResizeInput();
   syncSendButtonState();
 
@@ -9623,7 +9676,7 @@ function handleAgentUpdateMessage(msg) {
   }
   if (msg.type === 'scheduled_job') {
     handleScheduledJobEvent(msg.data, msg.tabId).catch((err) => {
-      console.warn('[WebBrain] failed to handle scheduled job event:', err);
+      console.warn('[BROZER] failed to handle scheduled job event:', err);
     });
     return;
   }
@@ -10096,7 +10149,7 @@ function renderClarifyCard(data) {
     card.dataset.submitConfirmation = '1';
     const submit = data.submitConfirmation || {};
     const host = String(submit.host || '').slice(0, 300) || 'this site';
-    qEl.textContent = String(data.question || `WebBrain wants to submit this form on ${host}.`).slice(0, 600);
+    qEl.textContent = String(data.question || `BROZER wants to submit this form on ${host}.`).slice(0, 600);
 
     const summary = String(submit.summary || '').trim();
     if (summary) {
@@ -10554,7 +10607,7 @@ function submitPlanReview(card, tabId, planId, action, editedText) {
   note.className = 'plan-review-note';
   const expiredText = () => (typeof t === 'function' ? t('sp.plan.expired') : 'This plan is no longer awaiting review — the run was cancelled.');
   const failureText = (error) => isBackgroundConnectionError(error)
-    ? 'WebBrain reloaded or the background worker stopped before this plan could be approved. Reload the sidebar and try again.'
+    ? 'BROZER reloaded or the background worker stopped before this plan could be approved. Reload the sidebar and try again.'
     : expiredText();
 
   sendPlanReviewDecisionWithReconnect(
@@ -10969,6 +11022,21 @@ function looksLikeRawToolCallText(text) {
 
 const streamedAssistantTextByEl = new WeakMap();
 const streamedAssistantRenderFrameByEl = new WeakMap();
+// A pending streamed render is either a rAF handle or a setTimeout handle
+// (see scheduleStreamedAssistantMarkdownRender). The ids are not
+// interchangeable, so the kind is tracked and cancelled accordingly.
+const streamedAssistantRenderKindByEl = new WeakMap();
+const streamedAssistantRenderedLengthByEl = new WeakMap();
+const streamedAssistantLastRenderAtByEl = new WeakMap();
+
+function cancelStreamedAssistantRender(textEl) {
+  const handle = streamedAssistantRenderFrameByEl.get(textEl);
+  if (handle == null) return;
+  if (streamedAssistantRenderKindByEl.get(textEl) === 'timer') clearTimeout(handle);
+  else cancelAnimationFrame(handle);
+  streamedAssistantRenderFrameByEl.delete(textEl);
+  streamedAssistantRenderKindByEl.delete(textEl);
+}
 
 function getStreamedAssistantText(textEl) {
   return streamedAssistantTextByEl.get(textEl) || textEl?.dataset?.streamedAssistantText || '';
@@ -10984,9 +11052,9 @@ function hasStreamedAssistantText(textEl) {
 
 function clearStreamedAssistantText(textEl) {
   if (!textEl) return;
-  const frame = streamedAssistantRenderFrameByEl.get(textEl);
-  if (frame != null) cancelAnimationFrame(frame);
-  streamedAssistantRenderFrameByEl.delete(textEl);
+  cancelStreamedAssistantRender(textEl);
+  streamedAssistantRenderedLengthByEl.delete(textEl);
+  streamedAssistantLastRenderAtByEl.delete(textEl);
   streamedAssistantTextByEl.delete(textEl);
   delete textEl.dataset.streamedAssistantActive;
   delete textEl.dataset.streamedAssistantText;
@@ -10997,25 +11065,85 @@ function renderStreamedAssistantMarkdownNow(textEl) {
   const streamedText = getStreamedAssistantText(textEl);
   if (!streamedText) return;
   textEl.innerHTML = formatMarkdown(streamedText, { enhance: false });
+  streamedAssistantRenderedLengthByEl.set(textEl, streamedText.length);
+  streamedAssistantLastRenderAtByEl.set(textEl, performance.now());
+  revealStreamedTail(textEl);
   scrollToBottom();
+}
+
+// Markdown is block-structured, so a growing response has to be re-parsed
+// rather than appended to. That makes each render O(n) in the text so far —
+// once per frame, it is O(n^2) across a long answer, which is what made long
+// responses stall the panel. Re-parsing is therefore spaced out as the
+// response grows: short answers still render every frame, long ones settle
+// for a slightly coarser cadence. The terminal render always runs, so the
+// final output is byte-identical either way.
+function streamedRenderIntervalMs(length) {
+  if (length < 2_000) return 0;      // every frame
+  if (length < 8_000) return 100;
+  if (length < 20_000) return 250;
+  return 500;
+}
+
+// Words that arrived since the previous parse get the streaming-text reveal.
+// The spans are added to already-rendered nodes rather than replacing them,
+// so the reveal costs one class flip per word and never rebuilds the answer.
+function revealStreamedTail(textEl) {
+  if (!textEl || prefersReducedMotionPanel()) return;
+  const last = textEl.lastElementChild || textEl;
+  const node = last.lastChild;
+  if (!node || node.nodeType !== Node.TEXT_NODE) return;
+  const tail = node.nodeValue;
+  if (!tail || tail.length > 400) return;
+  const parts = tail.split(/(s+)/);
+  const frag = document.createDocumentFragment();
+  for (const part of parts) {
+    if (!part) continue;
+    if (/^s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); continue; }
+    const span = document.createElement('span');
+    span.className = 'bz-token';
+    span.textContent = part;
+    frag.appendChild(span);
+  }
+  node.replaceWith(frag);
+  requestAnimationFrame(() => {
+    for (const el of textEl.querySelectorAll('.bz-token:not(.is-in)')) el.classList.add('is-in');
+  });
+}
+
+function prefersReducedMotionPanel() {
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
 }
 
 function scheduleStreamedAssistantMarkdownRender(textEl) {
   if (!textEl || streamedAssistantRenderFrameByEl.has(textEl)) return;
+  const streamedText = getStreamedAssistantText(textEl);
+  const interval = streamedRenderIntervalMs(streamedText.length);
+  const since = performance.now() - (streamedAssistantLastRenderAtByEl.get(textEl) || 0);
+  if (interval > 0 && since < interval) {
+    // Coalesce into a single deferred render instead of one per delta.
+    const timer = setTimeout(() => {
+      streamedAssistantRenderFrameByEl.delete(textEl);
+      streamedAssistantRenderKindByEl.delete(textEl);
+      renderStreamedAssistantMarkdownNow(textEl);
+    }, interval - since);
+    streamedAssistantRenderFrameByEl.set(textEl, timer);
+    streamedAssistantRenderKindByEl.set(textEl, 'timer');
+    return;
+  }
   const frame = requestAnimationFrame(() => {
     if (streamedAssistantRenderFrameByEl.get(textEl) !== frame) return;
     streamedAssistantRenderFrameByEl.delete(textEl);
     renderStreamedAssistantMarkdownNow(textEl);
   });
   streamedAssistantRenderFrameByEl.set(textEl, frame);
+  streamedAssistantRenderKindByEl.set(textEl, 'frame');
 }
 
 function flushPendingStreamedAssistantMarkdownRenders(root = messagesEl) {
   root?.querySelectorAll?.('.message-text[data-streamed-assistant-active="true"]').forEach((textEl) => {
-    const frame = streamedAssistantRenderFrameByEl.get(textEl);
-    if (frame == null) return;
-    cancelAnimationFrame(frame);
-    streamedAssistantRenderFrameByEl.delete(textEl);
+    if (streamedAssistantRenderFrameByEl.get(textEl) == null) return;
+    cancelStreamedAssistantRender(textEl);
     renderStreamedAssistantMarkdownNow(textEl);
   });
 }
@@ -11122,9 +11250,9 @@ function clearTransientAssistantTextForToolCall() {
 // UI Helpers
 // ==========================================================================
 
-// WebBrain Compass returns a 402 with one trailing billing action. Keep the
+// BROZER NAVIGATOR returns a 402 with one trailing billing action. Keep the
 // matcher narrow so ordinary subscription text is not converted into billing UI.
-const SUBSCRIBE_ERROR_RE = /(Subscribe for more usage|Upgrade to WebBrain Plus):\s*(https?:\/\/\S+)/i;
+const SUBSCRIBE_ERROR_RE = /(Subscribe for more usage|Upgrade to BROZER Plus):\s*(https?:\/\/\S+)/i;
 const COST_ALLOWANCE_ERROR_RE = /Cloud cost allowance reached:\s*(this session|total cloud\/router usage)\s+is\s+\$[\d.]+\s+against\s+the\s+\$([\d.]+)\s+limit\./i;
 const COST_ALLOWANCE_BUMP_USD = 10;
 
@@ -12225,7 +12353,14 @@ function clearThinkingActivityTimers() {
 
 function setActivityText(text, { announce = false } = {}) {
   const nextText = String(text || '');
-  if (activityText.textContent !== nextText) activityText.textContent = nextText;
+  if (activityText.textContent !== nextText) {
+    activityText.textContent = nextText;
+    activityText.classList.add('shimmer-active');
+    // The visible label is the thinking-states swap; the shimmer marks it as
+    // the currently active state. Both are driven only from here, so they
+    // follow real execution events rather than a timer of their own.
+    brozerPanel.setExecutionState(nextText, { live: true });
+  }
   if (announce && activityLiveStatus?.textContent !== nextText) {
     activityLiveStatus.textContent = nextText;
   }
@@ -12259,10 +12394,19 @@ function showActivity(text) {
   activityDisplayMode = 'concrete';
   agentActivity.classList.remove('hidden');
   setActivityText(text, { announce: true });
+  // Concrete statuses are the panel's already-display-safe labels (friendly
+  // tool names, progress notes). Generic rotating "thinking" copy is not an
+  // activity and is deliberately excluded.
+  brozerPanel.pushActivity(text);
 }
 
 function hideActivity() {
   clearThinkingActivityTimers();
+  // The run is over: the last row settles and the shimmer stops, so no
+  // motion outlives the state it was reporting.
+  brozerPanel.settleActivity();
+  brozerPanel.setExecutionLive(false);
+  brozerPanel.clearExecutionState();
   activityDisplayMode = 'idle';
   if (activityLiveStatus) activityLiveStatus.textContent = '';
   if (!compactProgressVisible) setCompactProgressVisible(true);
@@ -12923,10 +13067,10 @@ async function sendRunWithReconnect(initialAction, payload, recoveryOptions = {}
 
 function formatBackgroundSendError(action, message) {
   if (String(message || '').trim() === `Unknown action: ${action}`) {
-    return `WebBrain's sidebar and background are out of sync. Reload WebBrain from your browser's extension manager, reopen the sidebar, and try again.`;
+    return `BROZER's sidebar and background are out of sync. Reload BROZER from your browser's extension manager, reopen the sidebar, and try again.`;
   }
   if (isBackgroundConnectionError(message)) {
-    return `WebBrain extension connection was lost while sending "${action}". Reload the sidebar/extension and try again.`;
+    return `BROZER extension connection was lost while sending "${action}". Reload the sidebar/extension and try again.`;
   }
   return message;
 }
@@ -12939,7 +13083,7 @@ function sendToBackground(action, data = {}) {
         if (chrome.runtime.lastError) {
           reject(new Error(formatBackgroundSendError(action, chrome.runtime.lastError.message)));
         } else if (response == null) {
-          reject(new Error(`No response from WebBrain background for "${action}". The background script may have restarted or crashed; reload the sidebar/extension and check the extension console for the original error.`));
+          reject(new Error(`No response from BROZER background for "${action}". The background script may have restarted or crashed; reload the sidebar/extension and check the extension console for the original error.`));
         } else if (response?.error) {
           reject(new Error(formatBackgroundSendError(action, response.error)));
         } else {
@@ -13041,11 +13185,14 @@ async function handleGlobalKeydown(e) {
 // --- Mode Toggle ---
 
 function positionModeHighlight(btn, { instant = false } = {}) {
-  if (!modeToggleHighlight || !btn) return;
-  if (instant) modeToggleHighlight.classList.add('instant');
-  modeToggleHighlight.style.width = `${btn.offsetWidth}px`;
-  modeToggleHighlight.style.transform = `translate3d(${btn.offsetLeft}px, 0, 0)`;
-  if (instant) requestAnimationFrame(() => modeToggleHighlight.classList.remove('instant'));
+  // The sliding-tabs controller owns the indicator: it measures the active
+  // tab and tweens transform + width between measured positions. Mode state
+  // stays authoritative in setMode(), which has already committed agentMode
+  // before this runs — the pill only ever reflects an adopted mode.
+  if (!btn) return;
+  const mode = btn.dataset?.mode
+    || (btn === modeAskBtn ? 'ask' : btn === modeActBtn ? 'act' : 'dev');
+  brozerPanel?.setMode(mode, { animate: !instant });
 }
 
 function setMode(mode) {
@@ -14114,6 +14261,22 @@ inputEl.addEventListener('input', handleInput);
 inputEl.addEventListener('scroll', syncSlashCommandHighlightScroll);
 inputEl.addEventListener('focus', updateSlashCommandAutocomplete);
 inputEl.addEventListener('blur', () => setTimeout(hideSlashCommandAutocomplete, 120));
+
+if (clearInputBtn) {
+  clearInputBtn.addEventListener('click', () => {
+    if (document.startViewTransition && inputEl.value !== '') {
+      document.startViewTransition(() => {
+        inputEl.value = '';
+        handleInput();
+        inputEl.focus();
+      });
+    } else {
+      inputEl.value = '';
+      handleInput();
+      inputEl.focus();
+    }
+  });
+}
 document.addEventListener('wb-locale-changed', () => {
   if (slashCommandMatches.length) renderSlashCommandAutocomplete();
   renderQueuedComposerMessages();
@@ -14463,3 +14626,28 @@ document.addEventListener('wb-locale-changed', () => standaloneRagReadiness?.ren
 globalThis.addEventListener('pagehide', () => standaloneRagReadiness?.close(), { once: true });
 startInputPlaceholderRotation();
 init();
+
+// --- MOTION HELPER ---
+let isTransitioning = false;
+export function runWithViewTransition(updateFn) {
+  if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return updateFn();
+  }
+  if (isTransitioning) {
+    return updateFn();
+  }
+  isTransitioning = true;
+  let updateError = null;
+  const transition = document.startViewTransition(() => {
+    try {
+      updateFn();
+    } catch (e) {
+      updateError = e;
+    }
+  });
+  transition.finished.finally(() => {
+    isTransitioning = false;
+  });
+  if (updateError) throw updateError;
+  return transition;
+}

@@ -306,7 +306,7 @@ export default {
   'st.account.not_signed_in': 'Oturum açılmadı',
   'st.account.sign_in': 'Giriş yap / Kaydol',
   'st.account.sign_out': 'Çıkış yap',
-  'st.account.provider_name': 'WebBrain Compass',
+  'st.account.provider_name': 'BROZER NAVIGATOR',
   'st.account.billing_managed': 'Faturalandırma, kart bilgileri, e-posta ve iptal işlemleri bu tarayıcı profili için Stripe tarafından yönetilir.',
   'st.account.billing_preparing': 'Bu tarayıcı profili için Stripe faturalandırma bağlantısı hazırlanıyor.',
   'st.account.manage_billing': 'Faturalandırmayı yönet',

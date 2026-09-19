@@ -555,11 +555,11 @@ const SELECTION_CONTEXT_SCOPE_SYSTEM_NOTE = 'This conversation is anchored to te
 const SELECTION_CONTEXT_DIALOGUE_MESSAGE_CHARS = 6000;
 const SELECTION_CONTEXT_DIALOGUE_TOTAL_CHARS = 12000;
 const SELECTION_CONTEXT_DIALOGUE_MAX_MESSAGES = 12;
-const SELECTION_SCOPE_RESTORED_RUNTIME_NOTE = '[Selection scope status — TRUSTED WebBrain runtime state: The user explicitly removed the selected-text boundary. Any selection-only instruction in earlier conversation history is historical context, not a constraint on this user message. Normal access to the current page, browser tools, files, attachments, and the complete conversation is restored, subject to the usual mode and safety rules. This is the first accepted follow-up after that explicit restore, so WebBrain will attach a fresh read of the current page before the model answers whenever a page-reading tool is available. Interpret the latest request using the restored page and conversation context rather than treating the historical selected-text boundary as active.]';
-const STANDALONE_CHAT_SYSTEM_PROMPT = `You are WebBrain's standalone chat assistant.
+const SELECTION_SCOPE_RESTORED_RUNTIME_NOTE = '[Selection scope status — TRUSTED BROZER runtime state: The user explicitly removed the selected-text boundary. Any selection-only instruction in earlier conversation history is historical context, not a constraint on this user message. Normal access to the current page, browser tools, files, attachments, and the complete conversation is restored, subject to the usual mode and safety rules. This is the first accepted follow-up after that explicit restore, so WebBrain will attach a fresh read of the current page before the model answers whenever a page-reading tool is available. Interpret the latest request using the restored page and conversation context rather than treating the historical selected-text boundary as active.]';
+const STANDALONE_CHAT_SYSTEM_PROMPT = `You are BROZER's standalone chat assistant.
 
 Answer the user's question directly and concisely. You have no browser, page, network, file, API, skill, or tool access in this mode. Never claim that you inspected a page or checked live information. Use this standalone conversation for continuity and reply in the user's language unless they request another language.`;
-const STANDALONE_WEBGPU_SYSTEM_PROMPT = `You are WebBrain's private on-device chat assistant running entirely in the user's browser.
+const STANDALONE_WEBGPU_SYSTEM_PROMPT = `You are BROZER's private on-device chat assistant running entirely in the user's browser.
 
 Answer the user's question directly and concisely. You have no browser, page, network, file, API, skill, or tool access in this mode. Never claim that you inspected a page or checked live information. Use the conversation for continuity and reply in the user's language unless they request another language.
 
@@ -864,7 +864,7 @@ function plannerRequestFailureKind(detail) {
 }
 
 /**
- * The WebBrain Agent — orchestrates multi-step LLM + tool-use loops.
+ * The BROZER Agent — orchestrates multi-step LLM + tool-use loops.
  */
 export class Agent extends LoopDetector {
   constructor(providerManager) {
@@ -6140,7 +6140,7 @@ export class Agent extends LoopDetector {
     });
   }
 
-  // WebBrain Compass collects trace metadata; OpenCode Go needs a stable
+  // BROZER NAVIGATOR collects trace metadata; OpenCode Go needs a stable
   // session id so its gateway can route and cache prompts per chat.
   _cloudGenerationOptions(provider, options = {}, { tabId = null, conversationId = null, generationName = 'main' } = {}) {
     const effectiveConversationId = conversationId || (tabId != null ? this.conversationIds.get(tabId) : null);
@@ -6527,7 +6527,7 @@ export class Agent extends LoopDetector {
 
   _isCostMeteredProvider(provider) {
     const config = provider?.config || {};
-    // WebBrain Compass is billed and allowance-controlled by the managed
+    // BROZER NAVIGATOR is billed and allowance-controlled by the managed
     // service, not by the user's per-provider API account. Its upstream token
     // cost must not consume the extension's user-configured spend allowance.
     if (config.providerName === 'webbrain-cloud') return false;
@@ -6740,13 +6740,13 @@ export class Agent extends LoopDetector {
   }
 
   _isCostAllowanceError(err) {
-    // WebBrain Compass's quota 402s are also allowance terminals, but they
+    // BROZER NAVIGATOR's quota 402s are also allowance terminals, but they
     // originate in the provider rather than _costAllowanceError(). Treat them
     // like the local cost cap so the agent does not retry it and then emit a
     // second generic error card beside the actionable Subscribe prompt.
     return err?.code === 'WB_COST_ALLOWANCE'
       || /^webbrain_cloud_(?:free|paid|plus)_tier_exceeded$/i.test(String(err?.code || ''))
-      || /(?:Subscribe for more usage|Upgrade to WebBrain Plus):\s*https?:\/\/\S+/i.test(String(err?.message || ''));
+      || /(?:Subscribe for more usage|Upgrade to BROZER Plus):\s*https?:\/\/\S+/i.test(String(err?.message || ''));
   }
 
   // Classify a provider failure for the trace record. Trace-only: used at
@@ -8195,7 +8195,7 @@ export class Agent extends LoopDetector {
 
   // URLs in the bulk-mutation warning come from the page's own XHR/fetch
   // traffic (apiRequestsByTab), so they are attacker-controlled. This note is
-  // appended OUTSIDE the <untrusted_page_content> wrap (it's a trusted WebBrain
+  // appended OUTSIDE the <untrusted_page_content> wrap (it's a trusted BROZER
   // directive), so neutralize chars that could break out of the bracket framing
   // and clamp length before interpolating — same treatment as the PDF docTitle.
   _sanitizeBulkApiUrl(url) {
@@ -8347,7 +8347,7 @@ export class Agent extends LoopDetector {
   }
 
   _bulkApiReplayInstruction(shortcut) {
-    return `Stop executing same-shape UI clicks. API mutations are enabled and WebBrain captured replayRequestId "${shortcut.replayRequestId}" for ${shortcut.method} ${shortcut.requestShape}. On the next turn, sample one remaining matching item with fetch_url({url: "<next matching concrete URL>", method: "${shortcut.method}", replayRequestId: "${shortcut.replayRequestId}"}). If that sample fails, fall back to the visible UI for this request shape.`;
+    return `Stop executing same-shape UI clicks. API mutations are enabled and BROZER captured replayRequestId "${shortcut.replayRequestId}" for ${shortcut.method} ${shortcut.requestShape}. On the next turn, sample one remaining matching item with fetch_url({url: "<next matching concrete URL>", method: "${shortcut.method}", replayRequestId: "${shortcut.replayRequestId}"}). If that sample fails, fall back to the visible UI for this request shape.`;
   }
 
   _appendSyntheticToolResults(tabId, toolCalls, startIndex, messages, onUpdate, step, makeResult) {
@@ -8671,7 +8671,7 @@ export class Agent extends LoopDetector {
       let existing = null;
       try {
         const groups = await chrome.tabGroups.query({
-          title: 'WebBrain',
+          title: 'BROZER',
           windowId: sourceTab.windowId,
         });
         if (Array.isArray(groups) && groups.length > 0) existing = groups[0];
@@ -8688,7 +8688,7 @@ export class Agent extends LoopDetector {
       // The first action.onClicked elsewhere will opt the source tab in.
       const gid = await chrome.tabs.group({ tabIds: [tabId] });
       await chrome.tabGroups.update(gid, {
-        title: 'WebBrain', color: 'blue', collapsed: false,
+        title: 'BROZER', color: 'blue', collapsed: false,
       });
       return gid;
     } catch (_) { return -1; }
@@ -10203,7 +10203,7 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
         screenshotAttempted: false,
         manualRequired: true,
         recoveryTool: null,
-        hint: 'No vision-capable model is configured, so WebBrain did not capture an unusable screenshot. Leave the Chrome Web Store page open and continue manually; do not retry page or fetch tools.',
+        hint: 'No vision-capable model is configured, so BROZER did not capture an unusable screenshot. Leave the Chrome Web Store page open and continue manually; do not retry page or fetch tools.',
       };
     }
 
@@ -11565,7 +11565,7 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
         });
         this._persist(tabId);
         if (captchaGateBlock.manualCompletionRequired) {
-          const value = 'A verification challenge is active, but WebBrain could not safely solve a supported widget. Please complete the verification manually, then start or continue the task.';
+          const value = 'A verification challenge is active, but BROZER could not safely solve a supported widget. Please complete the verification manually, then start or continue the task.';
           if (runId) trace.recordError(runId, step, 'captcha_gate', value);
           return { action: 'return', value, status: 'captcha_manual_required' };
         }
@@ -12782,7 +12782,7 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
           requiredReadProgress,
           // Ask research can lose a useful deliverable to the same observation
           // drift as Act/Dev. Eligible interactive modes that advertise `done`
-          // get terminal recovery; managed WebBrain Compass stays advisory.
+          // get terminal recovery; managed WebBrain NAVIGATOR stays advisory.
           enforceTerminal: runOptions?.cloudRun !== true
             && !this._isWebBrainCloudProvider(provider)
             && allowedToolNames.has('done'),
@@ -12938,7 +12938,7 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
           () => ({ success: false, skipped: true, error: 'skipped: manual CAPTCHA completion is required' }),
         );
         const captchaRunId = this.currentRunId.get(tabId);
-        const value = 'A verification challenge is active, and WebBrain cannot continue safely with automatic solving. Please complete the verification manually, then start or continue the task.';
+        const value = 'A verification challenge is active, and BROZER cannot continue safely with automatic solving. Please complete the verification manually, then start or continue the task.';
         if (captchaRunId) trace.recordError(captchaRunId, step, 'captcha_gate', value);
         this._persist(tabId);
         return { action: 'return', value, status: 'captcha_manual_required' };
@@ -18750,8 +18750,8 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
   }
 
   /**
-   * End local tracing and durably queue any opted-in Compass terminal outcome.
-   * Compass delivery remains active when optional local tracing is disabled.
+   * End local tracing and durably queue any opted-in NAVIGATOR terminal outcome.
+   * NAVIGATOR delivery remains active when optional local tracing is disabled.
    * Shared by the streaming and non-streaming message paths. (#9)
    */
   async _endTraceRun(tabId, runId, status, finalContent, { provider = null, messages = null, mode = '', shareRequest = null, shareResponse = null, hadProviderCompletion = false } = {}) {
@@ -18774,14 +18774,14 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
           if (item) await enqueueCloudRuntimeEvent(sessionId, item);
         }
         // The durable write above is awaited; network delivery is deliberately
-        // detached from UI completion and retried by the next Compass run.
+        // detached from UI completion and retried by the next NAVIGATOR run.
         void flushCloudRuntimeOutbox(provider);
       } catch {}
     }
     // Voluntary per-provider research sharing. The WebBrain Compass provider
     // acts as transport (its API hosts the endpoint); which provider produced
     // the run only decides whether capture is gated on (the per-provider
-    // toggle) and what attribution to record. Compass itself never goes
+    // toggle) and what attribution to record. NAVIGATOR itself never goes
     // through this path. Capture additionally requires a successful provider
     // completion (hadProviderCompletion): local-only fast paths (recommended
     // first tool, selection-restoration read, dev guards, attachment rejects)
@@ -18815,7 +18815,7 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
       } catch {}
     }
     // Retry delivery of previously queued voluntary shares on every run end,
-    // mirroring the Compass runtime outbox pattern. Revoked entries are
+    // mirroring the NAVIGATOR runtime outbox pattern. Revoked entries are
     // purged first so opt-out is honored immediately before delivery.
     try { await this._purgeRevokedShareGenerations(); } catch {}
     void flushShareOutbox(shareTransport, (entry) => this._shareEntryConsented(entry));
@@ -19897,7 +19897,7 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
       { collapseWhitespace: true },
     );
     const detailSentence = /[.!?]$/.test(detail) ? detail : `${detail}.`;
-    const message = `A valid plan was produced, but WebBrain could not safely finish plan review or prepare the plan for execution: ${detailSentence} No tools ran.`;
+    const message = `A valid plan was produced, but BROZER could not safely finish plan review or prepare the plan for execution: ${detailSentence} No tools ran.`;
     onUpdate('warning', {
       code: 'planner_processing_failed',
       message,
@@ -23903,7 +23903,7 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
             fields: Array.isArray(submitInfo?.fields) ? submitInfo.fields.slice(0, 12) : [],
             changedFields: Array.isArray(submitInfo?.changedFields) ? submitInfo.changedFields.slice(0, 8) : [],
           },
-          question: `WebBrain wants to submit this form on ${host}.`,
+          question: `BROZER wants to submit this form on ${host}.`,
           options: ['once', 'deny'],
         });
       } catch {}
@@ -30089,7 +30089,7 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
     // Arm the hysteresis cooldown: skip soft triggers for the next 2 steps.
     this._compactCooldown.set(tabId, 2);
 
-    console.log(`[WebBrain] Context trimmed for tab ${tabId}: ${oldMessages.length} old messages → summary. ${messages.length} messages remain.`);
+    console.log(`[BROZER] Context trimmed for tab ${tabId}: ${oldMessages.length} old messages → summary. ${messages.length} messages remain.`);
 
     // Surface the auto-compaction to the user (side panel renders an inline
     // "Context automatically compacted" note). Best-effort — never let a UI
@@ -31088,7 +31088,7 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
     if (progressMsg) messages.push(progressMsg);
     messages.push(notice, ack, ...recent);
 
-    console.log(`[WebBrain] Emergency context trim: kept ${messages.length} messages.`);
+    console.log(`[BROZER] Emergency context trim: kept ${messages.length} messages.`);
   }
 
   async _executeResearchPageFunction(tabId, func, args = []) {
@@ -40655,7 +40655,7 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
     const provider = this._activeProvider(tabId);
     // Give previously queued terminal outcomes the whole duration of this run
     // to upload; the current run is enqueued at finalization and may complete
-    // in the background or on the next Compass run.
+    // in the background or on the next NAVIGATOR run.
     void flushCloudRuntimeOutbox(provider);
     // Purge shares revoked since they were queued before retrying delivery.
     void this._purgeRevokedShareGenerations();

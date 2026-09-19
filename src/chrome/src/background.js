@@ -113,7 +113,7 @@ import {
 } from './chrome-web-store-release.js';
 
 /**
- * WebBrain Service Worker (Background Script)
+ * BROZER Service Worker (Background Script)
  * Routes messages between side panel, content scripts, and the agent.
  */
 
@@ -184,11 +184,11 @@ Promise.all([
   // one is a full copy of the archive it was writing.
   sweepOpfsSwapFiles().then(({ removed, bytes }) => {
     if (removed > 0) {
-      console.info(`[WebBrain] Reclaimed ${removed} orphaned OPFS swap file(s), ${(bytes / 1024 ** 3).toFixed(2)} GB.`);
+      console.info(`[BROZER] Reclaimed ${removed} orphaned OPFS swap file(s), ${(bytes / 1024 ** 3).toFixed(2)} GB.`);
     }
   }),
 ]).catch((error) => {
-  console.warn('[WebBrain] Apocalypse Mode startup work could not be restored:', error);
+  console.warn('[BROZER] Apocalypse Mode startup work could not be restored:', error);
 });
 const agent = new Agent(providerManager);
 agent.strictSecretMode = false;
@@ -343,7 +343,7 @@ async function syncNativePdfMimeHandlerFromStorage() {
 }
 
 function reportPdfMimeHandlerSyncFailure(error) {
-  console.warn('[WebBrain] Could not synchronize the native PDF MIME handler option:', error);
+  console.warn('[BROZER] Could not synchronize the native PDF MIME handler option:', error);
 }
 
 function scheduleNativePdfMimeHandlerSync(delayMs = 0) {
@@ -436,7 +436,7 @@ async function createContextMenus() {
     chrome.contextMenus.create(item, () => {
       const err = chrome.runtime.lastError;
       if (err && !/duplicate/i.test(String(err.message || err))) {
-        console.warn('[WebBrain] Failed to create context menu:', err.message || err);
+        console.warn('[BROZER] Failed to create context menu:', err.message || err);
       }
       if (item.id === CONTEXT_MENU_OPEN_PDF_VIEWER_ID) {
         syncPdfContextMenuForActiveTab().catch(() => {});
@@ -475,7 +475,7 @@ async function createContextMenus() {
     create({ id: CONTEXT_MENU_GENERIC_ASK_ID, parentId: CONTEXT_MENU_ASK_SELECTION_ID, title: strings.askAbout, contexts: ['selection'] });
     create({
       id: CONTEXT_MENU_OPEN_PDF_VIEWER_ID,
-      title: 'Open PDF with WebBrain',
+      title: 'Open PDF with BROZER',
       contexts: ['page'],
       visible: false,
     });
@@ -856,7 +856,7 @@ function scheduleUserMemoryExtractionDrain(delayMs = USER_MEMORY_EXTRACTION_DELA
   userMemoryExtractionTimer = setTimeout(() => {
     userMemoryExtractionTimer = null;
     drainUserMemoryExtractionQueue().catch((error) => {
-      console.warn('[WebBrain] user-memory extraction failed:', error);
+      console.warn('[BROZER] user-memory extraction failed:', error);
     });
   }, delayMs);
 }
@@ -907,7 +907,7 @@ async function enqueueUserMemoryExtraction(payload = {}) {
 function enqueueUserMemoryExtractionAfterTurn(payload) {
   queueMicrotask(() => {
     enqueueUserMemoryExtraction(payload).catch((error) => {
-      console.warn('[WebBrain] failed to enqueue user-memory extraction:', error);
+      console.warn('[BROZER] failed to enqueue user-memory extraction:', error);
     });
   });
 }
@@ -1018,7 +1018,7 @@ async function loadCustomSkills() {
     try {
       await chrome.storage.local.set({ [CUSTOM_SKILLS_STORAGE_KEY]: skills });
     } catch (error) {
-      console.warn('[WebBrain] Retired packaged skills could not be removed', error);
+      console.warn('[BROZER] Retired packaged skills could not be removed', error);
     }
   }
   const removedDefaultIds = new Set(normalizeDefaultSkillRemovalIds(stored[DEFAULT_SKILLS_REMOVED_STORAGE_KEY]));
@@ -1044,7 +1044,7 @@ async function loadCustomSkills() {
       await chrome.storage.local.set(update);
     }
   } catch (e) {
-    console.warn('[WebBrain] Default skills could not be loaded', e);
+    console.warn('[BROZER] Default skills could not be loaded', e);
   }
   try {
     const refreshed = await refreshPackagedSkillRecords(skills);
@@ -1053,7 +1053,7 @@ async function loadCustomSkills() {
       await chrome.storage.local.set({ [CUSTOM_SKILLS_STORAGE_KEY]: skills });
     }
   } catch (e) {
-    console.warn('[WebBrain] Packaged skills could not be refreshed', e);
+    console.warn('[BROZER] Packaged skills could not be refreshed', e);
   }
   agent.setCustomSkills(skills);
 }
@@ -1135,7 +1135,7 @@ const planReviewReady = loadPlanReviewSettings();
 async function showFirstInstallGuide(details) {
   if (details?.reason !== 'install') return;
   await chrome.storage.local.set({ pinCoachmarkPending: true }).catch((error) => {
-    console.warn('[WebBrain] Could not prepare the first-open pin coachmark:', error);
+    console.warn('[BROZER] Could not prepare the first-open pin coachmark:', error);
   });
   try {
     await chrome.tabs.create({
@@ -1143,7 +1143,7 @@ async function showFirstInstallGuide(details) {
       active: true,
     });
   } catch (error) {
-    console.warn('[WebBrain] Could not open the first-install pinning guide:', error);
+    console.warn('[BROZER] Could not open the first-install pinning guide:', error);
   }
 }
 
@@ -1163,7 +1163,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   await syncNativePdfMimeHandlerFromStorage().catch(reportPdfMimeHandlerSyncFailure);
   scheduleNativePdfMimeHandlerSync(PDF_MIME_HANDLER_INSTALL_SYNC_DELAY_MS);
   scheduleUserMemoryExtractionDrain(5000);
-  console.log('[WebBrain] Extension installed, providers loaded.');
+  console.log('[BROZER] Extension installed, providers loaded.');
 });
 
 // Also load on startup
@@ -1271,7 +1271,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   }
   if (shouldClearUserMemoryExtractionQueueForChanges(changes)) {
     clearUserMemoryExtractionQueue().catch((error) => {
-      console.warn('[WebBrain] failed to clear user-memory extraction queue:', error);
+      console.warn('[BROZER] failed to clear user-memory extraction queue:', error);
     });
   }
   if (changes[CUSTOM_SKILLS_STORAGE_KEY]) {
@@ -1282,7 +1282,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     agent.customSkills = normalizeCustomSkills(retainedSkills);
     if (retainedSkills.length !== storedSkills.length) {
       chrome.storage.local.set({ [CUSTOM_SKILLS_STORAGE_KEY]: agent.customSkills }).catch((error) => {
-        console.warn('[WebBrain] Retired packaged skills could not be removed', error);
+        console.warn('[BROZER] Retired packaged skills could not be removed', error);
       });
     }
     refreshPrompts = true;
@@ -1290,7 +1290,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   if (changes.capsolverApiKey || changes.captchaSolverEnabled) {
     loadCaptchaSolver()
       .then(() => agent._refreshSystemPrompts())
-      .catch((error) => console.warn('[WebBrain] CapSolver setting could not be refreshed', error));
+      .catch((error) => console.warn('[BROZER] CapSolver setting could not be refreshed', error));
   }
   if (changes.planBeforeActMode || changes.planBeforeAct) {
     applyPlanBeforeActMode(normalizePlanBeforeActMode({
@@ -1345,7 +1345,7 @@ async function runApocalypseDownloadPass() {
       await apocalypseController.syncDownloadSchedule();
     } catch (scheduleError) {
       if (!passError) throw scheduleError;
-      console.warn('[WebBrain] Failed to re-arm the Apocalypse archive download:', scheduleError);
+      console.warn('[BROZER] Failed to re-arm the Apocalypse archive download:', scheduleError);
     }
   }
 }
@@ -1354,11 +1354,11 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm?.name === APOCALYPSE_DOWNLOAD_ALARM) {
     const releaseKeepalive = acquireRunKeepalive();
     runApocalypseDownloadPass().catch((error) => {
-      console.warn('[WebBrain] Apocalypse Mode archive download failed:', error);
+      console.warn('[BROZER] Apocalypse Mode archive download failed:', error);
     }).finally(releaseKeepalive);
   } else if (alarm?.name === APOCALYPSE_UPDATE_ALARM) {
     apocalypseController.checkForUpdates().catch((error) => {
-      console.warn('[WebBrain] Apocalypse Mode update check failed:', error);
+      console.warn('[BROZER] Apocalypse Mode update check failed:', error);
     });
   }
 });
@@ -1499,7 +1499,7 @@ async function ensureWebBrainGroup(tab) {
       groupId = await chrome.tabs.group({ tabIds: [tab.id] });
       try {
         await chrome.tabGroups.update(groupId, {
-          title: 'WebBrain', color: 'blue', collapsed: false,
+          title: 'BROZER', color: 'blue', collapsed: false,
         });
       } catch { /* ignore styling failure */ }
       webBrainGroupByWindow.set(tab.windowId, groupId);
@@ -1740,7 +1740,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 //
 // While an agent run is in flight, we ask the page's content script to
 // render a pulsing purple inset glow around the viewport plus a
-// "Stop WebBrain" floating button. The chat / chat_stream / continue
+// "Stop BROZER" floating button. The chat / chat_stream / continue
 // handlers wrap their await with sendIndicatorMessage(tabId, 'SHOW' / 'HIDE').
 // agent.js fires HIDE_FOR_TOOL_USE / SHOW_AFTER_TOOL_USE around screenshot
 // capture so the agent doesn't see its own border in the pixels it sends
@@ -1958,7 +1958,7 @@ function finishRunUiSnapshot(tabId, requestId, status, finalContent = '', askSuc
 // only: non-empty content with no error/attachment/max-steps update and no
 // billing terminal (subscribe / cost-allowance messages are actionable
 // failures, not successes).
-const BADGE_SUBSCRIBE_ERROR_RE = /(Subscribe for more usage|Upgrade to WebBrain Plus):\s*(https?:\/\/\S+)/i;
+const BADGE_SUBSCRIBE_ERROR_RE = /(Subscribe for more usage|Upgrade to BROZER Plus):\s*(https?:\/\/\S+)/i;
 const BADGE_COST_ALLOWANCE_ERROR_RE = /Cloud cost allowance reached:\s*(this session|total cloud\/router usage)\s+is\s+\$[\d.]+\s+against\s+the\s+\$([\d.]+)\s+limit\./i;
 function askCompletionSucceededForBadge(result, updates = [], error = null) {
   if (error) return false;
@@ -2166,7 +2166,7 @@ function launchDetachedRun(action, msg, sender) {
   entry.promise = task;
   task.catch((error) => {
     rememberDetachedRunFailure(tabId, requestId, error);
-    console.warn(`[WebBrain] detached ${action} run failed:`, error);
+    console.warn(`[BROZER] detached ${action} run failed:`, error);
   }).finally(() => {
     if (detachedRunStarts.get(tabId) === entry) detachedRunStarts.delete(tabId);
   });
@@ -2179,7 +2179,7 @@ async function standaloneRunProviderId(msg) {
   if (providerId !== 'webgpu' || msg.standaloneChat !== true) {
     throw new Error('WebGPU is available only through the standalone chat control.');
   }
-  // Compass Tiny v2.1 works independently of Apocalypse Mode: Apocalypse can
+  // NAVIGATOR Tiny v2.1 works independently of Apocalypse Mode: Apocalypse can
   // still host the download, but its enabled toggle is no longer required.
   const config = providerManager.getAll().webgpu;
   const download = await providerManager.getWebgpuDownloadStatus().catch(() => null);
@@ -3382,7 +3382,7 @@ async function handleMessage(msg, sender) {
             const captureResult = await runCaptureController.finish(runCaptureState, tabId);
             sendAgentUpdate(tabId, runUi.requestId, 'run_capture_complete', captureResult);
           } catch (error) {
-            console.warn('[WebBrain] trailing run capture failed to finish:', error);
+            console.warn('[BROZER] trailing run capture failed to finish:', error);
             sendAgentUpdate(tabId, runUi.requestId, 'run_capture_error', {
               kind: runCaptureState.kind,
               message: error?.message || String(error),
@@ -3952,7 +3952,7 @@ async function handleMessage(msg, sender) {
       const download = await providerManager.getWebgpuDownloadStatus().catch(() => null);
       return {
         ok: true,
-        // Compass Tiny v2.1 is usable without Apocalypse Mode; the control
+        // NAVIGATOR Tiny v2.1 is usable without Apocalypse Mode; the control
         // stays enabled and only tracks download readiness.
         enabled: true,
         ready: isShippedWebgpuPreset(config?.model) && download?.ready === true,
@@ -4216,7 +4216,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     const current = await loadUiScale(chrome.storage.local);
     await saveUiScale(chrome.storage.local, nextUiScale(current, action));
   }).catch((error) => {
-    console.error('[WebBrain] failed to update UI scale:', command, error);
+    console.error('[BROZER] failed to update UI scale:', command, error);
   });
   await uiScaleCommandQueue;
 });

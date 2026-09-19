@@ -2,7 +2,7 @@
  * WebBrain Agent Visual Indicator (content script)
  *
  * Renders an animated purple inset glow around the page viewport while
- * the agent is operating on this tab, a "Stop WebBrain" floating button,
+ * the agent is operating on this tab, a "Stop BROZER" floating button,
  * and a large WebBrain-purple cursor/outline on the element currently
  * being acted on. The base indicator follows Anthropic's Claude-for-Chrome
  * extension pattern, recolored for WebBrain's accent (#6c63ff).
@@ -142,7 +142,7 @@
            style="margin-right: 10px; vertical-align: middle;">
         <path d="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,192a84,84,0,1,1,84-84A84.09,84.09,0,0,1,128,212Zm40-112v56a12,12,0,0,1-12,12H100a12,12,0,0,1-12-12V100a12,12,0,0,1,12-12h56A12,12,0,0,1,168,100Z"/>
       </svg>
-      <span style="vertical-align: middle;">Stop WebBrain</span>
+      <span style="vertical-align: middle;">Stop BROZER</span>
     `;
     button.style.cssText = `
       position: relative;

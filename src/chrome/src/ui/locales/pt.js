@@ -554,7 +554,7 @@ export default {
   'st.account.not_signed_in': "Não conectado",
   'st.account.sign_in': "Entrar/Registrar",
   'st.account.sign_out': "Sair",
-  'st.account.provider_name': "WebBrain Compass",
+  'st.account.provider_name': "BROZER NAVIGATOR",
   'st.account.billing_managed': "Faturamento, detalhes do cartão, e-mail e cancelamento são gerenciados por Stripe para este perfil de navegador.",
   'st.account.billing_preparing': "Preparando o link de cobrança Stripe para este perfil de navegador.",
   'st.account.manage_billing': "Gerenciar faturamento",

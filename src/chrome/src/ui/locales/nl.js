@@ -532,7 +532,7 @@ export default {
   'st.account.not_signed_in': 'Niet ingelogd',
   'st.account.sign_in': 'Inloggen / Registreren',
   'st.account.sign_out': 'Uitloggen',
-  'st.account.provider_name': 'WebBrain Compass',
+  'st.account.provider_name': 'BROZER NAVIGATOR',
   'st.account.billing_managed': 'Facturering, kaartgegevens, e-mail en annulering worden beheerd door Stripe...',
   'st.account.billing_preparing': 'Stripe-factureringslink voorbereiden...',
   'st.account.manage_billing': 'Facturering beheren',

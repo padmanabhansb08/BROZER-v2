@@ -269,7 +269,7 @@ export default {
   'st.account.not_signed_in': 'Belum log masuk',
   'st.account.sign_in': 'Log Masuk / Daftar',
   'st.account.sign_out': 'Log Keluar',
-  'st.account.provider_name': 'WebBrain Compass',
+  'st.account.provider_name': 'BROZER NAVIGATOR',
   'st.account.billing_managed': 'Pengebilan, butiran kad, e-mel dan pembatalan diuruskan oleh Stripe untuk profil pelayar ini.',
   'st.account.billing_preparing': 'Menyediakan pautan pengebilan Stripe untuk profil pelayar ini.',
   'st.account.manage_billing': 'Urus pengebilan',
