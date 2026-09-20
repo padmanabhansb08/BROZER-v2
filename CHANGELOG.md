@@ -944,7 +944,7 @@ This changelog was generated from the repository Git history and release tags. V
 
 ### Added
 - Added OpenRouter routing variant controls, including support for encoding **Exacto** as an OpenRouter model variant
-- Added WebBrain Compass Tiny v2.1 (`webbrain-one/webbrain-compass-tiny-v2.1`, ~1.87 GB) with a 32k context window as the sole exposed Chromium WebGPU text model
+- Added WebBrain Compass Tiny v2.1 (`padmanabhansb08/webbrain-compass-tiny-v2.1`, ~1.87 GB) with a 32k context window as the sole exposed Chromium WebGPU text model
 - Added runtime support for LFM2.5 text/VL and Nanbeige ONNX exports in the underlying WebGPU worker
 
 ### Changed
@@ -1213,7 +1213,7 @@ This changelog was generated from the repository Git history and release tags. V
 ## [33.0.8] - 2026-08-20
 
 ### Changed
-- Changed the Chrome local vision fallback to the fine-tuned `webbrain-one/webbrain-vl-2-450M-onnx` release, with renewed opt-in consent and a versioned ready marker so older caches cannot be mistaken for the new model.
+- Changed the Chrome local vision fallback to the fine-tuned `padmanabhansb08/webbrain-vl-2-450M-onnx` release, with renewed opt-in consent and a versioned ready marker so older caches cannot be mistaken for the new model.
 - Added a consent-gated, durable WebBrain Compass terminal-runtime outbox so executed terminal tool results survive provider-trace export gaps and can be joined through stable de-identified references.
 - fix: resume vision downloads and organize settings
 - fix: require vision cache marker and isolate queued worker deadlines

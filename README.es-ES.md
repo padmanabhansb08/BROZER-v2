@@ -42,7 +42,7 @@ InstÃ¡lalo desde [Chrome Web Store](https://chromewebstore.google.com/detail/w
 <summary><b>O cÃ¡rgalo desde el cÃ³digo fuente</b></summary>
 
 ```bash
-git clone https://github.com/webbrain-one/webbrain.git
+git clone https://github.com/padmanabhansb08/webbrain.git
 ```
 
 **Chrome**: abre `chrome://extensions/`, activa el **Modo de desarrollador** (arriba a la
@@ -214,7 +214,7 @@ sitios, demostraciones y coordinaciÃ³n entre colaboradoresâ€” en el
 [comunidad](docs/community.md) para conocer la organizaciÃ³n del servidor y
 [discord-setup](docs/discord-setup.md) para ver la configuraciÃ³n de los canales, los roles y la pantalla de bienvenida.
 Los informes de errores y las solicitudes de funciones deben publicarse en las
-[incidencias de GitHub](https://github.com/webbrain-one/webbrain/issues), no en Discord.
+[incidencias de GitHub](https://github.com/padmanabhansb08/webbrain/issues), no en Discord.
 
 ## Estructura del repositorio
 
@@ -331,19 +331,19 @@ CÃ³digo fuente: [`lmstudio-plugin/`](lmstudio-plugin/).
 
 ## Colaboradores
 
-<a href="https://github.com/webbrain-one/webbrain/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=webbrain-one/webbrain" />
+<a href="https://github.com/padmanabhansb08/webbrain/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=padmanabhansb08/webbrain" />
 </a>
 
 ## CÃ³mo citar
 
 ```bibtex
 @software{webbrain2026,
-  author = {Sokullu, Emre},
+  author = {Padmanabhan},
   title = {WebBrain: Open-source AI browser agent for chatting with pages},
   year = {2026},
   publisher = {GitHub},
-  url = {https://github.com/webbrain-one/webbrain}
+  url = {https://github.com/padmanabhansb08/webbrain}
 }
 ```
 
@@ -355,6 +355,6 @@ e integra el entorno de ejecuciÃ³n WebAssembly de Xapian/libzim, con licencia 
 anteriores a la 33.0.0 conservan la licencia MIT que se aplicaba cuando se
 publicaron; ese texto histÃ³rico se conserva en [LICENSES/MIT.txt](LICENSES/MIT.txt).
 
-Creado con â¤ï¸ por [Emre Sokullu](https://emresokullu.com) y los [colaboradores de cÃ³digo abierto](https://github.com/webbrain-one/webbrain/graphs/contributors).
+Creado con â¤ï¸ por [Padmanabhan](https://github.com/padmanabhansb08) y los [colaboradores de cÃ³digo abierto](https://github.com/padmanabhansb08/webbrain/graphs/contributors).
 
 ?

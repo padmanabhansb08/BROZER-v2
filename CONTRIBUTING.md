@@ -242,7 +242,7 @@ the commit history.
 
 ## Questions
 
-Open a [GitHub Discussion](https://github.com/webbrain-one/webbrain/discussions)
+Open a [GitHub Discussion](https://github.com/padmanabhansb08/webbrain/discussions)
 or file an issue. Don't email Emre directly with code questions; the
 conversation is more useful in public. For quick help and community discussion,
 join the [WebBrain Discord](https://discord.gg/cgC325ssfw) — see

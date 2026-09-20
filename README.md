@@ -42,7 +42,7 @@ Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/BRO
 <summary><b>Or load it from source</b></summary>
 
 ```bash
-git clone https://github.com/BROZER-v2-one/BROZER-v2.git
+git clone https://github.com/padmanabhansb08/BROZER-v2.git
 ```
 
 **Chrome** — open `chrome://extensions/`, enable **Developer mode** (top
@@ -217,7 +217,7 @@ adapters, show-and-tell, and contributor coordination — on the
 [community](docs/community.md) for how the server is organized, and
 [discord-setup](docs/discord-setup.md) for the channel, role, and welcome-screen
 configuration. Bug reports and feature requests belong in
-[GitHub issues](https://github.com/BROZER-v2-one/BROZER-v2/issues), not Discord.
+[GitHub issues](https://github.com/padmanabhansb08/BROZER-v2/issues), not Discord.
 
 ## Repository layout
 
@@ -335,19 +335,19 @@ Source: [`lmstudio-plugin/`](lmstudio-plugin/).
 
 ## Contributors
 
-<a href="https://github.com/BROZER-v2-one/BROZER-v2/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=BROZER-v2-one/BROZER-v2" />
+<a href="https://github.com/padmanabhansb08/BROZER-v2/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=padmanabhansb08/BROZER-v2" />
 </a>
 
 ## Citation
 
 ```bibtex
 @software{BROZER-v22026,
-  author = {Sokullu, Emre},
+  author = {Padmanabhan},
   title = {BROZER-v2: Open-source AI browser agent for chatting with pages},
   year = {2026},
   publisher = {GitHub},
-  url = {https://github.com/BROZER-v2-one/BROZER-v2}
+  url = {https://github.com/padmanabhansb08/BROZER-v2}
 }
 ```
 
@@ -359,4 +359,4 @@ and integrates the GPL-licensed Xapian/libzim WebAssembly runtime. Releases
 before 33.0.0 remain MIT-licensed under the license that applied when they were
 published; that historical text is preserved in [LICENSES/MIT.txt](LICENSES/MIT.txt).
 
-Built with ❤️ by [Emre Sokullu](https://emresokullu.com) and [open-source contributors](https://github.com/BROZER-v2-one/BROZER-v2/graphs/contributors).
+Built with ❤️ by [Padmanabhan](https://github.com/padmanabhansb08) and [open-source contributors](https://github.com/padmanabhansb08/BROZER-v2/graphs/contributors).

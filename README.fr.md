@@ -42,7 +42,7 @@ ou les [modules Edge](https://microsoftedge.microsoft.com/addons/detail/dfbioaja
 <summary><b>Ou chargez-le depuis les sources</b></summary>
 
 ```bash
-git clone https://github.com/webbrain-one/webbrain.git
+git clone https://github.com/padmanabhansb08/webbrain.git
 ```
 
 **Chrome** — ouvrez `chrome://extensions/`, activez le **mode développeur** (en
@@ -267,19 +267,19 @@ Source : [`lmstudio-plugin/`](lmstudio-plugin/).
 
 ## Contributeurs
 
-<a href="https://github.com/webbrain-one/webbrain/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=webbrain-one/webbrain" />
+<a href="https://github.com/padmanabhansb08/webbrain/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=padmanabhansb08/webbrain" />
 </a>
 
 ## Citation
 
 ```bibtex
 @software{webbrain2026,
-  author = {Sokullu, Emre},
+  author = {Padmanabhan},
   title = {WebBrain : Agent de navigation IA open source pour discuter avec les pages},
   year = {2026},
   publisher = {GitHub},
-  url = {https://github.com/webbrain-one/webbrain}
+  url = {https://github.com/padmanabhansb08/webbrain}
 }
 ```
 
@@ -291,4 +291,4 @@ le runtime WebAssembly Xapian/libzim sous GPL. Les versions antérieures à
 33.0.0 restent sous la licence MIT applicable lors de leur publication ; ce
 texte historique est conservé dans [LICENSES/MIT.txt](LICENSES/MIT.txt).
 
-Créé par [Emre Sokullu](https://emresokullu.com).
+Créé par [Padmanabhan](https://github.com/padmanabhansb08).

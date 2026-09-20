@@ -40,7 +40,7 @@ WebBrain 是一个浏览器扩展，在标签页旁的侧边栏中放入一个 A
 <summary><b>或从源码加载</b></summary>
 
 ```bash
-git clone https://github.com/webbrain-one/webbrain.git
+git clone https://github.com/padmanabhansb08/webbrain.git
 ```
 
 **Chrome** —— 打开 `chrome://extensions/`，启用**开发者模式**（右上角），点击
@@ -234,19 +234,19 @@ lms clone webbrain/web-tools
 
 ## 贡献者
 
-<a href="https://github.com/webbrain-one/webbrain/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=webbrain-one/webbrain" />
+<a href="https://github.com/padmanabhansb08/webbrain/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=padmanabhansb08/webbrain" />
 </a>
 
 ## 引用
 
 ```bibtex
 @software{webbrain2026,
-  author = {Sokullu, Emre},
+  author = {Padmanabhan},
   title = {WebBrain: 开源 AI 浏览器智能体，用于与网页对话},
   year = {2026},
   publisher = {GitHub},
-  url = {https://github.com/webbrain-one/webbrain}
+  url = {https://github.com/padmanabhansb08/webbrain}
 }
 ```
 
@@ -257,4 +257,4 @@ WebBrain 33.0.0 及更高版本采用 [GPL-3.0-or-later](LICENSE) 许可证，�
 33.0.0 之前发布的版本仍采用其发布时适用的 MIT 许可证；历史许可证文本保存在
 [LICENSES/MIT.txt](LICENSES/MIT.txt)。
 
-由 [Emre Sokullu](https://emresokullu.com) 构建。
+由 [Padmanabhan](https://github.com/padmanabhansb08) 构建。
