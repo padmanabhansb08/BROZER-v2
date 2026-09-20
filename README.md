@@ -1,17 +1,17 @@
 <p align="center">
-  <img src="assets/logo-mark.png" alt="WebBrain logo" width="92">
+  <img src="assets/logo-mark.png" alt="BROZER-v2 logo" width="92">
 </p>
 
-<h1 align="center">WebBrain</h1>
+<h1 align="center">BROZER-v2</h1>
 
 <p align="center">
   Open-source AI browser agent for chatting with pages, automating tasks, and running multi-step workflows with your choice of LLM.
 </p>
 
 <p align="center">
-  <a href="https://chromewebstore.google.com/detail/webbrain/ljhijonmfahplgbbacgcfnaihbjljhhb"><img src="https://img.shields.io/badge/Chrome-Install-4285F4?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white" alt="Install WebBrain from the Chrome Web Store"></a>
-  <a href="https://addons.mozilla.org/firefox/addon/webbrain/"><img src="https://img.shields.io/badge/Firefox-Install-FF7139?style=for-the-badge&amp;logo=firefoxbrowser&amp;logoColor=white" alt="Install WebBrain from Firefox Browser Add-ons"></a>
-  <a href="https://microsoftedge.microsoft.com/addons/detail/dfbioajafcijomhljabppcelecgdgfeo"><img src="https://img.shields.io/badge/Edge-Install-0A84FF?style=for-the-badge&amp;logo=microsoftedge&amp;logoColor=white" alt="Install WebBrain from Microsoft Edge Add-ons"></a>
+  <a href="https://chromewebstore.google.com/detail/BROZER-v2/ljhijonmfahplgbbacgcfnaihbjljhhb"><img src="https://img.shields.io/badge/Chrome-Install-4285F4?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white" alt="Install BROZER-v2 from the Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/BROZER-v2/"><img src="https://img.shields.io/badge/Firefox-Install-FF7139?style=for-the-badge&amp;logo=firefoxbrowser&amp;logoColor=white" alt="Install BROZER-v2 from Firefox Browser Add-ons"></a>
+  <a href="https://microsoftedge.microsoft.com/addons/detail/dfbioajafcijomhljabppcelecgdgfeo"><img src="https://img.shields.io/badge/Edge-Install-0A84FF?style=for-the-badge&amp;logo=microsoftedge&amp;logoColor=white" alt="Install BROZER-v2 from Microsoft Edge Add-ons"></a>
 </p>
 
 <p align="center">
@@ -19,14 +19,14 @@
   <a href="README.zh-CN.md">中文</a> ·
   <a href="README.fr.md">Français</a> ·
   <a href="docs/">Docs</a> ·
-  <a href="https://webbrain.one">Website</a> ·
+  <a href="https://BROZER-v2.one">Website</a> ·
   <a href="https://discord.gg/cgC325ssfw">Discord</a> ·
   <a href="LICENSE">GPL-3.0-or-later</a>
 </p>
 
-![WebBrain reading a page, filling in a form, and fetching a file](assets/webbrain-demo.gif)
+![BROZER-v2 reading a page, filling in a form, and fetching a file](assets/BROZER-v2-demo.gif)
 
-WebBrain is a web browser extension that puts an AI agent in a side panel next to
+BROZER-v2 is a web browser extension that puts an AI agent in a side panel next to
 your tabs. Ask it about the page you're on, or hand it a task and let it click,
 type, and navigate its way through. It runs on the model you choose — a local
 llama.cpp or Ollama server, a frontier cloud API, or the managed default that
@@ -34,21 +34,21 @@ needs no setup at all.
 
 ## Install
 
-Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/webbrain/ljhijonmfahplgbbacgcfnaihbjljhhb),
-[Firefox Add-ons](https://addons.mozilla.org/firefox/addon/webbrain/), or
+Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/BROZER-v2/ljhijonmfahplgbbacgcfnaihbjljhhb),
+[Firefox Add-ons](https://addons.mozilla.org/firefox/addon/BROZER-v2/), or
 [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/dfbioajafcijomhljabppcelecgdgfeo).
 
 <details>
 <summary><b>Or load it from source</b></summary>
 
 ```bash
-git clone https://github.com/webbrain-one/webbrain.git
+git clone https://github.com/BROZER-v2-one/BROZER-v2.git
 ```
 
 **Chrome** — open `chrome://extensions/`, enable **Developer mode** (top
-right), click **Load unpacked**, and select the `webbrain/src/chrome` folder.
+right), click **Load unpacked**, and select the `BROZER-v2/src/chrome` folder.
 For an isolated copy that won't pick up stray working-tree files, run
-`npm run build:chrome` first and load `webbrain/build/chrome` instead.
+`npm run build:chrome` first and load `BROZER-v2/build/chrome` instead.
 
 **Firefox** — open `about:debugging#/runtime/this-firefox`, click **Load
 Temporary Add-on**, and select `src/firefox/manifest.json` (or
@@ -60,7 +60,7 @@ are removed when Firefox restarts; permanent installation requires signing via
 
 ## Use it
 
-Click the WebBrain icon to open the side panel, then type something like:
+Click the BROZER-v2 icon to open the side panel, then type something like:
 
 - "Summarize this page"
 - "Find all links about pricing"
@@ -77,9 +77,9 @@ Three modes control what the agent is allowed to do:
 
 ## Pick a model
 
-**WebBrain Compass 1.0** is the default and needs no API key or local setup.
+**BROZER-v2 Compass 1.0** is the default and needs no API key or local setup.
 
-**Local models** need no API key either. Point WebBrain at any OpenAI-compatible
+**Local models** need no API key either. Point BROZER-v2 at any OpenAI-compatible
 server:
 
 ```bash
@@ -98,13 +98,13 @@ port and `sk-unsloth-` API key configured by the user; see the
 [Unsloth Studio setup](docs/providers-and-models.md#unsloth-studio).
 Load a model with **at least a 16k-token context window** — 8k works only
 with the Compact tier, and 4k is too small for the system prompt plus tool
-schemas. WebBrain auto-detects the real window for llama.cpp, Ollama, and LM
+schemas. BROZER-v2 auto-detects the real window for llama.cpp, Ollama, and LM
 Studio, and auto-compacts the conversation as it fills up. For Ollama,
 llama.cpp, LM Studio, and LocalAI, it also reads native server metadata before
 adding screenshots; Settings provides Auto, Force on, and Off overrides. When
 the optional Model field is blank, the loaded-model capability is rechecked on
 every user turn so a server-side hot swap takes effect. There is also a
-preview `ollama launch webbrain --model <model>` handoff. Details:
+preview `ollama launch BROZER-v2 --model <model>` handoff. Details:
 [providers and models](docs/providers-and-models.md#local-providers).
 
 **Cloud APIs** — OpenAI, Anthropic Claude, Google Gemini, Azure OpenAI, AWS
@@ -142,7 +142,7 @@ see the [full catalog](docs/providers-and-models.md#extended-provider-catalog).
 
 ## Agent tools
 
-WebBrain separates **tier** from **mode**. Tier (`compact`, `mid`, `full`) is a
+BROZER-v2 separates **tier** from **mode**. Tier (`compact`, `mid`, `full`) is a
 per-provider setting controlling how many tools a model sees — Compact suits
 small local models, Full unlocks hover, drag-drop, frames, and shadow DOM. Mode
 (`ask`, `act`, `dev`) controls what the user is allowing.
@@ -178,7 +178,7 @@ suffixes: [slash commands](docs/slash-commands.md).
 
 ## Keyboard Shortcuts
 
-Chrome side panel shortcuts work when the WebBrain side panel has focus.
+Chrome side panel shortcuts work when the BROZER-v2 side panel has focus.
 
 | Shortcut                        | What it does                                                                 |
 | ------------------------------- | ---------------------------------------------------------------------------- |
@@ -187,7 +187,7 @@ Chrome side panel shortcuts work when the WebBrain side panel has focus.
 | `Ctrl+Shift+X` or `Cmd+Shift+X` | Switch to Act mode                                                           |
 | `Ctrl+Shift+D` or `Cmd+Shift+D` | Switch to Dev mode                                                           |
 | `Escape`                        | Stop the active run, unless it is only dismissing slash-command autocomplete |
-| `Escape` twice                  | Stop an active recording from WebBrain or browser pages                      |
+| `Escape` twice                  | Stop an active recording from BROZER-v2 or browser pages                      |
 
 ## Documentation
 
@@ -203,7 +203,7 @@ Chrome side panel shortcuts work when the WebBrain side panel has focus.
 | [Privacy and data flow](docs/privacy-and-data-flow.md)                                                                   | What leaves the browser, and what doesn't                |
 | [Accessibility tree and refs](docs/accessibility-tree-and-refs.md)                                                       | How pages are read and targeted                          |
 | [Site adapters](docs/site-adapters.md)                                                                                   | Per-site guidance and versioned workflow contracts       |
-| [Export and workflow formats](docs/export-and-workflow-formats.md)                                                       | `webbrain-config/1`, `webbrain-workflow/1`               |
+| [Export and workflow formats](docs/export-and-workflow-formats.md)                                                       | `BROZER-v2-config/1`, `BROZER-v2-workflow/1`               |
 | [Adding a tool](docs/adding-a-tool.md) · [Localization](docs/localization.md) · [Test scenarios](docs/test-scenarios.md) | Contributor guides                                       |
 | [Community](docs/community.md)                                                                                           | Discord server guide: channels, roles, rules, escalation |
 
@@ -211,13 +211,13 @@ Also available in [中文](docs/zh-CN/) and [Français](docs/fr/).
 
 ## Community
 
-Chat about everything WebBrain — help, local and cloud model setups, site
+Chat about everything BROZER-v2 — help, local and cloud model setups, site
 adapters, show-and-tell, and contributor coordination — on the
-[WebBrain Discord](https://discord.gg/cgC325ssfw). See
+[BROZER-v2 Discord](https://discord.gg/cgC325ssfw). See
 [community](docs/community.md) for how the server is organized, and
 [discord-setup](docs/discord-setup.md) for the channel, role, and welcome-screen
 configuration. Bug reports and feature requests belong in
-[GitHub issues](https://github.com/webbrain-one/webbrain/issues), not Discord.
+[GitHub issues](https://github.com/BROZER-v2-one/BROZER-v2/issues), not Discord.
 
 ## Repository layout
 
@@ -263,12 +263,12 @@ Recent changes are in [CHANGELOG.md](CHANGELOG.md).
 ## MCP server
 
 Let a coding agent use *your* browser. Claude Code, Codex, Cursor and OpenClaw
-can delegate a task to WebBrain running in the session you are already signed
+can delegate a task to BROZER-v2 running in the session you are already signed
 into — cookies present, SSO already passed. A headless framework starts logged
 out and stalls at the first login wall; this does not.
 
 ```bash
-claude mcp add --transport stdio webbrain -- npx -y @webbrain/mcp-server
+claude mcp add --transport stdio BROZER-v2 -- npx -y @BROZER-v2/mcp-server
 ```
 
 Claude Code launches the server automatically when it starts an MCP session.
@@ -276,10 +276,10 @@ To launch it yourself instead, run the following command and leave that terminal
 open (press `Ctrl+C` to stop it):
 
 ```bash
-npx -y @webbrain/mcp-server
+npx -y @BROZER-v2/mcp-server
 ```
 
-Once the server is running, open **WebBrain → Settings → General → Advanced →
+Once the server is running, open **BROZER-v2 → Settings → General → Advanced →
 MCP**, set the URL to `ws://127.0.0.1:17374/extension`, and enable it.
 **Chromium only** — the control and bridge runtime use the extension's off-screen
 document, which the Firefox build does not have.
@@ -291,18 +291,18 @@ port `17374`, and leave its process running. See the
 listener check and the other bridge ports.
 
 ```
-webbrain_run(task: "open the Stripe dashboard and list last week's failed
+BROZER-v2_run(task: "open the Stripe dashboard and list last week's failed
              payments with amounts and customer emails", mode: "ask")
 ```
 
-Use `webbrain_extract` with a JSON Schema when the caller needs predictable
+Use `BROZER-v2_extract` with a JSON Schema when the caller needs predictable
 structured output instead of a prose summary. The server exposes six task-level
 tools: run, structured extraction, status, clarification response, abort, and
 connection diagnostics.
 
 `mode='ask'` is read-only. `mode='act'` can click and type, gated by the same
 in-browser approval prompts a human gets. The server exposes task delegation
-rather than the ~50 low-level browser primitives: WebBrain's permission gate
+rather than the ~50 low-level browser primitives: BROZER-v2's permission gate
 lives in the agent loop, so per-primitive access over a socket would sit below
 the gate and bypass it. Details in [`mcp-server/`](mcp-server/).
 
@@ -310,17 +310,17 @@ The complete client setup, tool arguments, run lifecycle, structured-output
 examples, safety boundaries, and troubleshooting guide live at
 [`web/docs/mcp/`](web/docs/mcp/).
 
-> The extension holds **one** bridge socket at a time — WebBrain Cloud (17373),
+> The extension holds **one** bridge socket at a time — BROZER-v2 Cloud (17373),
 > the MCP server (17374), or the LM Studio plugin (17375). Switch by changing
 > the URL under **Settings → General → Advanced → MCP**.
 
 ## LM Studio plugin
 
 A standalone [LM Studio](https://lmstudio.ai) plugin at
-[`webbrain/web-tools`](https://lmstudio.ai/webbrain/web-tools):
+[`BROZER-v2/web-tools`](https://lmstudio.ai/BROZER-v2/web-tools):
 
 ```bash
-lms clone webbrain/web-tools
+lms clone BROZER-v2/web-tools
 ```
 
 `fetch_url` and `research_url` are pure Node HTTP — no browser needed, but also
@@ -335,28 +335,28 @@ Source: [`lmstudio-plugin/`](lmstudio-plugin/).
 
 ## Contributors
 
-<a href="https://github.com/webbrain-one/webbrain/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=webbrain-one/webbrain" />
+<a href="https://github.com/BROZER-v2-one/BROZER-v2/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=BROZER-v2-one/BROZER-v2" />
 </a>
 
 ## Citation
 
 ```bibtex
-@software{webbrain2026,
+@software{BROZER-v22026,
   author = {Sokullu, Emre},
-  title = {WebBrain: Open-source AI browser agent for chatting with pages},
+  title = {BROZER-v2: Open-source AI browser agent for chatting with pages},
   year = {2026},
   publisher = {GitHub},
-  url = {https://github.com/webbrain-one/webbrain}
+  url = {https://github.com/BROZER-v2-one/BROZER-v2}
 }
 ```
 
 ## License
 
-WebBrain 33.0.0 and later is licensed under
+BROZER-v2 33.0.0 and later is licensed under
 [GPL-3.0-or-later](LICENSE) because the distributed browser extension bundles
 and integrates the GPL-licensed Xapian/libzim WebAssembly runtime. Releases
 before 33.0.0 remain MIT-licensed under the license that applied when they were
 published; that historical text is preserved in [LICENSES/MIT.txt](LICENSES/MIT.txt).
 
-Built with ❤️ by [Emre Sokullu](https://emresokullu.com) and [open-source contributors](https://github.com/webbrain-one/webbrain/graphs/contributors).
+Built with ❤️ by [Emre Sokullu](https://emresokullu.com) and [open-source contributors](https://github.com/BROZER-v2-one/BROZER-v2/graphs/contributors).
