@@ -1,0 +1,166 @@
+{
+  "manifest_version": 2,
+  "name": "WebBrain",
+  "version": "36.5.0",
+  "description": "Open-source AI browser agent — chat with pages, automate tasks, multi-provider LLM support.",
+  "permissions": [
+    "activeTab",
+    "nativeMessaging",
+    "menus",
+    "webNavigation",
+    "webRequest",
+    "storage",
+    "unlimitedStorage",
+    "tabs",
+    "tabGroups",
+    "notifications",
+    "downloads",
+    "alarms",
+    "clipboardWrite",
+    "clipboardRead",
+    "<all_urls>"
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'; connect-src * data: blob: http://* ws://*;",
+  "background": {
+    "page": "src/background.html",
+    "persistent": true
+  },
+  "sidebar_action": {
+    "default_title": "WebBrain",
+    "default_panel": "src/ui/sidepanel.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/file-picker-guard-loader.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "src/content/rich-text-toolbar-heuristic.js",
+        "src/content/accessibility-tree.js",
+        "src/content/teacher-capture.js",
+        "src/content/chat-observation.js",
+        "src/content/content.js",
+        "src/content/agent-visual-indicator.js",
+        "src/content/ollama-launch-handoff.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/selection-shortcut.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/redaction-regions.js"],
+      "run_at": "document_idle",
+      "all_frames": true,
+      "match_about_blank": true
+    },
+    {
+      "matches": [
+        "*://*.facebook.com/*",
+        "*://*.instagram.com/*",
+        "*://*.x.com/*",
+        "*://*.twitter.com/*",
+        "*://*.linkedin.com/*",
+        "*://*.reddit.com/*",
+        "*://*.youtube.com/*",
+        "*://youtu.be/*"
+      ],
+      "js": ["src/agent/smd-loader.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "options_ui": {
+    "page": "src/ui/settings.html",
+    "open_in_tab": true
+  },
+  "browser_action": {
+    "default_title": "WebBrain",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    "vendor/pdfjs/pdf.mjs",
+    "vendor/pdfjs/pdf.worker.mjs",
+    "src/agent/social-media-downloader.js",
+    "src/content/file-picker-guard-page.js",
+    "skills/*"
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "webbrain@esokullu.com",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"],
+        "optional": ["personallyIdentifyingInfo", "authenticationInfo", "personalCommunications", "websiteContent", "technicalAndInteraction"]
+      }
+    }
+  },
+  "commands": {
+    "_execute_sidebar_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+W"
+      },
+      "description": "Open WebBrain panel"
+    },
+    "switch-to-ask": {
+      "suggested_key": {
+        "default": "Alt+Shift+A"
+      },
+      "description": "Switch to Ask mode"
+    },
+    "switch-to-act": {
+      "suggested_key": {
+        "default": "Alt+Shift+X"
+      },
+      "description": "Switch to Act mode"
+    },
+    "switch-to-dev": {
+      "suggested_key": {
+        "default": "Alt+Shift+D"
+      },
+      "description": "Switch to Dev mode"
+    },
+    "focus-input": {
+      "suggested_key": {
+        "default": "Alt+Shift+I"
+      },
+      "description": "Focus the input"
+    },
+    "decrease-ui-scale": {
+      "suggested_key": {
+        "default": "Alt+Shift+Comma"
+      },
+      "description": "Zoom WebBrain UI out"
+    },
+    "increase-ui-scale": {
+      "suggested_key": {
+        "default": "Alt+Shift+Period"
+      },
+      "description": "Zoom WebBrain UI in"
+    },
+    "reset-ui-scale": {
+      "suggested_key": {
+        "default": "Alt+Shift+0"
+      },
+      "description": "Reset WebBrain UI zoom"
+    }
+  }
+}

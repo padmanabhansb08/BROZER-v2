@@ -1,0 +1,5 @@
+playwright>=1.40
+browser-cookie3>=0.19
+# Used by sites_advanced.test_hls_aes128_decryption to generate the
+# encrypted fixture segment. If missing, that one test is skipped.
+cryptography>=41.0
