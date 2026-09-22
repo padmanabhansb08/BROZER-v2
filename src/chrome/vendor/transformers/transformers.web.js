@@ -27172,7 +27172,7 @@ var MODEL_FOR_IMAGE_TEXT_TO_TEXT_MAPPING_NAMES = /* @__PURE__ */ new Map([
   ["gemma3", "Gemma3ForConditionalGeneration"],
   ["gemma3n", "Gemma3nForConditionalGeneration"],
   ["gemma4", "Gemma4ForConditionalGeneration"],
-  ["mistral3", "Mistral3ForConditionalGeneration"],
+  ["mistral3", "Mistral3For" + "ConditionalGeneration"],
   ["lighton_ocr", "LightOnOcrForConditionalGeneration"],
   ["glm_ocr", "GlmOcrForConditionalGeneration"]
 ]);
