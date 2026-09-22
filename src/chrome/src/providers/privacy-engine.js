@@ -11,30 +11,44 @@ export class PrivacyEngine {
    * @param {Object} [options] - Sanitization options
    * @returns {Promise<Array<Object>>} Sanitized message array
    */
-  static sanitize(target, options = {}) {
-    if (typeof target === 'string') {
-      return this.sanitizeText(target, options);
-    }
-    if (!Array.isArray(target) && target && typeof target === 'object') {
-      const session = new SanitizationSession(options);
-      return session.sanitizeObjectSync(target);
-    }
-    if (!Array.isArray(target)) return target;
+  static async sanitize(target, options = {}) {
+    try { chrome.runtime.sendMessage({ type: 'privacy_engine_update', status: 'inspecting' }).catch(() => {}); } catch (e) {}
 
-    const messages = target;
-    const hasImageBlocks = messages.some(msg => {
-      if (!msg || typeof msg !== 'object') return false;
-      if (Array.isArray(msg.content)) {
-        return msg.content.some(b => b && (b.type === 'image_url' || b.type === 'image'));
-      }
-      return false;
-    });
-
+    let result;
     const session = new SanitizationSession(options);
-    if (!hasImageBlocks) {
-      return messages.map(msg => session.sanitizeMessageSync(msg));
+
+    if (typeof target === 'string') {
+      result = session.sanitizeText(target);
+    } else if (!Array.isArray(target) && target && typeof target === 'object') {
+      result = session.sanitizeObjectSync(target);
+    } else if (!Array.isArray(target)) {
+      result = target;
+    } else {
+      const messages = target;
+      const hasImageBlocks = messages.some(msg => {
+        if (!msg || typeof msg !== 'object') return false;
+        if (Array.isArray(msg.content)) {
+          return msg.content.some(b => b && (b.type === 'image_url' || b.type === 'image'));
+        }
+        return false;
+      });
+
+      if (!hasImageBlocks) {
+        result = messages.map(msg => session.sanitizeMessageSync(msg));
+      } else {
+        result = await Promise.all(messages.map(msg => session.sanitizeMessageAsync(msg)));
+      }
     }
-    return Promise.all(messages.map(msg => session.sanitizeMessageAsync(msg)));
+
+    try {
+      const categories = Array.from(session.secretMapping.entries()).map(([placeholder, raw]) => {
+        const catParts = placeholder.match(/^<([A-Z_]+)_\d+>$/);
+        return { name: catParts ? catParts[1] : 'SECRET', placeholder };
+      });
+      chrome.runtime.sendMessage({ type: 'privacy_engine_update', status: 'complete', categories }).catch(() => {});
+    } catch (e) {}
+
+    return result;
   }
 
   static sanitizeText(text, options = {}) {
@@ -200,8 +214,11 @@ class SanitizationSession {
   }
 
   async sanitizeImageBlock(block) {
+    try { chrome.runtime.sendMessage({ type: 'visual_privacy_update', status: 'inspecting' }).catch(() => {}); } catch(e) {}
+
     const parsed = ImageRedactor.parseImageBlock(block);
     if (!parsed) {
+      try { chrome.runtime.sendMessage({ type: 'visual_privacy_update', status: 'failed' }).catch(() => {}); } catch(e) {}
       return ImageRedactor.buildFailClosedTextBlock('unsupported format or malformed data');
     }
 
@@ -209,6 +226,7 @@ class SanitizationSession {
       const res = await VisualDetector.detect(parsed);
 
       if (!res.ok || !res.scanComplete) {
+        try { chrome.runtime.sendMessage({ type: 'visual_privacy_update', status: 'failed' }).catch(() => {}); } catch(e) {}
         return ImageRedactor.buildFailClosedTextBlock(res.error || 'unverified or incomplete scan');
       }
 
@@ -228,6 +246,7 @@ class SanitizationSession {
           res.imageWidth,
           res.imageHeight
         );
+        try { chrome.runtime.sendMessage({ type: 'visual_privacy_update', status: 'complete', redactedCount: piiBoxes.length, previewDataUrl: redactedPng }).catch(() => {}); } catch(e) {}
         return ImageRedactor.buildSanitizedBlock(parsed, redactedPng);
       }
 
@@ -236,8 +255,10 @@ class SanitizationSession {
         res.imageWidth,
         res.imageHeight
       );
+      try { chrome.runtime.sendMessage({ type: 'visual_privacy_update', status: 'complete', redactedCount: 0, previewDataUrl: cleanPng }).catch(() => {}); } catch(e) {}
       return ImageRedactor.buildSanitizedBlock(parsed, cleanPng);
     } catch (err) {
+      try { chrome.runtime.sendMessage({ type: 'visual_privacy_update', status: 'failed' }).catch(() => {}); } catch(e) {}
       return ImageRedactor.buildFailClosedTextBlock(err.message || 'exception during sanitization');
     }
   }

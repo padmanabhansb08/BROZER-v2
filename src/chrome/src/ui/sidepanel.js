@@ -607,7 +607,7 @@ const selectionScopeDescriptionEl = document.getElementById('selection-scope-des
 const selectionScopeRestoreBtn = document.getElementById('selection-scope-restore');
 const selectionScopeNewConversationBtn = document.getElementById('selection-scope-new-conversation');
 let selectionAskActionEl = document.getElementById('selection-ask-action');
-const historyBtn = document.getElementById('btn-history');
+const inspectBtn = document.getElementById('btn-inspect');
 const expandBtn = document.getElementById('btn-expand');
 const settingsBtn = document.getElementById('btn-settings');
 const uiScaleMenu = document.getElementById('ui-scale-menu');
@@ -1188,7 +1188,7 @@ const brozerPanel = {
   setMode: (mode, opts) => shellApi?.tabs.setActive(mode, opts),
   setExecutionState: (label) => { shellApi?.state.set(label); shellApi?.band.classList.remove('is-idle'); },
   setExecutionLive: (live) => shellApi?.state.setActivity(live ? 'running' : 'paused'),
-  clearExecutionState: () => { shellApi?.state.clear(); shellApi?.stream.clear(); shellApi?.clearError(); shellApi?.band.classList.add('is-idle'); },
+  clearExecutionState: () => { shellApi?.state.clear(); shellApi?.stream.clear(); shellApi?.clearError(); shellApi?.band.classList.add('is-idle'); resetOutputInspector(); },
   pushActivity: (label) => { shellApi?.stream.push(label); shellApi?.band.classList.remove('is-idle'); },
   settleActivity: () => shellApi?.stream.resolveActive(),
   dissolveComposer: (text) => shellApi?.field.dissolve(text),
@@ -14618,27 +14618,10 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-async function openChatHistoryPage() {
-  let url = chrome.runtime.getURL('src/ui/history.html');
-  try {
-    const tabInfo = await getTabInfoForHistory(currentTabId);
-    if (tabInfo?.url) {
-      const pageUrl = new URL(url);
-      pageUrl.searchParams.set('url', tabInfo.url);
-      url = pageUrl.toString();
-    }
-  } catch {
-    // Opening the unfiltered history page is still useful.
-  }
-  try {
-    await chrome.tabs.create({ url });
-  } catch {
-    window.open(url, '_blank', 'noopener');
-  }
-}
 
-historyBtn?.addEventListener('click', () => {
-  void openChatHistoryPage();
+
+inspectBtn?.addEventListener('click', () => {
+  toggleOutputInspector();
 });
 
 settingsBtn.addEventListener('click', () => {
@@ -14800,3 +14783,169 @@ export function runWithViewTransition(updateFn) {
   if (updateError) throw updateError;
   return transition;
 }
+
+// ==========================================================================
+// OUTPUT INSPECTOR
+// ==========================================================================
+
+let outputInspectorEl = null;
+
+function toggleOutputInspector() {
+  if (!outputInspectorEl) {
+    outputInspectorEl = document.createElement('div');
+    outputInspectorEl.id = 'output-inspector';
+    outputInspectorEl.className = 'output-inspector hidden';
+    
+    outputInspectorEl.innerHTML = `
+      <div class="inspector-header">
+        <span class="inspector-title">OUTPUT INSPECTOR</span>
+        <button class="inspector-close" aria-label="Close Inspector">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="inspector-body">
+        <div class="inspector-section" id="inspect-observation">
+          <div class="inspector-section-header">
+            <span class="inspector-section-title">OBSERVATION</span>
+            <span class="inspector-status-icon"></span>
+          </div>
+          <div class="inspector-section-content" id="inspect-observation-content"></div>
+        </div>
+
+        <div class="inspector-connector"></div>
+
+        <div class="inspector-section" id="inspect-privacy-engine">
+          <div class="inspector-section-header">
+            <span class="inspector-section-title">🔐 PRIVACY ENGINE</span>
+            <span class="inspector-status-icon"></span>
+          </div>
+          <div class="inspector-section-content" id="inspect-privacy-engine-content"></div>
+        </div>
+
+        <div class="inspector-connector"></div>
+
+        <div class="inspector-section" id="inspect-visual-privacy">
+          <div class="inspector-section-header">
+            <span class="inspector-section-title">👁 VISUAL PRIVACY</span>
+            <span class="inspector-status-icon"></span>
+          </div>
+          <div class="inspector-section-content" id="inspect-visual-privacy-content"></div>
+        </div>
+
+        <div class="inspector-connector"></div>
+
+        <div class="inspector-section" id="inspect-sanitized-output">
+          <div class="inspector-section-header">
+            <span class="inspector-section-title">SANITIZED OUTPUT</span>
+            <span class="inspector-status-icon"></span>
+          </div>
+          <div class="inspector-section-content" id="inspect-sanitized-output-content"></div>
+        </div>
+
+        <hr class="inspector-divider" />
+
+        <div class="inspector-section model-boundary" id="inspect-model-boundary">
+          <div class="inspector-section-header">
+            <span class="inspector-section-title">MODEL BOUNDARY</span>
+            <span class="inspector-status-icon"></span>
+          </div>
+          <div class="inspector-section-content" id="inspect-model-boundary-content"></div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(outputInspectorEl);
+    
+    outputInspectorEl.querySelector('.inspector-close').addEventListener('click', () => {
+      toggleOutputInspector();
+    });
+  }
+
+  const isHidden = outputInspectorEl.classList.contains('hidden');
+  if (isHidden) {
+    outputInspectorEl.classList.remove('hidden');
+  } else {
+    outputInspectorEl.classList.add('hidden');
+  }
+}
+
+function resetOutputInspector() {
+  if (!outputInspectorEl) return;
+  const sections = ['observation', 'privacy-engine', 'visual-privacy', 'sanitized-output', 'model-boundary'];
+  for (const s of sections) {
+    const el = outputInspectorEl.querySelector(\`#inspect-\${s}\`);
+    if (el) {
+      el.classList.remove('active', 'done', 'failed');
+      const content = el.querySelector('.inspector-section-content');
+      if (content) content.innerHTML = '';
+      const icon = el.querySelector('.inspector-status-icon');
+      if (icon) icon.innerHTML = '';
+    }
+  }
+}
+
+function updateOutputInspectorSection(sectionId, state, htmlContent = '') {
+  if (!outputInspectorEl) return;
+  const el = outputInspectorEl.querySelector(\`#inspect-\${sectionId}\`);
+  if (!el) return;
+  
+  el.classList.remove('active', 'done', 'failed');
+  el.classList.add(state); // 'active', 'done', or 'failed'
+  
+  const icon = el.querySelector('.inspector-status-icon');
+  if (icon) {
+    if (state === 'active') icon.innerHTML = '<span class="shimmer-icon">◉</span>';
+    else if (state === 'done') icon.innerHTML = '✓';
+    else if (state === 'failed') icon.innerHTML = '⚠';
+  }
+  
+  const content = el.querySelector('.inspector-section-content');
+  if (content && htmlContent) {
+    content.innerHTML = htmlContent;
+  }
+}
+
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.type === 'privacy_engine_update') {
+    if (!outputInspectorEl) return;
+    if (msg.status === 'inspecting') {
+      updateOutputInspectorSection('privacy-engine', 'active', 'Scanning observation...');
+    } else if (msg.status === 'complete') {
+      const sanitizedCount = msg.categories.length;
+      let html = \`<div>✓ Inspection complete</div><div class="inspector-muted">\${sanitizedCount} sensitive values detected</div>\`;
+      if (sanitizedCount > 0) {
+        html += '<ul class="inspector-list">';
+        msg.categories.forEach(cat => {
+          html += \`<li>\${escapeHtml(cat.name)}<br/><span class="inspector-placeholder">\${escapeHtml(cat.placeholder)}</span></li>\`;
+        });
+        html += '</ul>';
+      }
+      updateOutputInspectorSection('privacy-engine', 'done', html);
+      updateOutputInspectorSection('sanitized-output', 'done', html);
+      updateOutputInspectorSection('model-boundary', 'done', '<div>✓ Safe to send</div><div class="inspector-muted">No raw sensitive values detected.</div>');
+    } else if (msg.status === 'failed') {
+      updateOutputInspectorSection('privacy-engine', 'failed', '<div class="inspector-error">⚠ Inspection failed</div><div class="inspector-muted">Observation withheld from model.</div>');
+      updateOutputInspectorSection('model-boundary', 'failed', '<div class="inspector-error">Withheld from model.</div>');
+    }
+  } else if (msg.type === 'visual_privacy_update') {
+    if (!outputInspectorEl) return;
+    if (msg.status === 'inspecting') {
+      updateOutputInspectorSection('visual-privacy', 'active', 'Inspecting screenshot...');
+    } else if (msg.status === 'complete') {
+      let html = '<div>✓ Screenshot inspected</div>';
+      if (msg.redactedCount > 0) {
+        html += \`<div class="inspector-muted">\${msg.redactedCount} sensitive regions detected</div>\`;
+        if (msg.previewDataUrl) {
+          html += \`<div class="inspector-preview-box"><img src="\${msg.previewDataUrl}" class="inspector-preview-img" alt="sanitized preview" /></div>\`;
+        }
+        html += \`<div class="inspector-muted">\${msg.redactedCount} / \${msg.redactedCount} regions redacted</div>\`;
+      } else {
+         html += '<div class="inspector-muted">0 sensitive regions detected</div>';
+      }
+      updateOutputInspectorSection('visual-privacy', 'done', html);
+    } else if (msg.status === 'failed') {
+      updateOutputInspectorSection('visual-privacy', 'failed', '<div class="inspector-error">⚠ Visual Inspection Failed</div><div class="inspector-muted">Image withheld from model.</div>');
+      updateOutputInspectorSection('model-boundary', 'failed', '<div class="inspector-error">Withheld from model.</div>');
+    }
+  }
+});
