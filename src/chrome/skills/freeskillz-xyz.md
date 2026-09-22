@@ -1,6 +1,6 @@
 # FreeSkillz.xyz
 
-```webbrain-skill
+```brozer-skill
 {
   "summary": "Read YouTube transcripts, fetch blocked NYTimes articles, or resolve and download supported public media through FreeSkillz.xyz.",
   "modes": ["ask", "act"],
@@ -16,7 +16,7 @@ No API key is required.
 
 This skill exposes `read_youtube_transcript`, `fetch_nytimes_article`, `resolve_public_media`, and `download_public_media` when enabled. Use these declared tools for supported article, transcript, and public-media tasks; do not call raw FreeSkillz endpoints from the bundled skill.
 
-```webbrain-tools
+```brozer-tools
 {
   "tools": [
     {

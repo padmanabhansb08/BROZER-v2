@@ -1,22 +1,22 @@
 # Humanizer
 
-```webbrain-skill
+```brozer-skill
 {
-  "summary": "Rewrite prose WebBrain is composing for the user, such as an email reply or a post, so it reads as human writing rather than AI output.",
+  "summary": "Rewrite prose BROZER is composing for the user, such as an email reply or a post, so it reads as human writing rather than AI output.",
   "modes": ["ask", "act"],
   "intents": ["email_reply", "draft_message", "compose_prose", "rewrite_text", "humanize_writing", "reply_to_thread"]
 }
 ```
 
-Apply this skill to prose WebBrain composes on the user's behalf: an email reply, a chat or forum message, a comment, a post, a review, a document. Rewrite the draft before presenting or typing it, so the result reads as something a person wrote.
+Apply this skill to prose BROZER composes on the user's behalf: an email reply, a chat or forum message, a comment, a post, a review, a document. Rewrite the draft before presenting or typing it, so the result reads as something a person wrote.
 
-Condensed for WebBrain from the MIT-licensed [humanizer](https://github.com/blader/humanizer) skill by blader, which is based on [Wikipedia:Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing).
+Condensed for BROZER from the MIT-licensed [humanizer](https://github.com/blader/humanizer) skill by blader, which is based on [Wikipedia:Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing).
 
 ## Output mode
 
 Run the whole draft, audit, final loop internally and return **only the final text**. Do not show the intermediate draft, the audit bullets, a preamble, or a description of what you changed. The user asked for an email, not a writing critique.
 
-This governs the prose you produce. It does not change WebBrain's own run reporting: progress updates, the `done` tool call, and the final completion summary still follow the normal rules.
+This governs the prose you produce. It does not change BROZER's own run reporting: progress updates, the `done` tool call, and the final completion summary still follow the normal rules.
 
 In Act mode, type the final text into the target field. Do not paste an intermediate version first and then correct it.
 

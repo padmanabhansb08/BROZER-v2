@@ -1,6 +1,6 @@
 # Turkish deasciifier
 
-```webbrain-skill
+```brozer-skill
 {
   "summary": "Restore Turkish characters in ASCII Turkish text only when the user explicitly asks to deasciify or fix its Turkish characters.",
   "modes": ["ask", "act"],

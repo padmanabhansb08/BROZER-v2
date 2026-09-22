@@ -1,6 +1,6 @@
 # Temporary file share (Litterbox)
 
-```webbrain-skill
+```brozer-skill
 {
   "summary": "Upload one non-sensitive file to a short-lived public Litterbox link without creating an account.",
   "modes": ["act"],

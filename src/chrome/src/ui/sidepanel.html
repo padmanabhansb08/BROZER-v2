@@ -67,7 +67,7 @@
       <!-- Step 1: Welcome -->
       <div class="ob-step active" data-step="0">
         <div class="ob-icon">
-          <img class="ob-brand-logo" src="../../icons/icon128.png" alt="" aria-hidden="true">
+          <img class="ob-brand-logo" src="../../icons/icon128.png?v=2" alt="" aria-hidden="true">
         </div>
         <h2 data-i18n="ob.welcome.title"></h2>
         <p class="ob-body" data-i18n="ob.welcome.body"></p>
@@ -249,7 +249,7 @@
     as a toolbar. Provider and language selection remain reachable through
     Settings. See docs/BROZER_SIDE_PANEL_UI_REBUILD.md.
   -->
-  <div id="bz-legacy" class="bz-legacy">
+  <div id="bz-legacy" class="bz-legacy" inert>
         <div class="provider-picker" id="provider-picker">
           <!-- Native select kept as the value source for existing handlers.
                Closed button is text-only; brand icons show only in the open menu. -->
@@ -291,7 +291,7 @@
             <button type="button" class="ui-scale-reset" data-ui-scale-action="reset" data-i18n="sp.ui_scale.reset"></button>
           </div>
         </div>
-        <span id="status-dot" class="status-dot offline" data-i18n-title="sp.status.disconnected"></span>
+        <button
           id="btn-webgpu-standalone"
           class="standalone-webgpu-toggle"
           title="Enable Apocalypse Mode first"
@@ -300,18 +300,9 @@
           hidden
         ><span aria-hidden="true">☢</span></button>
         <span id="status-dot" class="status-dot offline" data-i18n-title="sp.status.disconnected"></span>
-      </div>
-      <div class="header-right">
-        <div id="language-picker" class="language-picker">
-          <select id="language-select" class="language-select-native" tabindex="-1" aria-hidden="true"></select>
-          <button type="button" id="language-picker-btn" class="language-picker-btn" aria-haspopup="listbox" aria-expanded="false" aria-controls="language-picker-menu" data-i18n-aria-label="sp.btn.language">
-            <svg data-icon="globe" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-              <path d="M2 12h20"/>
-            </svg>
-          </button>
-      <div id="chat-navigation" class="chat-navigation hidden">
+    </div>
+  </div>
+  <div id="chat-navigation" class="chat-navigation hidden">
         <button id="chat-navigation-action" class="chat-navigation-action" type="button" aria-controls="chat-container">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 19V5M6.5 10.5 12 5l5.5 5.5"/>
@@ -343,9 +334,9 @@
           <div class="store-review-card">
             <button type="button" id="store-review-close" class="store-review-close" data-i18n-aria-label="sp.review.close" aria-label="Dismiss">×</button>
             <div id="store-review-step-rating" class="store-review-step">
-              <div id="store-review-title" class="store-review-title" data-i18n="sp.review.rating_title">Enjoying WebBrain?</div>
+              <div id="store-review-title" class="store-review-title" data-i18n="sp.review.rating_title">Enjoying BROZER-v2?</div>
               <p class="store-review-body" data-i18n="sp.review.rating_body">Tap a star — it helps us know how we're doing.</p>
-              <div class="store-review-stars" role="group" data-i18n-aria-label="sp.review.stars_label" aria-label="Rate WebBrain">
+              <div class="store-review-stars" role="group" data-i18n-aria-label="sp.review.stars_label" aria-label="Rate BROZER-v2">
                 <button type="button" class="store-review-star" data-rating="1" data-i18n-aria-label="sp.review.star_1" aria-label="1 star">★</button>
                 <button type="button" class="store-review-star" data-rating="2" data-i18n-aria-label="sp.review.star_2" aria-label="2 stars">★</button>
                 <button type="button" class="store-review-star" data-rating="3" data-i18n-aria-label="sp.review.star_3" aria-label="3 stars">★</button>
@@ -355,7 +346,7 @@
             </div>
             <div id="store-review-step-positive" class="store-review-step hidden">
               <div class="store-review-title" data-i18n="sp.review.positive_title">Thanks — that means a lot!</div>
-              <p class="store-review-body" data-i18n="sp.review.positive_body">Would you leave a quick review on the extension store? It helps others discover WebBrain.</p>
+              <p class="store-review-body" data-i18n="sp.review.positive_body">Would you leave a quick review on the extension store? It helps others discover BROZER-v2.</p>
               <button type="button" id="store-review-open-store" class="store-review-primary" data-i18n="sp.review.open_store">Leave a review</button>
             </div>
             <div id="store-review-step-negative" class="store-review-step hidden">
@@ -374,7 +365,6 @@
             </div>
           </div>
         </div>
-  </div>
 
   <script src="sidepanel.js" type="module"></script>
 </body>

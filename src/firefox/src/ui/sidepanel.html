@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebBrain</title>
+  <title>BROZER</title>
   <!-- Theme bootstrap MUST load before the stylesheet so data-theme is set
        on <html> before any paint. External classic script (not inline,
        not module) — Firefox MV2's CSP also forbids inline without an
@@ -37,12 +37,12 @@
       <!-- Step 1: Welcome -->
       <div class="ob-step active" data-step="0">
         <div class="ob-icon">
-          <img class="ob-brand-logo" src="../../icons/icon128.png" alt="" aria-hidden="true">
+          <img class="ob-brand-logo" src="../../icons/icon128.png?v=2" alt="" aria-hidden="true">
         </div>
         <h2 data-i18n="ob.welcome.title"></h2>
         <p class="ob-body" data-i18n="ob.welcome.body"></p>
         <p class="ob-note" data-i18n="ob.welcome.note"></p>
-        <p class="ob-browser-pin-note" data-i18n="install.firefox_pin.body">To keep WebBrain handy, open Firefox Extensions, select the gear beside WebBrain, then choose Pin to Toolbar.</p>
+        <p class="ob-browser-pin-note" data-i18n="install.firefox_pin.body">To keep BROZER handy, open Firefox Extensions, select the gear beside BROZER, then choose Pin to Toolbar.</p>
       </div>
 
       <!-- Step 2: Act Mode Warning -->
@@ -77,7 +77,7 @@
         <div class="ob-help-improve hidden" id="ob-help-improve">
           <label class="ob-help-improve-control" for="ob-help-improve-checkbox">
             <input type="checkbox" id="ob-help-improve-checkbox" aria-describedby="ob-help-improve-description" checked>
-            <span data-i18n="st.display.help_improve.label">Help Improve WebBrain</span>
+            <span data-i18n="st.display.help_improve.label">Help Improve BROZER</span>
           </label>
           <div class="ob-help-improve-description" id="ob-help-improve-description" data-i18n-html="st.display.help_improve.desc_html"></div>
         </div>
@@ -201,7 +201,7 @@
     the panel layout; the elements are retained only so the existing panel
     logic, which binds them by id, keeps working.
   -->
-  <div id="bz-legacy" class="bz-legacy">
+  <div id="bz-legacy" class="bz-legacy" inert>
         <div class="provider-picker" id="provider-picker">
           <!-- Native select kept as the value source for existing handlers.
                Closed button is text-only; brand icons show only in the open menu. -->
@@ -244,6 +244,7 @@
           </div>
         </div>
         <span id="status-dot" class="status-dot offline" data-i18n-title="sp.status.disconnected"></span>
+  </div>
       <div id="chat-navigation" class="chat-navigation hidden">
         <button id="chat-navigation-action" class="chat-navigation-action" type="button" aria-controls="chat-container">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -276,9 +277,9 @@
           <div class="store-review-card">
             <button type="button" id="store-review-close" class="store-review-close" data-i18n-aria-label="sp.review.close" aria-label="Dismiss">×</button>
             <div id="store-review-step-rating" class="store-review-step">
-              <div id="store-review-title" class="store-review-title" data-i18n="sp.review.rating_title">Enjoying WebBrain?</div>
+              <div id="store-review-title" class="store-review-title" data-i18n="sp.review.rating_title">Enjoying BROZER-v2?</div>
               <p class="store-review-body" data-i18n="sp.review.rating_body">Tap a star — it helps us know how we're doing.</p>
-              <div class="store-review-stars" role="group" data-i18n-aria-label="sp.review.stars_label" aria-label="Rate WebBrain">
+              <div class="store-review-stars" role="group" data-i18n-aria-label="sp.review.stars_label" aria-label="Rate BROZER-v2">
                 <button type="button" class="store-review-star" data-rating="1" data-i18n-aria-label="sp.review.star_1" aria-label="1 star">★</button>
                 <button type="button" class="store-review-star" data-rating="2" data-i18n-aria-label="sp.review.star_2" aria-label="2 stars">★</button>
                 <button type="button" class="store-review-star" data-rating="3" data-i18n-aria-label="sp.review.star_3" aria-label="3 stars">★</button>
@@ -288,7 +289,7 @@
             </div>
             <div id="store-review-step-positive" class="store-review-step hidden">
               <div class="store-review-title" data-i18n="sp.review.positive_title">Thanks — that means a lot!</div>
-              <p class="store-review-body" data-i18n="sp.review.positive_body">Would you leave a quick review on the extension store? It helps others discover WebBrain.</p>
+              <p class="store-review-body" data-i18n="sp.review.positive_body">Would you leave a quick review on the extension store? It helps others discover BROZER-v2.</p>
               <button type="button" id="store-review-open-store" class="store-review-primary" data-i18n="sp.review.open_store">Leave a review</button>
             </div>
             <div id="store-review-step-negative" class="store-review-step hidden">
@@ -307,7 +308,6 @@
             </div>
           </div>
         </div>
-  </div>
 
   <script src="sidepanel.js" type="module"></script>
 </body>

@@ -8,6 +8,7 @@
 // imports evaluate before this file's body, so every element lookup below
 // resolves against the shell rather than against markup that no longer exists.
 import { shellApi } from './brozer-shell.js';
+import { MotionExpandableTrace } from './brozer-components.js';
 import { t, getLocale, setLocale, LANGUAGES, applyDOMTranslations, translationsForKey } from './i18n.js';
 import { CAPABILITY_LABEL } from '../agent/permission-gate.js';
 import { sanitizeMarkdownLinks } from './markdown-link.js';

@@ -94,13 +94,15 @@ export class SecretStore {
     if (typeof target === 'string') {
       let resolvedText = target;
       // Match placeholder pattern <CATEGORY_N>
-      resolvedText = resolvedText.replace(/<[A-Z0-9_]+_\d+>/g, (match) => {
+      resolvedText = resolvedText.replace(/(?<!\\)<[A-Z0-9_]+_\d+>/g, (match) => {
         if (authSet.has(match) && SecretStore.has(match)) {
           const raw = SecretStore.resolve(match);
           return raw !== null ? raw : match;
         }
         return match;
       });
+      // Unescape literal placeholder text
+      resolvedText = resolvedText.replace(/\\(<[A-Z0-9_]+_\d+>)/g, '$1');
       return resolvedText;
     }
 

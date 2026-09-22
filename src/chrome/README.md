@@ -1,4 +1,4 @@
-# WebBrain
+# BROZER
 
 Open-source AI browser agent for Chrome, Microsoft Edge, and Firefox. Chat with any web page, automate browser tasks, and run multi-step agent workflows — powered by your choice of LLM.
 
@@ -8,9 +8,9 @@ Open-source AI browser agent for Chrome, Microsoft Edge, and Firefox. Chat with 
 - **Browser Actions** — Click, type, scroll, navigate, and interact with page elements
 - **Ask / Act / Dev Modes** — Read-only by default, normal browser actions on request, and Mid/Full Dev tools for source/style/page debugging
 - **Multi-Step Agent** — Autonomous task execution with tool-use loops (configurable, default 130 steps)
-- **Continue from Limit** — At the step limit, WebBrain first delivers a context-only partial result or explicit blocker; click Continue to keep going
-- **Multi-Provider LLM** — WebBrain Compass plus local llama.cpp/Ollama/LM Studio/Jan/vLLM/SGLang/LocalAI and major direct cloud providers
-- **Reliable Compass improvement traces** — when Help Improve WebBrain is enabled, terminal tool outcomes are durably queued and retried without delaying the visible answer
+- **Continue from Limit** — At the step limit, BROZER first delivers a context-only partial result or explicit blocker; click Continue to keep going
+- **Multi-Provider LLM** — BROZER Compass plus local llama.cpp/Ollama/LM Studio/Jan/vLLM/SGLang/LocalAI and major direct cloud providers
+- **Reliable Compass improvement traces** — when Help Improve BROZER is enabled, terminal tool outcomes are durably queued and retried without delaying the visible answer
 - **Side Panel UI** — Clean chat interface that lives alongside your browsing
 - **Reading-first long replies** — Questions stay visible while answers grow, with controls to follow, jump to the latest content, or return to the question
 - **Per-Tab Conversations** — Each tab has its own chat history
@@ -26,7 +26,7 @@ Open-source AI browser agent for Chrome, Microsoft Edge, and Firefox. Chat with 
 ### Chrome
 
 ```bash
-git clone https://github.com/webbrain-one/webbrain.git
+git clone https://github.com/brozer-one/webbrain.git
 ```
 
 1. Open Chrome → `chrome://extensions/`
@@ -36,7 +36,7 @@ git clone https://github.com/webbrain-one/webbrain.git
 ### Microsoft Edge
 
 ```bash
-git clone https://github.com/webbrain-one/webbrain.git
+git clone https://github.com/brozer-one/webbrain.git
 ```
 
 1. Open Edge → `edge://extensions/`
@@ -50,7 +50,7 @@ Microsoft Edge.
 ### Firefox
 
 ```bash
-git clone https://github.com/webbrain-one/webbrain.git
+git clone https://github.com/brozer-one/webbrain.git
 ```
 
 1. Open Firefox → `about:debugging#/runtime/this-firefox`
@@ -78,14 +78,14 @@ ollama serve
 # LocalAI: http://localhost:8080/v1
 ```
 
-For llama.cpp, LM Studio, and LocalAI, Vision defaults to **Auto**. WebBrain
+For llama.cpp, LM Studio, and LocalAI, Vision defaults to **Auto**. BROZER
 reads the selected model's server metadata before a turn and sends screenshots
 only when image input is reported. Settings also offers **Force on** and
 **Off** overrides; metadata failures remain text-only for that turn.
 
 ### Use it
 
-Click the WebBrain icon → the side panel opens. Type a message like:
+Click the BROZER icon → the side panel opens. Type a message like:
 
 - "Summarize this page"
 - "Find all links about pricing"
@@ -176,7 +176,7 @@ Console and network capture start before both streaming and non-streaming Dev ru
 ## Known Issues
 
 - **Debugger attachment is visible** — Chrome shows its standard debugger-attached indicator while CDP-backed actions or Dev diagnostics are active. This is expected for trusted input, screenshots, closed-shadow access, uploads, and the Dev-only JavaScript/console/network/listener tools.
-- **Protected browser pages** — Browser-internal and extension-store pages restrict content-script/CDP access; WebBrain reports these as protected instead of retrying DOM actions.
+- **Protected browser pages** — Browser-internal and extension-store pages restrict content-script/CDP access; BROZER reports these as protected instead of retrying DOM actions.
 - **Firefox temporary add-on** — Firefox requires the extension to be loaded as a temporary add-on during development, which is removed on restart.
 
 ## Project Status

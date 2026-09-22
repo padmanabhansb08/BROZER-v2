@@ -173,7 +173,7 @@ button:focus-visible, input:focus-visible {
    embedding stylesheet to turn them into a real font size and horizontal
    stretch. Without these rules every span inherits the body font, so the
    invisible selectable boxes drift away from the glyphs on the canvas. */
-.pdf-text-layer span:not([data-webbrain-ocr]), .pdf-text-layer br {
+.pdf-text-layer span:not([data-brozer-ocr]), .pdf-text-layer br {
   font-size: calc(var(--total-scale-factor, 1) * var(--font-height, 1px));
   transform: rotate(var(--rotate, 0deg)) scaleX(var(--scale-x, 1));
 }

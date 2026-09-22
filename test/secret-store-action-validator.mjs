@@ -289,6 +289,128 @@ async function runTests() {
     assert.equal(JSON.stringify(validation).includes(CANARY_SECRET), false);
   });
 
+  // 26. User Request: TEST 1 - EMAIL
+  await test('TEST 1 - EMAIL: <EMAIL_1> -> authorized email input -> resolves locally -> browser receives real email', async () => {
+    SecretStore.register('<EMAIL_1>', 'padmanabhanonly@gmail.com', 'EMAIL');
+    const args = { text: '<EMAIL_1>' };
+    const val = ActionValidator.validate({
+      tool: 'type',
+      args,
+      target: { fieldName: 'email', fieldType: 'email' }
+    });
+    assert.equal(val.valid, true);
+    const resolved = SecretStore.resolvePlaceholders(args, val.authorizedPlaceholders);
+    assert.equal(resolved.text, 'padmanabhanonly@gmail.com');
+  });
+
+  // 27. User Request: TEST 2 - PASSWORD
+  await test('TEST 2 - PASSWORD: <PASSWORD_1> -> authorized password input -> resolves locally -> browser receives real password', async () => {
+    SecretStore.register('<PASSWORD_1>', 'mysecret123', 'PASSWORD');
+    const args = { text: '<PASSWORD_1>' };
+    const val = ActionValidator.validate({
+      tool: 'type',
+      args,
+      target: { fieldName: 'password', fieldType: 'password' }
+    });
+    assert.equal(val.valid, true);
+    const resolved = SecretStore.resolvePlaceholders(args, val.authorizedPlaceholders);
+    assert.equal(resolved.text, 'mysecret123');
+  });
+
+  // 28. User Request: TEST 3 - WRONG TARGET
+  await test('TEST 3 - WRONG TARGET: <PASSWORD_1> -> ordinary text field -> BLOCK', async () => {
+    SecretStore.register('<PASSWORD_1>', 'mysecret123', 'PASSWORD');
+    const args = { text: '<PASSWORD_1>' };
+    const val = ActionValidator.validate({
+      tool: 'type',
+      args,
+      target: { fieldName: 'search', fieldType: 'text' } // Ordinary text field
+    });
+    assert.equal(val.valid, false);
+    assert.match(val.error, /PASSWORD placeholder allowed only in password input fields/);
+  });
+
+  // 29. User Request: TEST 4 - URL
+  await test('TEST 4 - URL: <EMAIL_1> -> navigation URL -> BLOCK according to existing policy', async () => {
+    SecretStore.register('<EMAIL_1>', 'padmanabhanonly@gmail.com', 'EMAIL');
+    const args = { url: 'https://example.com/login?email=<EMAIL_1>' };
+    const val = ActionValidator.validate({
+      tool: 'navigate',
+      args,
+      target: null
+    });
+    assert.equal(val.valid, false);
+    assert.match(val.error, /Secret resolution is strictly prohibited in navigation action/);
+  });
+
+  // 30. User Request: TEST 5 - UNKNOWN PLACEHOLDER
+  await test('TEST 5 - UNKNOWN PLACEHOLDER: <EMAIL_999> -> BLOCK', async () => {
+    const args = { text: '<EMAIL_999>' };
+    const val = ActionValidator.validate({
+      tool: 'type',
+      args,
+      target: { fieldName: 'email', fieldType: 'email' }
+    });
+    assert.equal(val.valid, false);
+    assert.match(val.error, /Unknown or unregistered placeholder/);
+  });
+
+  // 31. User Request: TEST 6 - EXPIRED PLACEHOLDER
+  await test('TEST 6 - EXPIRED PLACEHOLDER: expired reference -> BLOCK', async () => {
+    SecretStore.register('<PASSWORD_2>', 'mysecret123', 'PASSWORD');
+    // First resolution consumes the single-use password
+    SecretStore.resolve('<PASSWORD_2>');
+
+    const args = { text: '<PASSWORD_2>' };
+    const val = ActionValidator.validate({
+      tool: 'type',
+      args,
+      target: { fieldName: 'password', fieldType: 'password' }
+    });
+    assert.equal(val.valid, true); 
+    const resolved = SecretStore.resolvePlaceholders(args, val.authorizedPlaceholders);
+    assert.equal(resolved.text, '<PASSWORD_2>'); // Real password NOT returned!
+  });
+
+  // 32. User Request: TEST 7 - LITERAL TEXT
+  await test('TEST 7 - LITERAL TEXT: unambiguously representing literal placeholder text', async () => {
+    SecretStore.register('<EMAIL_1>', 'padmanabhanonly@gmail.com', 'EMAIL');
+    const args = { text: '\\<EMAIL_1>' };
+    const val = ActionValidator.validate({
+      tool: 'type',
+      args,
+      target: { fieldName: 'email', fieldType: 'email' }
+    });
+    // Should be valid because no unescaped placeholder is found
+    assert.equal(val.valid, true);
+    assert.equal(val.authorizedPlaceholders.size, 0);
+
+    const resolved = SecretStore.resolvePlaceholders(args, val.authorizedPlaceholders);
+    // The escape slash is removed, and the literal text is rendered!
+    assert.equal(resolved.text, '<EMAIL_1>');
+  });
+
+  // 33. User Request: TEST 8 - NO RAW SECRET LEAK
+  await test('TEST 8 - NO RAW SECRET LEAK: real email does not appear in validation errors or payload', async () => {
+    const rawSecret = 'padmanabhanonly@gmail.com';
+    const rawMessage = `Login with my email ${rawSecret}`;
+    
+    // PrivacyEngine sanitize
+    const sanitized = await PrivacyEngine.sanitize([{ role: 'user', content: rawMessage }]);
+    const modelVisiblePayload = JSON.stringify(sanitized);
+    
+    assert.equal(modelVisiblePayload.includes(rawSecret), false);
+
+    const val = ActionValidator.validate({
+      tool: 'type',
+      args: { text: '<EMAIL_1>' },
+      target: { fieldName: 'wrong', fieldType: 'text' }
+    });
+    assert.equal(val.valid, false);
+    // Verify the error does not leak the real secret
+    assert.equal(JSON.stringify(val).includes(rawSecret), false);
+  });
+
   console.log(`\nResults: ${passed} / ${total} tests passed (100%).`);
   if (passed !== total) {
     process.exitCode = 1;

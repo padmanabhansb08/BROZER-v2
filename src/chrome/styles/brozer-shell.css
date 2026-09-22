@@ -112,6 +112,7 @@ html, body {
   place-items: center;
   width: 28px;
   height: 28px;
+  flex-shrink: 0;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -490,7 +491,6 @@ html[data-theme="dark"] .bz-error__retry { background: rgba(255, 255, 255, 0.08)
   text-transform: none;
 }
 
-/* The composer is the dissolve field; the old input frame is gone. */
 .bz-shell #user-input {
   position: relative;
   width: 100%;
@@ -498,7 +498,7 @@ html[data-theme="dark"] .bz-error__retry { background: rgba(255, 255, 255, 0.08)
   min-height: 0;
   max-height: none;
   margin: 0;
-  padding: 0 40px 0 32px;
+  padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -509,9 +509,15 @@ html[data-theme="dark"] .bz-error__retry { background: rgba(255, 255, 255, 0.08)
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
-  line-height: 18px;
+  line-height: 36px;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* Reserve space for the X clear button to prevent scrolled text from painting
+   behind it. Must match the padding-right on .bz-search.has-value .bz-search__input. */
+.bz-shell .bz-search.has-value #user-input {
+  padding-right: 28px;
 }
 
 .bz-shell #activity-progress-toggle {
@@ -622,8 +628,8 @@ html[data-theme="dark"] .bz-shell #btn-clear:hover {
   text-align: left;
 }
 
-/* The band is above the response, so its rule is a bottom edge. */
+/* The band is above the composer, so its rule is a top edge separating it from response results. */
 .bz-shell #agent-activity {
-  border-top: 0;
-  border-bottom: 1px solid var(--bz-hairline);
+  border-top: 1px solid var(--bz-hairline);
+  border-bottom: 0;
 }

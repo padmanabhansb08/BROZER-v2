@@ -721,3 +721,77 @@ export function MotionStreamingText() {
 
   return { root, push, finish, reset, text: () => full };
 }
+
+/* ═══════════════════════════════════════════════════════════
+   7. MotionExpandableTrace   (beautifului.dev style)
+   Expandable thinking trace component: steps, reasoning, search, coding.
+   ═══════════════════════════════════════════════════════════ */
+export function MotionExpandableTrace({
+  doneLabel = 'Thought for 4 seconds',
+  variant = 'Steps',
+  rows = [
+    { primary: 'Reading page structure' },
+    { primary: 'Scanning page links', secondary: 'DOM' },
+    { primary: 'Processing response' }
+  ],
+  expanded = false
+} = {}) {
+  const root = el('div', 'bz-thinking-trace');
+
+  const headerBtn = el('button', 'bz-thinking-trace__header');
+  headerBtn.type = 'button';
+  headerBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+
+  const iconSpan = el('span', 'bz-thinking-trace__icon');
+  iconSpan.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>';
+
+  const labelSpan = el('span', 'bz-thinking-trace__label', doneLabel);
+
+  const chevron = el('span', 'bz-thinking-trace__chevron');
+  chevron.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+
+  headerBtn.append(iconSpan, labelSpan, chevron);
+
+  const drawer = el('div', `bz-thinking-trace__drawer ${expanded ? 'is-expanded' : ''}`);
+  const inner = el('div', 'bz-thinking-trace__inner');
+  const line = el('span', 'bz-thinking-trace__line');
+  line.setAttribute('aria-hidden', 'true');
+  const list = el('div', 'bz-thinking-trace__list');
+
+  rows.forEach((row) => {
+    const rowEl = el('div', 'bz-thinking-trace__row');
+    
+    const check = el('span', 'bz-thinking-trace__check');
+    check.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+
+    const primary = el('span', `bz-thinking-trace__primary ${variant === 'Reasoning' ? 'is-reasoning' : ''}`, row.primary);
+
+    rowEl.append(check, primary);
+
+    if (row.secondary) {
+      const sec = el('span', `bz-thinking-trace__secondary ${row.mono ? 'is-mono' : ''}`, row.secondary);
+      rowEl.appendChild(sec);
+    }
+
+    if (row.add !== undefined && row.del !== undefined) {
+      const diff = el('span', 'bz-thinking-trace__diff', `+${row.add} -${row.del}`);
+      rowEl.appendChild(diff);
+    }
+
+    list.appendChild(rowEl);
+  });
+
+  inner.append(line, list);
+  drawer.appendChild(inner);
+
+  let isExpanded = expanded;
+  headerBtn.addEventListener('click', () => {
+    isExpanded = !isExpanded;
+    headerBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    drawer.classList.toggle('is-expanded', isExpanded);
+  });
+
+  root.append(headerBtn, drawer);
+  return { root, headerBtn, drawer, setLabel: (text) => { labelSpan.textContent = text; } };
+}
+

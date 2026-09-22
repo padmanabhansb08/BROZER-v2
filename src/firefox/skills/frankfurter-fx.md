@@ -1,6 +1,6 @@
 # Frankfurter FX
 
-```webbrain-skill
+```brozer-skill
 {
   "summary": "Convert currencies and look up ECB reference exchange rates with Frankfurter.",
   "modes": ["ask", "act"],
@@ -33,7 +33,7 @@ Safety:
 
 Finish with visible attribution: Rates via [Frankfurter](https://www.frankfurter.app) (ECB reference data).
 
-```webbrain-tools
+```brozer-tools
 {
   "tools": [
     {

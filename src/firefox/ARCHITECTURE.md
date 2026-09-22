@@ -1,4 +1,4 @@
-# WebBrain Firefox Extension — Architecture
+# BROZER Firefox Extension — Architecture
 
 > Version 36.5.0 · Manifest V2 · Background Page
 
@@ -7,7 +7,7 @@
 Firefox uses Manifest V2 (background page, not service worker) and has **no access to the Chrome DevTools Protocol (CDP)**. Starting with v3.6.x, the Firefox build has been brought to functional parity with Chrome for the accessibility-tree (AX) subsystem — the same tree builder, the same four AX tools (`get_accessibility_tree`, `click_ax`, `type_ax`, `set_field`), and the same ref_id registry. What Firefox still lacks:
 
 - **Optional trusted events** — standard mode uses synthetic events. The experimental [BiDi companion](../../firefox-companion/README.md) adds trusted click, hover, text, supported keys, file-input attachment, and native JavaScript-dialog handling. It requires a local helper and Firefox remote automation; other tools retain their existing implementations. This is a Firefox-specific transport, not a Chrome CDP adapter.
-- **No pixel-perfect / full-page screenshots** — uses `browser.tabs.captureTab()` instead of CDP `Page.captureScreenshot`; it can capture the run tab while that tab is inactive. Firefox has exposed `tabs.captureTab()` since Firefox 59, before WebBrain's current minimum, and the manifest declares the required `<all_urls>` permission.
+- **No pixel-perfect / full-page screenshots** — uses `browser.tabs.captureTab()` instead of CDP `Page.captureScreenshot`; it can capture the run tab while that tab is inactive. Firefox has exposed `tabs.captureTab()` since Firefox 59, before BROZER's current minimum, and the manifest declares the required `<all_urls>` permission.
 - **No shadow DOM piercing** — content script can read open shadow roots via `element.shadowRoot`, but cannot pierce closed roots.
 - **No offscreen document** — no HTTP fetch proxy for localhost LLM servers with Private Network Access / CORS issues. User must ensure their local LLM server sends permissive CORS headers.
 - **Some Chrome-only tools/features remain absent** — no CDP full-page screenshot, CDP upload automation, tab recording, offscreen fetch proxy, Chrome-only `shadow_dom_query`, or closed-shadow-root traversal.
@@ -17,7 +17,7 @@ Everything else — the agent loop, LLM providers, site adapters, Ask/Act/Dev mo
 PDF handling is an intentional platform exception: Firefox has no equivalent
 to Chrome's global `mime_types_handler`/`chrome.mimeHandler` route in this
 extension. Firefox therefore keeps its native PDF viewer as the default and
-uses an explicit WebBrain PDF viewer context-menu entry when the user chooses
+uses an explicit BROZER PDF viewer context-menu entry when the user chooses
 it. The Chrome-only automatic PDF viewer setting (on by default) does not apply to
 Firefox; the explicit Firefox entry remains available independently.
 
@@ -226,7 +226,7 @@ refreshes the stored copy without re-adding deleted skills.
 `agent/skills.js` splits each skill into two surfaces:
 
 - prompt instructions appended by `buildCustomSkillsPrompt()`;
-- optional tool schemas declared in fenced `webbrain-tools` JSON blocks.
+- optional tool schemas declared in fenced `brozer-tools` JSON blocks.
 
 The manifest fence is stripped before prompt injection. Declared skill tools are
 appended to `getToolsForMode(...)` at LLM-call time and executed through
@@ -463,7 +463,7 @@ Plus the legacy handlers: `read_page`, `click`, `type_text`, `press_keys`, `scro
 ## Provider System
 
 Identical to Chrome at the provider-class and configuration layer:
-WebBrain Compass, nine local endpoints, Azure OpenAI, AWS Bedrock, Anthropic, and
+BROZER Compass, nine local endpoints, Azure OpenAI, AWS Bedrock, Anthropic, and
 the current direct-cloud/router OpenAI-compatible configs use the same message
 format and conversion logic. The canonical current ID and default-model table
 is maintained in
@@ -507,7 +507,7 @@ All identical to Chrome:
   it classifies against differ and live in `agent/mutation-tools.js`
 - **Context management** — auto-trim at >50 messages or >80,000 chars, LLM-powered summarization, emergency trim on context overflow, image pruning (last 4 only), tool-result cap at 8,000 chars
 - **Verbose mode** — three levels: Normal / Verbose ON / Deep verbose (Shift+click dumps the LLM-payload ring buffer to DevTools console). Deep verbose works identically; there's just no persisted trace UI to browse it from
-- **Site adapters** — same 110+ adapter set as Chrome across code/dev, productivity, social, messaging, e-commerce, travel, finance, news paywalls, job portals, and other regional surfaces; same `getActiveAdapter(url)` matching and mid-conversation re-injection. Only ONE adapter fires at a time so prompt cost is fixed regardless of total count. Every match emits content-free adapter/revision/notes-injected trace metadata. Selected high-evidence adapters also expose identical `webbrain-adapter-workflow/2` jobs: both planner variants receive bounded app-owned IDs/descriptions, the binding is revalidated against the live URL immediately before execution, and trusted Continue fallback retains it only for the same adapter/revision/schema/job. The executor receives the selected stages/evidence contract. Required submissions need job-bound terminal evidence after dispatch (for example paid/ticket-issued transaction state or recipient-bound sent-message state); repeated jobs must exactly reconcile terminal ledger IDs against a complete app-owned accessibility-tree or seeded inventory. Edited reviews clear hidden routing, and selected jobs additionally retain only adapter/revision/job/template identity.
+- **Site adapters** — same 110+ adapter set as Chrome across code/dev, productivity, social, messaging, e-commerce, travel, finance, news paywalls, job portals, and other regional surfaces; same `getActiveAdapter(url)` matching and mid-conversation re-injection. Only ONE adapter fires at a time so prompt cost is fixed regardless of total count. Every match emits content-free adapter/revision/notes-injected trace metadata. Selected high-evidence adapters also expose identical `brozer-adapter-workflow/2` jobs: both planner variants receive bounded app-owned IDs/descriptions, the binding is revalidated against the live URL immediately before execution, and trusted Continue fallback retains it only for the same adapter/revision/schema/job. The executor receives the selected stages/evidence contract. Required submissions need job-bound terminal evidence after dispatch (for example paid/ticket-issued transaction state or recipient-bound sent-message state); repeated jobs must exactly reconcile terminal ledger IDs against a complete app-owned accessibility-tree or seeded inventory. Edited reviews clear hidden routing, and selected jobs additionally retain only adapter/revision/job/template identity.
 - **Recipient guard** — same structured planner target and URL-scoped runtime policy as Chrome. On Douyin `/chat`, Firefox pins an `active_conversation` request to exactly one strong visible header before any page tool runs, then uses a read-only content-script probe immediately before send-like dispatch. Only one unique exact identity from the narrow, non-scrollable header above a lower-page layout composer can authorize the send. Enter in another editable such as recipient search is non-message, and a structurally verified conversation row in the separate left rail remains selectable even when a short list does not overflow, while distant controls and nested row actions remain inconclusive. Protected composer Enter dispatch is limited to one keypress per verification. Send-capable clicks, accessibility clicks, submitted fields, and Enter presses carry a one-use binding to the action target, composer, URL, and identity set and consume it immediately before the consequential click or key event. Ordinary message text, mismatches, unresolved controls/composers, ambiguity, and dispatch paths that cannot bind their effects to the verified recipient all fail closed. `upload_file` is included because attaching a file can trigger an immediate page-side send. Saved workflows cannot inherit a planner recipient target, so any potentially dispatching step scoped to a protected messaging route stops before deterministic replay and must be run as a normal Act task with a freshly named recipient.
 
 ---
@@ -589,7 +589,7 @@ external message.
 | No trusted keyboard events | `press_keys` may not land on all sites | Dispatched to both activeElement and document |
 | No full-page screenshot | Only visible viewport | Scroll + multiple captures |
 | No shadow-root piercing (closed) | Can't read closed shadow roots | Dev-mode `execute_js` with manual traversal |
-| No arbitrary-path/CDP upload | Cannot attach an arbitrary local path silently | Use a prior `downloadId` re-fetch or WebBrain's user file picker |
+| No arbitrary-path/CDP upload | Cannot attach an arbitrary local path silently | Use a prior `downloadId` re-fetch or BROZER's user file picker |
 | No ambiguous-click CDP enrichment | Overlapping hit-target ambiguity resolved by ref_id only | Prompting / adapter guidance |
 | MV2 background page | Less efficient than MV3 service worker | `persistent: false` helps |
 

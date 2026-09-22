@@ -94,7 +94,7 @@ export class ActionValidator {
 
     function recurse(val) {
       if (typeof val === 'string') {
-        const matches = val.match(/<[A-Z0-9_]+_\d+>/g);
+        const matches = val.match(/(?<!\\)<[A-Z0-9_]+_\d+>/g);
         if (matches) {
           matches.forEach(m => set.add(m));
         }
@@ -123,14 +123,14 @@ export class ActionValidator {
       for (const [key, val] of Object.entries(obj)) {
         const keyLower = key.toLowerCase();
         if (urlKeys.some(k => keyLower.includes(k))) {
-          if (typeof val === 'string' && /<[A-Z0-9_]+_\d+>/.test(val)) {
+          if (typeof val === 'string' && /(?<!\\)<[A-Z0-9_]+_\d+>/.test(val)) {
             found = true;
             return;
           }
         }
         if (typeof val === 'string') {
           // Check for URL structure http(s):// or ?key=
-          if (/https?:\/\//i.test(val) && /<[A-Z0-9_]+_\d+>/.test(val)) {
+          if (/https?:\/\//i.test(val) && /(?<!\\)<[A-Z0-9_]+_\d+>/.test(val)) {
             found = true;
             return;
           }

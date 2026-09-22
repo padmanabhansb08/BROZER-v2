@@ -291,7 +291,7 @@ button:active:not(:disabled),
   box-shadow:inset 0 -2px 0 var(--accent);
 }
 
-/* WebBrain signature above the page title. The page keeps its own mark (a nuclear
+/* BROZER signature above the page title. The page keeps its own mark (a nuclear
    trefoil, W, PDF); this eyebrow only says which product that mark belongs to, so
    it stays unboxed — a chip here would read as a third button beside Back. */
 .kit-brand {

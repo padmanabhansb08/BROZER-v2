@@ -1,5 +1,6 @@
 import { VisualDetector } from './visual-detector.js';
 import { ImageRedactor } from './image-redactor.js';
+import { SecretStore } from '../agent/secret-store.js';
 
 export class PrivacyEngine {
   /**
@@ -109,6 +110,10 @@ class SanitizationSession {
     const placeholder = `<${category}_${count}>`;
     this.valueToPlaceholder.set(key, placeholder);
     this.secretMapping.set(placeholder, rawValue);
+    
+    // Register the placeholder mapping locally in the agent vault
+    SecretStore.register(placeholder, rawValue, category);
+    
     return placeholder;
   }
 

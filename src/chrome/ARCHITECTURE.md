@@ -1,10 +1,10 @@
-# WebBrain Chrome/Edge Extension — Architecture
+# BROZER Chrome/Edge Extension — Architecture
 
 > Version 36.5.0 · Manifest V3 · Service Worker background
 
 ## High-Level Overview
 
-WebBrain is a browser extension that gives an LLM controlled access to the browser tab the user is looking at. The user types a natural-language instruction in a side panel, chooses Ask, Act, or Dev mode, and an autonomous agent loop calls the LLM, executes allowed tool calls (click, type, navigate, inspect, etc.), feeds the results back to the LLM, and repeats until the task is done or a loop detector halts it.
+BROZER is a browser extension that gives an LLM controlled access to the browser tab the user is looking at. The user types a natural-language instruction in a side panel, chooses Ask, Act, or Dev mode, and an autonomous agent loop calls the LLM, executes allowed tool calls (click, type, navigate, inspect, etc.), feeds the results back to the LLM, and repeats until the task is done or a loop detector halts it.
 
 ```
 ┌─────────────┐     messages      ┌─────────────┐    HTTP/JSON     ┌──────────────┐
@@ -148,7 +148,7 @@ refreshes the stored copy without re-adding deleted skills.
 `agent/skills.js` splits each skill into two surfaces:
 
 - prompt instructions appended by `buildCustomSkillsPrompt()`;
-- optional tool schemas declared in fenced `webbrain-tools` JSON blocks.
+- optional tool schemas declared in fenced `brozer-tools` JSON blocks.
 
 The manifest fence is stripped before prompt injection. Declared skill tools are
 appended to `getToolsForMode(...)` at LLM-call time and executed through
@@ -185,11 +185,11 @@ As an intentionally undiscoverable convenience, a normal prompt may end in
 tab recording before dispatch, and automatically stops it from the run cleanup
 path. `--save-as` supplies the Downloads filename (with `.webm` normalized).
 `/record --full-screen` opens Chrome's screen/window picker from the offscreen
-recorder context through `getDisplayMedia()`, shows the WebBrain recording banner
-by default, and can be stopped by its Stop button or double Escape on WebBrain or
+recorder context through `getDisplayMedia()`, shows the BROZER recording banner
+by default, and can be stopped by its Stop button or double Escape on BROZER or
 browser pages. Add `--hide-recording-indicator` to hide the banner; Chrome's
 picker decides what can be captured, so the user must choose the browser window
-or whole screen if they want the WebBrain panel in the video.
+or whole screen if they want the BROZER panel in the video.
 
 ### Flow
 
@@ -223,7 +223,7 @@ offscreen/recorder.js
                                   → on stop, Blob → dataURL → background
 
 background.js (on recorder-stop)
-      ├─ chrome.downloads.download(dataURL → requested name or webbrain-recording-<ts>.webm)
+      ├─ chrome.downloads.download(dataURL → requested name or brozer-recording-<ts>.webm)
       └─ if transcribeAfter → runTranscription()
               ├─ providerManager.providers → pick first OpenAI-compatible
               │   (openai → whisper-1, groq → whisper-large-v3, …)
@@ -520,7 +520,7 @@ Full Act also adds advanced UI/DOM fallbacks: `resize_window`, `hover` (CDP-trus
 | Evaluate | `Runtime.evaluate` | Run code in page context |
 | DOM query | `DOM.*` | Shadow DOM piercing |
 
-CDP events are **trusted** (`event.isTrusted === true`). Many sites reject synthetic `el.click()`; CDP is what lets WebBrain work on those.
+CDP events are **trusted** (`event.isTrusted === true`). Many sites reject synthetic `el.click()`; CDP is what lets BROZER work on those.
 
 ### CDP click vs content-script click
 
@@ -560,7 +560,7 @@ class BaseProvider {
 | `WebGPUProvider` | Chrome offscreen worker; no endpoint | Text-only selectable Hugging Face ONNX model |
 | `WebGPUVisionProvider` | Chrome offscreen worker; no endpoint | Always; dedicated screenshot-description sidecar only |
 
-`ProviderManager` seeds WebBrain Compass, one Chromium in-browser WebGPU provider,
+`ProviderManager` seeds BROZER Compass, one Chromium in-browser WebGPU provider,
 nine local endpoints, Azure OpenAI, AWS Bedrock, direct cloud providers, and router providers. The canonical current ID
 and default-model table is maintained in
 [`docs/providers-and-models.md`](../../docs/providers-and-models.md).
@@ -713,7 +713,7 @@ in-progress Markdown after older delta events have been acknowledged.
 
 ## Trace Recorder (optional)
 
-Off by default. Enabled via Settings → Display → "Record traces". When on, every agent run writes to an IndexedDB database (`webbrain-traces`):
+Off by default. Enabled via Settings → Display → "Record traces". When on, every agent run writes to an IndexedDB database (`brozer-traces`):
 
 - `runs` store: one row per user message — model, provider, token totals, timestamps.
 - `events` store: one row per LLM request/response, tool call, screenshot. LLM requests retain content-free prompt provenance (controlled variant, counts, declared prompt/tool policy revisions, and runtime-mode alignment), not fingerprints or raw system prompts, message text, tool schemas, or tool names. Policy revisions are bumped when controlled prompt templates or tool-exposure rules change; private request content does not affect them. Rows are indexed by `(runId, seq)`.
@@ -745,7 +745,7 @@ advertise mutation availability and route still-missing required inputs through
 
 ## Site Adapters
 
-110+ adapters inject site-specific guidance into the first user message. Re-injected mid-conversation if the user navigates to a different matched site. Only ONE adapter fires at a time (the first matching `match(url)` wins), so the prompt cost is fixed regardless of total adapter count — what grows is the maintenance surface. Every match emits content-free adapter/revision/notes-injected trace metadata. Selected high-evidence adapters also expose `webbrain-adapter-workflow/2` jobs. Both planner variants see only bounded app-owned job IDs/descriptions; the binding is revalidated against the live URL immediately before execution and a trusted Continue fallback retains it only on the same adapter/revision/schema/job. The executor receives the selected stages and evidence contract. Required submissions need job-bound terminal evidence after dispatch (for example paid/ticket-issued transaction state or recipient-bound sent-message state), and repeated jobs must exactly reconcile terminal ledger IDs against a complete app-owned accessibility-tree or seeded inventory. Edited review text clears hidden job routing, and selected jobs additionally record only adapter/revision/job/template identity.
+110+ adapters inject site-specific guidance into the first user message. Re-injected mid-conversation if the user navigates to a different matched site. Only ONE adapter fires at a time (the first matching `match(url)` wins), so the prompt cost is fixed regardless of total adapter count — what grows is the maintenance surface. Every match emits content-free adapter/revision/notes-injected trace metadata. Selected high-evidence adapters also expose `brozer-adapter-workflow/2` jobs. Both planner variants see only bounded app-owned job IDs/descriptions; the binding is revalidated against the live URL immediately before execution and a trusted Continue fallback retains it only on the same adapter/revision/schema/job. The executor receives the selected stages and evidence contract. Required submissions need job-bound terminal evidence after dispatch (for example paid/ticket-issued transaction state or recipient-bound sent-message state), and repeated jobs must exactly reconcile terminal ledger IDs against a complete app-owned accessibility-tree or seeded inventory. Edited review text clears hidden job routing, and selected jobs additionally record only adapter/revision/job/template identity.
 
 | Category | Sites |
 |---|---|

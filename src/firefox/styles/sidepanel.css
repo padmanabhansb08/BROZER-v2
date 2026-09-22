@@ -1,4 +1,4 @@
-/* WebBrain Side Panel Styles */
+/* BROZER Side Panel Styles */
 
 /* Theme tokens — dark defaults on :root, cream-light overrides on
    :root[data-theme="light"]. The theme bootstrap in sidepanel.html /
@@ -1264,6 +1264,15 @@ html[data-ui-scale-ready="false"] body { visibility: hidden; }
   display: none;
 }
 
+.insp.recording-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bad);
+  animation: rec-pulse 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
 .inspection-dot {
   width: 7px;
   height: 7px;
@@ -1295,7 +1304,7 @@ html[data-ui-scale-ready="false"] body { visibility: hidden; }
 .chat-navigation {
   position: absolute;
   inset-inline-end: 12px;
-  bottom: 12px;
+  bottom: 64px;
   z-index: 7;
   display: inline-block;
   max-width: calc(100% - 36px);
@@ -1587,6 +1596,21 @@ html[data-ui-scale-ready="false"] body { visibility: hidden; }
   font-size: 10px;
   font-variant-numeric: tabular-nums;
   line-height: 1.35;
+}
+
+.recording-label {
+  flex: 1;
+  font-weight: 600;
+}
+
+.recording-timer {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--bad);
+}
+
+.recording-stop {
+  background: var(--bad);
 }
 
 .message-info::-webkit-scrollbar {
@@ -3851,7 +3875,7 @@ html[data-ui-scale="175"] .conversation-action-label {
   outline-offset: 2px;
 }
 
-/* WebBrain Compass quota / subscribe prompt — bare URL upgraded to a button */
+/* BROZER Compass quota / subscribe prompt — bare URL upgraded to a button */
 .message-text.subscribe-error {
   display: flex;
   flex-direction: column;

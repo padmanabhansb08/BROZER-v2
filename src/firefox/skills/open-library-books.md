@@ -1,6 +1,6 @@
 # Open Library
 
-```webbrain-skill
+```brozer-skill
 {
   "summary": "Find book details, ISBN records, authors, and publication information with Open Library.",
   "modes": ["ask", "act"],
@@ -32,7 +32,7 @@ Safety:
 
 Finish with visible attribution: Powered by [Open Library](https://openlibrary.org).
 
-```webbrain-tools
+```brozer-tools
 {
   "tools": [
     {

@@ -108,7 +108,7 @@
   ],
   "options_page": "src/ui/settings.html",
   "action": {
-    "default_title": "WebBrain",
+    "default_title": "BROZER",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -125,25 +125,25 @@
       "suggested_key": {
         "default": "Alt+Shift+W"
       },
-      "description": "Open WebBrain panel"
+      "description": "Open BROZER panel"
     },
     "decrease-ui-scale": {
       "suggested_key": {
         "default": "Alt+Shift+Comma"
       },
-      "description": "Zoom WebBrain UI out"
+      "description": "Zoom BROZER UI out"
     },
     "increase-ui-scale": {
       "suggested_key": {
         "default": "Alt+Shift+Period"
       },
-      "description": "Zoom WebBrain UI in"
+      "description": "Zoom BROZER UI in"
     },
     "reset-ui-scale": {
       "suggested_key": {
         "default": "Alt+Shift+0"
       },
-      "description": "Reset WebBrain UI zoom"
+      "description": "Reset BROZER UI zoom"
     }
   },
   "web_accessible_resources": [

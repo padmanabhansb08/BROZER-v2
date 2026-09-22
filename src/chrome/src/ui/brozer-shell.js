@@ -228,7 +228,7 @@ export function buildShell(root) {
   composer.append(queued, slash, attachments, fieldRow,
     hiddenClear, highlight, fileInput);
 
-  shell.append(head, band, main, composer);
+  shell.append(head, main, band, composer);
   app.prepend(shell);
 
   // The pill is positioned from the active tab's measured box, so it can only

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebBrain Settings</title>
+  <title>BROZER Settings</title>
   <!-- Theme bootstrap — runs before <style> so data-theme is set before any
        paint. External classic script because Firefox MV2's CSP forbids
        inline scripts without an explicit unsafe-inline. -->
@@ -1602,7 +1602,7 @@
           <div class="provider-card" id="firefox-bidi-card">
             <h3 data-i18n="st.bidi.title">Firefox trusted automation (experimental)</h3>
             <p data-i18n="st.bidi.desc">Use a local companion for browser dialogs, trusted clicks and typing, and file uploads. Requires Node.js 22+ and Firefox started with remote automation enabled.</p>
-            <p data-i18n-html="st.bidi.setup_html">Install the companion using <code>node firefox-companion/install.mjs</code> from the WebBrain checkout. Restart Firefox with <code>--remote-debugging-port 9222</code>. Keep the connection on this computer.</p>
+            <p data-i18n-html="st.bidi.setup_html">Install the companion using <code>node firefox-companion/install.mjs</code> from the BROZER checkout. Restart Firefox with <code>--remote-debugging-port 9222</code>. Keep the connection on this computer.</p>
             <label><input type="checkbox" id="firefox-bidi-enabled"> <span data-i18n="st.bidi.enable">Use trusted Firefox automation</span></label>
             <div class="field"><label for="firefox-bidi-port" data-i18n="st.bidi.port">Local Firefox port</label><input id="firefox-bidi-port" type="number" min="1024" max="65535" value="9222"></div>
             <button type="button" id="firefox-bidi-connect" class="btn-secondary" data-i18n="st.bidi.test">Test connection</button>

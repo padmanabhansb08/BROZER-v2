@@ -1,6 +1,6 @@
 # Temporary file share (Litterbox)
 
-```webbrain-skill
+```brozer-skill
 {
   "summary": "Upload one non-sensitive file to a short-lived public Litterbox link without creating an account.",
   "modes": ["act"],
@@ -12,7 +12,7 @@ Use this skill when the user wants to share a non-sensitive file quickly and doe
 
 Default provider: Litterbox (`https://litterbox.catbox.moe`). No account, no API key, and no sign-in are required.
 
-Litterbox retention options are 1 hour, 12 hours, 24 hours, and 72 hours. Although the service accepts files up to 1GB, WebBrain Firefox's `upload_file` implementation is limited to 25 MB per file. Refuse files over 25 MB before confirmation when size is known from download metadata; do not attempt them through this skill. 72 hours is the longest retention available; there is no permanent option and no way to extend a file after upload.
+Litterbox retention options are 1 hour, 12 hours, 24 hours, and 72 hours. Although the service accepts files up to 1GB, BROZER Firefox's `upload_file` implementation is limited to 25 MB per file. Refuse files over 25 MB before confirmation when size is known from download metadata; do not attempt them through this skill. 72 hours is the longest retention available; there is no permanent option and no way to extend a file after upload.
 
 Safety rules:
 

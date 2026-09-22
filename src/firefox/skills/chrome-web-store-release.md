@@ -2,7 +2,7 @@
 
 Use the official Chrome Web Store API for the configured existing extension. This skill is opt-in and disabled by default because upload and publish are consequential release operations.
 
-```webbrain-skill
+```brozer-skill
 {
   "summary": "Check, upload, and submit an existing Chrome Web Store item through trusted built-in release tools.",
   "modes": ["ask", "act"],

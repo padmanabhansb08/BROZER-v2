@@ -8,6 +8,7 @@
 // imports evaluate before this file's body, so every element lookup below
 // resolves against the shell rather than against markup that no longer exists.
 import { shellApi } from './brozer-shell.js';
+import { MotionExpandableTrace } from './brozer-components.js';
 import { t, getLocale, setLocale, LANGUAGES, applyDOMTranslations, translationsForKey } from './i18n.js';
 import { CAPABILITY_LABEL } from '../agent/permission-gate.js';
 import { sanitizeMarkdownLinks } from './markdown-link.js';
@@ -2950,6 +2951,71 @@ async function resetChatHistoryStateForTab(tabId) {
   chatHistoryTabInfoByTab.delete(numericTabId);
   chatHistorySaveSeqByTab.delete(numericTabId);
 }
+
+// Execution State Mapping for Visual Timeline
+const TOOL_STATE_MAP = {
+  navigate: 'OPENING',
+  fetch_url: 'OPENING',
+  go_back: 'OPENING',
+  go_forward: 'OPENING',
+  promote_iframe: 'OPENING',
+  
+  get_accessibility_tree: 'UNDERSTANDING',
+  read_page: 'UNDERSTANDING',
+  inspect_viewport: 'UNDERSTANDING',
+  extract_data: 'UNDERSTANDING',
+  get_interactive_elements: 'UNDERSTANDING',
+  get_selection: 'UNDERSTANDING',
+  read_page_source: 'UNDERSTANDING',
+  read_console: 'UNDERSTANDING',
+  inspect_network_requests: 'UNDERSTANDING',
+  inspect_event_listeners: 'UNDERSTANDING',
+  
+  click: 'ACTING',
+  click_ax: 'ACTING',
+  type_text: 'ACTING',
+  type_ax: 'ACTING',
+  set_field: 'ACTING',
+  set_checked: 'ACTING',
+  scroll: 'ACTING',
+  hover: 'ACTING',
+  drag_drop: 'ACTING',
+  press_keys: 'ACTING',
+  execute_js: 'ACTING',
+  patch_element: 'ACTING',
+  inject_css: 'ACTING',
+  remove_injected_css: 'ACTING',
+  revert_patch: 'ACTING',
+  highlight_element: 'ACTING',
+  download_social_media: 'ACTING',
+  upload_file: 'ACTING',
+  
+  verify_form: 'VERIFYING',
+  wait_for_element: 'VERIFYING',
+  wait_for_stable: 'VERIFYING',
+  
+  done: 'COMPLETED'
+};
+
+const STATE_ICONS = {
+  OPENING: '↗',
+  UNDERSTANDING: '✦',
+  PLANNING: '◌',
+  ACTING: '→',
+  VERIFYING: '○',
+  COMPLETED: '✓',
+  STOPPED: '■',
+  FAILED: '×'
+};
+
+const STATE_LABELS = {
+  OPENING: 'OPENING PAGE',
+  UNDERSTANDING: 'UNDERSTANDING PAGE',
+  PLANNING: 'PLANNING',
+  ACTING: 'PERFORMING ACTION',
+  VERIFYING: 'CHECKING PAGE',
+  COMPLETED: 'COMPLETED'
+};
 
 // Tool names → i18n key for the human-friendly label. Resolved at render
 // time so language changes take effect without a reload.
@@ -10778,6 +10844,12 @@ function findLastActiveCompactStep(toolName = '') {
   if (!currentAssistantEl) return null;
   const activeSteps = [...currentAssistantEl.querySelectorAll('.steps-container .step-item.active')];
   if (toolName) {
+    const targetState = TOOL_STATE_MAP[toolName];
+    // If the toolName corresponds to a state, try to find a step with that state
+    if (targetState) {
+      const matchingStep = activeSteps.slice().reverse().find(step => step.dataset.state === targetState);
+      if (matchingStep) return matchingStep;
+    }
     const matchingStep = activeSteps
       .slice()
       .reverse()
@@ -10791,20 +10863,34 @@ function appendCompactStep(toolName, args) {
   const container = getOrCreateStepsContainer();
   if (!container) return;
 
-  // A previous call may live before an answered clarification boundary while
-  // this call belongs to the new segment after it. Never leave the old spinner
-  // active merely because the timeline now has more than one steps container.
+  const mappedState = TOOL_STATE_MAP[toolName] || 'ACTING';
   const prev = findLastActiveCompactStep();
+  
+  if (prev && prev.dataset.state === mappedState && toolName !== 'done') {
+    // If we're already in this state, just update the label and add args to details
+    const label = prev.querySelector('.step-subtext');
+    if (label) label.textContent = friendlyToolLabel(toolName, args);
+    const details = prev.nextElementSibling;
+    if (details && details.classList.contains('step-details')) {
+      details.innerHTML += `<div class="detail-label">${escapeHtml(t('sp.step.input_label') || 'Input')}</div><div class="detail-args">${escapeHtml(JSON.stringify(args, null, 2))}</div>`;
+    }
+    return;
+  }
+
   if (prev) {
     prev.classList.remove('active');
     prev.classList.add('done');
     const icon = prev.querySelector('.step-icon');
-    if (icon) { icon.className = 'step-icon check'; icon.textContent = '\u2713'; }
+    if (icon) {
+      const state = prev.dataset.state;
+      icon.className = 'step-icon check';
+      icon.textContent = STATE_ICONS.COMPLETED || '✓';
+    }
   }
 
   if (toolName === 'done') {
     const rejectedSteps = currentAssistantEl?.querySelectorAll?.(
-      '.step-item[data-tool="done"][data-rejected-completion="true"]',
+      '.step-item[data-state="COMPLETED"][data-rejected-completion="true"]',
     ) || [];
     const priorRejected = rejectedSteps[rejectedSteps.length - 1];
     if (priorRejected) {
@@ -10814,9 +10900,9 @@ function appendCompactStep(toolName, args) {
       const priorIcon = priorRejected.querySelector('.step-icon');
       if (priorIcon) {
         priorIcon.className = 'step-icon spinning';
-        priorIcon.textContent = '';
+        priorIcon.textContent = STATE_ICONS.COMPLETED || '✓';
       }
-      const priorLabel = priorRejected.querySelector('.step-label');
+      const priorLabel = priorRejected.querySelector('.step-subtext');
       if (priorLabel) priorLabel.textContent = friendlyToolLabel(toolName, args);
       const priorDetails = priorRejected.nextElementSibling;
       if (priorDetails?.classList?.contains('step-details')) {
@@ -10831,29 +10917,38 @@ function appendCompactStep(toolName, args) {
   const step = document.createElement('div');
   step.className = 'step-item active';
   step.dataset.tool = toolName;
+  step.dataset.state = mappedState;
+
+  const header = document.createElement('div');
+  header.className = 'step-header';
 
   const icon = document.createElement('span');
   icon.className = 'step-icon spinning';
-  icon.textContent = '';
+  icon.textContent = STATE_ICONS[mappedState] || '●';
+
+  const title = document.createElement('span');
+  title.className = 'step-title';
+  title.textContent = STATE_LABELS[mappedState] || mappedState;
 
   const label = document.createElement('span');
-  label.className = 'step-label';
+  label.className = 'step-subtext step-label';
   label.textContent = friendlyToolLabel(toolName, args);
 
-  // Small toggle to peek at details
   const toggle = document.createElement('button');
   toggle.className = 'step-details-toggle';
-  toggle.textContent = t('sp.step.details');
+  toggle.textContent = t('sp.step.details') || 'Details';
 
-  step.appendChild(icon);
+  header.appendChild(icon);
+  header.appendChild(title);
+  header.appendChild(toggle);
+  
+  step.appendChild(header);
   step.appendChild(label);
-  step.appendChild(toggle);
   container.appendChild(step);
 
-  // Hidden details panel (populated when result arrives)
   const details = document.createElement('div');
   details.className = 'step-details';
-  details.innerHTML = `<div class="detail-label">${escapeHtml(t('sp.step.input_label'))}</div><div class="detail-args">${escapeHtml(JSON.stringify(args, null, 2))}</div>`;
+  details.innerHTML = `<div class="detail-label">${escapeHtml(t('sp.step.input_label') || 'Input')}</div><div class="detail-args">${escapeHtml(JSON.stringify(args, null, 2))}</div>`;
   container.appendChild(details);
   bindCompactStepDetailsToggle(toggle);
 }
@@ -10870,18 +10965,16 @@ function updateActiveToolProgress(toolName, message) {
     return;
   }
   const active = findLastActiveCompactStep(toolName);
-  const label = active?.querySelector('.step-label');
+  const label = active?.querySelector('.step-subtext') || active?.querySelector('.step-label');
   if (label) label.textContent = message;
 }
 
 function markLastStepDone(toolName, result) {
-  // A blocking clarify/confirmation tool emits its result only after its card
-  // is answered. Settle that original pre-card step; do not create or search a
-  // post-card container until a later tool_call actually starts there.
   const active = findLastActiveCompactStep(toolName);
   if (active) {
-    active.classList.remove('active');
-    active.classList.add('done');
+    // DO NOT mark it done immediately unless it's a completely new state arriving next,
+    // or if the tool is done/failed. We let the next tool transition it.
+    // However, if the result is an error or blocked, we mark it failed.
     const rejectedCompletion = toolName === 'done' && result?.blockedDone === true;
     if (toolName === 'done') {
       active.dataset.rejectedCompletion = rejectedCompletion ? 'true' : 'false';
@@ -10890,27 +10983,37 @@ function markLastStepDone(toolName, result) {
       || !!result?.error
       || result?.success === false
       || result?.outcome === 'failed';
-    const icon = active.querySelector('.step-icon');
-    if (icon) {
-      icon.className = failed ? 'step-icon fail' : 'step-icon check';
-      icon.textContent = failed ? '\u2717' : '\u2713';
+      
+    if (failed || toolName === 'done') {
+      active.classList.remove('active');
+      active.classList.add('done');
+      const icon = active.querySelector('.step-icon');
+      if (icon) {
+        icon.className = failed ? 'step-icon fail' : 'step-icon check';
+        icon.textContent = failed ? (STATE_ICONS.FAILED || '×') : (STATE_ICONS.COMPLETED || '✓');
+      }
+      if (failed) {
+        active.dataset.state = 'FAILED';
+        const title = active.querySelector('.step-title');
+        if (title) title.textContent = STATE_LABELS.FAILED || 'ACTION FAILED';
+      }
     }
+
     if (toolName === 'done') {
-      const label = active.querySelector('.step-label');
+      const label = active.querySelector('.step-subtext');
       if (label) {
         const key = rejectedCompletion
           ? 'sp.tool.done.rejected'
           : (failed ? 'sp.tool.done.failed' : 'sp.tool.done.completed');
-        label.textContent = String(t(key)).trim();
+        label.textContent = String(t(key) || key).trim();
       }
     }
 
-    // Append result to the details panel
     const details = active.nextElementSibling;
     if (details && details.classList.contains('step-details')) {
       const resultDiv = document.createElement('div');
       resultDiv.className = 'detail-result';
-      resultDiv.innerHTML = `<div class="detail-label">${escapeHtml(t('sp.step.result_label'))}</div>${escapeHtml(truncate(JSON.stringify(result), 1200))}`;
+      resultDiv.innerHTML = `<div class="detail-label">${escapeHtml(t('sp.step.result_label') || 'Result')}</div>${escapeHtml(truncate(JSON.stringify(result), 1200))}`;
       const expandAll = details.querySelector?.('.step-expand-all') || null;
       if (expandAll && typeof details.insertBefore === 'function') details.insertBefore(resultDiv, expandAll);
       else details.appendChild(resultDiv);
@@ -10923,8 +11026,11 @@ function markLastStepFailed() {
   if (active) {
     active.classList.remove('active');
     active.classList.add('done');
+    active.dataset.state = 'FAILED';
     const icon = active.querySelector('.step-icon');
-    if (icon) { icon.className = 'step-icon fail'; icon.textContent = '\u2717'; }
+    if (icon) { icon.className = 'step-icon fail'; icon.textContent = STATE_ICONS.FAILED || '×'; }
+    const title = active.querySelector('.step-title');
+    if (title) title.textContent = STATE_LABELS.FAILED || 'ACTION FAILED';
   }
 }
 
@@ -11160,7 +11266,45 @@ function renderAssistantTextUpdate(assistantEl, content, options = {}) {
   if (!textEl) return;
 
   if (isStoppedByUserStatus(content)) {
-    textEl.innerHTML = t('sp.stopped_by_user_html');
+    const container = getOrCreateStepsContainer(assistantEl);
+    if (container) {
+      const prev = findLastActiveCompactStep();
+      if (prev) {
+        prev.classList.remove('active');
+        prev.classList.add('done');
+        const prevIcon = prev.querySelector('.step-icon');
+        if (prevIcon) {
+          prevIcon.className = 'step-icon fail';
+          prevIcon.textContent = STATE_ICONS.STOPPED || '■';
+        }
+      }
+
+      const step = document.createElement('div');
+      step.className = 'step-item done';
+      step.dataset.state = 'STOPPED';
+
+      const header = document.createElement('div');
+      header.className = 'step-header';
+
+      const icon = document.createElement('span');
+      icon.className = 'step-icon fail';
+      icon.textContent = STATE_ICONS.STOPPED || '■';
+
+      const title = document.createElement('span');
+      title.className = 'step-title';
+      title.textContent = 'RUN STOPPED';
+
+      const label = document.createElement('span');
+      label.className = 'step-subtext step-label';
+      label.textContent = 'Execution stopped by the user.';
+
+      header.appendChild(icon);
+      header.appendChild(title);
+      step.appendChild(header);
+      step.appendChild(label);
+      container.appendChild(step);
+    }
+    textEl.innerHTML = '';
     clearStreamedAssistantText(textEl);
     delete textEl.dataset.suppressToolCallStream;
     if (!assistantEl.querySelector('.msg-copy-btn')) addMessageCopyButton(assistantEl);
@@ -12151,14 +12295,19 @@ function addContextCompactedNote(data) {
  * Keep the styling subtle but use a distinct class and unambiguous copy.
  */
 function addRunProgressReplayGapNote() {
-  const note = document.createElement('div');
-  note.className = 'context-compacted-note run-progress-replay-gap-note';
-  note.textContent = t('sp.run_progress_replay_gap');
+  const trace = MotionExpandableTrace({
+    doneLabel: t('sp.run_progress_replay_gap'),
+    variant: 'Steps',
+    rows: [
+      { primary: t('sp.run_progress_replay_gap') }
+    ],
+    expanded: false
+  });
   const stepsContainer = getOrCreateStepsContainer();
   if (stepsContainer) {
-    stepsContainer.appendChild(note);
+    stepsContainer.appendChild(trace.root);
   } else {
-    messagesEl.appendChild(note);
+    messagesEl.appendChild(trace.root);
   }
   scrollToBottom();
 }
