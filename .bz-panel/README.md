@@ -1,0 +1,212 @@
+# WebBrain
+
+Open-source AI browser agent for Chrome, Microsoft Edge, and Firefox. Chat with any web page, automate browser tasks, and run multi-step agent workflows — powered by your choice of LLM.
+
+## Features
+
+- **Page Reading** — Extracts text, links, forms, tables, and interactive elements from any page
+- **Browser Actions** — Click, type, scroll, navigate, and interact with page elements
+- **Ask / Act / Dev Modes** — Read-only by default, normal browser actions on request, and Mid/Full Dev tools for source/style/page debugging
+- **Multi-Step Agent** — Autonomous task execution with tool-use loops (configurable, default 130 steps)
+- **Continue from Limit** — At the step limit, WebBrain first delivers a context-only partial result or explicit blocker; click Continue to keep going
+- **Multi-Provider LLM** — WebBrain Compass plus local llama.cpp/Ollama/LM Studio/Jan/vLLM/SGLang/LocalAI and major direct cloud providers
+- **Reliable Compass improvement traces** — when Help Improve WebBrain is enabled, terminal tool outcomes are durably queued and retried without delaying the visible answer
+- **Side Panel UI** — Clean chat interface that lives alongside your browsing
+- **Reading-first long replies** — Questions stay visible while answers grow, with controls to follow, jump to the latest content, or return to the question
+- **Per-Tab Conversations** — Each tab has its own chat history
+- **Ask streaming** — Eligible interactive Ask chats stream official OpenAI Responses text; tools/history wait for terminal completion and interrupted transports fall back safely
+- **Smart Context** — Automatic context trimming, tool result limits, and emergency overflow recovery
+- **Copy Support** — Copy buttons on code blocks and full messages
+- **Page Inspection Banner** — Visual indicator when the agent is interacting with the page
+- **Stop Button** — Abort the agent mid-execution at any time
+- **Deterministic Action Modes** — Act and Dev use temperature `0.15` for browser-control decisions; Ask uses `0.3`, and dedicated vision screenshot descriptions use `0`
+
+## Quick Start
+
+### Chrome
+
+```bash
+git clone https://github.com/webbrain-one/webbrain.git
+```
+
+1. Open Chrome → `chrome://extensions/`
+2. Enable **Developer mode** (top right)
+3. Click **Load unpacked** → select the `webbrain/src/chrome` folder
+
+### Microsoft Edge
+
+```bash
+git clone https://github.com/webbrain-one/webbrain.git
+```
+
+1. Open Edge → `edge://extensions/`
+2. Enable **Developer mode** (left sidebar)
+3. Click **Load unpacked** → select the `webbrain/src/chrome` folder
+
+The Edge package uses the same Manifest V3 build as Chrome. The extension APIs
+still use the Chromium `chrome.*` namespace in code, which is supported by
+Microsoft Edge.
+
+### Firefox
+
+```bash
+git clone https://github.com/webbrain-one/webbrain.git
+```
+
+1. Open Firefox → `about:debugging#/runtime/this-firefox`
+2. Click **Load Temporary Add-on**
+3. Navigate to `webbrain/src/firefox/` and select `manifest.json`
+
+> **Note:** Temporary add-ons are removed when Firefox restarts. For permanent installation, the extension needs to be signed via [addons.mozilla.org](https://addons.mozilla.org).
+
+### Start a local LLM (optional)
+
+```bash
+# Using llama.cpp
+llama-server -m your-model.gguf --port 8080
+
+# Or using Ollama (OpenAI-compatible)
+ollama serve
+# Then set base URL to http://localhost:11434/v1 in settings
+# Or run: ollama launch webbrain --model <model>
+# Vision defaults to Auto and is detected from Ollama /api/show metadata
+
+# Or using Jan, vLLM, SGLang, or LocalAI (OpenAI-compatible)
+# Jan: http://localhost:1337/v1
+# vLLM: http://localhost:8000/v1
+# SGLang: http://localhost:30000/v1
+# LocalAI: http://localhost:8080/v1
+```
+
+For llama.cpp, LM Studio, and LocalAI, Vision defaults to **Auto**. WebBrain
+reads the selected model's server metadata before a turn and sends screenshots
+only when image input is reported. Settings also offers **Force on** and
+**Off** overrides; metadata failures remain text-only for that turn.
+
+### Use it
+
+Click the WebBrain icon → the side panel opens. Type a message like:
+
+- "Summarize this page"
+- "Find all links about pricing"
+- "Fill in the search box with 'AI agents' and click Search"
+- "Navigate to github.com and find trending repositories"
+
+## Configuration
+
+Click the gear icon or go to the extension's Options page to configure:
+
+**Display Settings:**
+- Verbose Mode — Show full tool call JSON (off by default)
+- Auto-screenshot — Provide visual context when DOM/page reads are insufficient
+- Max Agent Steps — Configurable step limit (5-195 or unlimited, default 130)
+- Plan before Act — Try by default; optionally review a structured Act/Dev plan before browser tools run
+
+**Providers:**
+
+Base URLs are pre-filled in Settings. The complete, current provider/default
+model table lives in the [root README](../../README.md#configuration); provider
+internals are documented in
+[providers-and-models.md](../../docs/providers-and-models.md).
+
+## Architecture
+
+```
+src/chrome/ (Chrome/Edge MV3)      src/firefox/ (Firefox MV2)
+├── manifest.json                  ├── manifest.json
+├── src/                           ├── src/
+│   ├── background.js              │   ├── background.js (+ background.html)
+│   ├── run-ui-journal.js          │   ├── run-ui-journal.js
+│   ├── agent/                     │   ├── agent/
+│   │   ├── agent.js               │   │   ├── agent.js
+│   │   └── tools.js               │   │   └── tools.js
+│   ├── content/                   │   ├── content/
+│   │   └── content.js             │   │   └── content.js
+│   ├── providers/                 │   ├── providers/
+│   │   ├── base.js                │   │   ├── base.js
+│   │   ├── llamacpp.js            │   │   ├── llamacpp.js
+│   │   ├── openai.js              │   │   ├── openai.js
+│   │   ├── anthropic.js           │   │   ├── anthropic.js
+│   │   └── manager.js             │   │   └── manager.js
+│   └── ui/                        │   └── ui/
+│       ├── sidepanel.html         │       ├── sidepanel.html
+│       ├── sidepanel.js           │       ├── sidepanel.js
+│       ├── settings.html          │       ├── settings.html
+│       └── settings.js            │       └── settings.js
+├── styles/                        ├── styles/
+│   └── sidepanel.css              │   └── sidepanel.css
+└── icons/                         └── icons/
+```
+
+Key difference: Chrome and Edge use Manifest V3 (service worker, `chrome.scripting`, `sidePanel` API), Firefox uses Manifest V2 (background page, `browser.tabs.executeScript`, `sidebar_action`).
+
+## Agent Tools
+
+| Tool | Ask Mode | Act Mode | Description |
+|------|----------|----------|-------------|
+| `read_page` | Yes | Yes | Extract page text, links, forms |
+| `screenshot` | Yes | Yes | Capture visible tab |
+| `get_interactive_elements` | Yes | Yes | List all clickable/interactive elements |
+| `scroll` | Yes | Yes | Scroll the page |
+| `extract_data` | Yes | Yes | Extract tables, headings, images |
+| `get_selection` | Yes | Yes | Get highlighted text |
+| `click` | No | Yes | Click elements by selector, index, or coordinates |
+| `type_text` | No | Yes | Type into input fields |
+| `navigate` | No | Yes | Go to a URL |
+| `wait_for_element` | No | Yes | Wait for a selector to appear |
+| `inject_css` | No | Dev only | Inject reversible temporary CSS |
+| `remove_injected_css` | No | Dev only | Remove CSS by patchId |
+| `patch_element` | No | Dev only | Patch styles/classes/attributes with before/after values |
+| `revert_patch` | No | Dev only | Restore an element patch by patchId |
+| `execute_js` | No | Dev only | Run one async JavaScript function body through CDP |
+| `read_console` | No | Dev only | Read buffered console messages and exceptions |
+| `inspect_network_requests` | No | Dev only | Inspect redacted request/status/timing data |
+| `inspect_event_listeners` | No | Dev only | Inspect listeners on a ref/selector and ancestors |
+| `highlight_element` | No | Dev only | Show a temporary target overlay |
+| `done` | Yes | Yes | Signal task completion |
+
+Browser-tab creation, enumeration, activation, and run retargeting are not general model-callable capabilities. Use a URL reader for another page or navigate the current run tab for interaction; an explicit separate-tab request is not silently converted into current-tab navigation. After the bundled OTP skill is active, Mid/Full expose one narrow exception: `read_email_verification_message` can inspect an already-open signed-in supported webmail tab, directly read a verified already-open message route, or open one opaque inspected inbox item in a temporary inactive duplicate that it closes. Candidate disclosure requires the full normalized service identity or all sufficiently discriminative service tokens. `inspect` remains read-only in Ask; because opening can mark mail read, `open_message` requires Act/Dev plus normal click permission on the mailbox host. Message reads consume exact bounded continuations to completion or fail closed. It does not expose a tab catalog, mailbox URL, or internal accessibility refs; Compact never receives it.
+
+### Dev-mode page tools
+
+The nine tools above are added only in Mid/Full Dev mode; they are absent from Ask and normal Act. `inject_css` and `patch_element` return patch IDs for their matching undo tools. CSS patch IDs are unique and document-bound, so navigation invalidates an old undo handle rather than applying it to a replacement document. Element patches canonicalize CSS property and HTML attribute names before recording undo state, reject contradictory set/remove requests, and block `javascript:` in executable URL attributes including form `action`. Chrome runs `execute_js` in the page main world through CDP with a 15-second limit, so MV3 extension-page CSP remains intact; JavaScript execution is host-permission gated and always receives a fresh submit confirmation.
+
+Console and network capture start before both streaming and non-streaming Dev runs, use bounded in-memory buffers, and report that earlier activity may be unavailable. The handlers and buffers are removed and the matching Runtime, Log, and Network CDP domains are disabled when the tab leaves Dev mode or its conversation is cleared; leaving the panel-wide Dev mode drains every tab with active diagnostics, even after a tab switch. Listener inspection briefly adds and restores an internal target attribute, follows open-shadow hosts when collecting ancestors, and element highlighting inserts a temporary overlay; both tools therefore require the temporary page-modification permission. Network headers and bodies are omitted unless explicitly requested, and sensitive header names—including common API/subscription-key variants—are redacted before storage. Diagnostic and page-derived tool results are wrapped as untrusted content before they return to the model.
+
+## Known Issues
+
+- **Debugger attachment is visible** — Chrome shows its standard debugger-attached indicator while CDP-backed actions or Dev diagnostics are active. This is expected for trusted input, screenshots, closed-shadow access, uploads, and the Dev-only JavaScript/console/network/listener tools.
+- **Protected browser pages** — Browser-internal and extension-store pages restrict content-script/CDP access; WebBrain reports these as protected instead of retrying DOM actions.
+- **Firefox temporary add-on** — Firefox requires the extension to be loaded as a temporary add-on during development, which is removed on restart.
+
+## Project Status
+
+CDP access, downloads/uploads, conversation/config export, dynamic skill tools,
+keyboard shortcuts, screenshots/vision, and official browser-store packages
+are implemented. Use the [changelog](../../CHANGELOG.md) for shipped changes and
+the repository issue tracker for future work.
+
+## Adding a New Provider
+
+1. Create a new class extending `BaseLLMProvider` in `src/providers/`
+2. Implement `chat()` and optionally `chatStream()`
+3. Register it in `src/providers/manager.js`
+
+All providers normalize to a common response format:
+```js
+{ content: string, toolCalls: Array|null, usage: Object|null }
+```
+
+## Website
+
+The repository `web/` folder contains the landing page for [webbrain.one](https://webbrain.one), deployable to Vercel:
+
+```bash
+cd web
+vercel dev    # local preview
+vercel        # deploy
+```
+
+## License
+
+MIT — built by [Emre Sokullu](https://emresokullu.com)

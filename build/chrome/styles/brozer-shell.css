@@ -1,0 +1,635 @@
+/*
+ * BROZER side panel shell.
+ *
+ * The visual language is taken from the motion demos themselves: soft neutral
+ * greys, 48px pill radii, 13px/500 interface type, a single hairline between
+ * regions and no cards, borders or shadows anywhere else. The motion carries
+ * the personality; this file stays deliberately quiet.
+ *
+ * Pairs with brozer-components.css (which owns the six components) and
+ * brozer-shell.js (which builds this structure).
+ */
+
+:root {
+  --bz-bg: #fdfdfd;
+  --bz-surface: #ffffff;
+  --bz-hairline: rgba(0, 0, 0, 0.06);
+  --bz-text: #0d0d0d;
+  --bz-text-muted: #6c6c6c;
+  --bz-text-faint: #8f8f8f;
+  --bz-accent: #0d0d0d;
+  --bz-danger: #d62b11;
+  --bz-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --bz-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+html[data-theme="dark"] {
+  --bz-bg: #121212;
+  --bz-surface: #181818;
+  --bz-hairline: rgba(255, 255, 255, 0.07);
+  --bz-text: #ffffff;
+  --bz-text-muted: rgba(202, 202, 202, 0.7);
+  --bz-text-faint: #767676;
+  --bz-accent: #ffffff;
+  --bz-danger: #ff6b5b;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bz-bg);
+  color: var(--bz-text);
+  font-family: var(--bz-font);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+/* Screen-reader-only: integration points the logic writes to that must
+   never paint. */
+.bz-sr {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.bz-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* ── Masthead ───────────────────────────────────────────── */
+
+.bz-head {
+  flex: 0 0 auto;
+  padding: 12px 14px 10px;
+}
+
+.bz-head__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bz-brand {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--bz-text);
+}
+
+.bz-head__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.bz-head__tabs {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+/* ── Quiet icon buttons ─────────────────────────────────── */
+
+.bz-iconbtn {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bz-text-faint);
+  cursor: pointer;
+  transition: background-color var(--bz-dur-quick), color var(--bz-dur-quick);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bz-iconbtn:hover {
+  color: var(--bz-text);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme="dark"] .bz-iconbtn:hover { background: rgba(255, 255, 255, 0.07); }
+
+.bz-iconbtn:focus-visible {
+  outline: 2px solid var(--bz-text);
+  outline-offset: 2px;
+}
+
+.bz-iconbtn--send {
+  color: var(--bz-text);
+}
+
+.bz-iconbtn[disabled] { opacity: 0.35; cursor: default; }
+
+/* ── Execution band ─────────────────────────────────────── */
+
+.bz-band {
+  flex: 0 0 auto;
+  padding: 10px 14px 12px;
+  border-top: 1px solid var(--bz-hairline);
+}
+
+/* An idle panel shows no execution chrome at all. */
+.bz-band.is-idle,
+.bz-band.hidden {
+  display: none;
+}
+
+.bz-band__state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bz-band__toggle {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bz-band__toggle:focus-visible {
+  outline: 2px solid var(--bz-text);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* The state label is left-aligned in the panel even though the component
+   centres itself in isolation. */
+.bz-band__toggle .bz-swap { text-align: left; }
+
+.bz-stop {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 48px;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--bz-text-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--bz-dur-quick), color var(--bz-dur-quick);
+}
+
+html[data-theme="dark"] .bz-stop { background: rgba(255, 255, 255, 0.08); }
+.bz-stop:hover { color: var(--bz-text); }
+.bz-stop:focus-visible { outline: 2px solid var(--bz-text); outline-offset: 2px; }
+.bz-stop.hidden { display: none; }
+
+/* The activity stream sits directly under the state, no container. */
+.bz-band .bz-stream {
+  margin-top: 6px;
+  color: var(--bz-text-muted);
+}
+
+.bz-band .bz-stream__mark { color: var(--bz-text-faint); }
+.bz-band .bz-stream__row.is-done .bz-stream__mark { color: var(--bz-text); }
+
+/* ── Response column ────────────────────────────────────── */
+
+.bz-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 14px 8px;
+  scrollbar-width: thin;
+}
+
+.bz-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 100%;
+}
+
+/* Turns read as prose separated by rhythm, not as cards. */
+.bz-messages .message {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  padding: 10px 0;
+  max-width: 100%;
+}
+
+.bz-messages .message + .message {
+  border-top: 1px solid var(--bz-hairline);
+}
+
+.bz-messages .message.user .message-text {
+  color: var(--bz-text);
+  font-weight: 500;
+}
+
+.bz-messages .message.assistant .message-text {
+  color: var(--bz-text);
+}
+
+.bz-messages .message-text {
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.bz-messages .message-text pre {
+  background: var(--bz-surface);
+  border: 1px solid var(--bz-hairline);
+  border-radius: 8px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.bz-messages .message-text code,
+.bz-messages .message-text pre {
+  font-family: var(--bz-mono);
+  font-size: 12px;
+}
+
+/* ── Composer ───────────────────────────────────────────── */
+
+.bz-composer {
+  flex: 0 0 auto;
+  padding: 10px 14px 14px;
+  border-top: 1px solid var(--bz-hairline);
+}
+
+.bz-composer__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* The dissolve field is the composer; it grows, the rail does not. */
+.bz-composer__row .bz-search {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.bz-composer__rail {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.bz-queued,
+.bz-slash,
+.bz-attachments {
+  margin-bottom: 8px;
+}
+
+.bz-queued.hidden,
+.bz-slash.hidden,
+.bz-attachments.hidden { display: none; }
+
+/* ── Error state ────────────────────────────────────────── */
+
+.bz-error {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--bz-hairline);
+}
+
+.bz-error__title {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--bz-danger);
+  margin-bottom: 4px;
+}
+
+.bz-error__body {
+  font-size: 13px;
+  color: var(--bz-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.bz-error__retry {
+  margin-top: 8px;
+  height: 28px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 48px;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--bz-text);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+html[data-theme="dark"] .bz-error__retry { background: rgba(255, 255, 255, 0.08); }
+.bz-error__retry:focus-visible { outline: 2px solid var(--bz-text); outline-offset: 2px; }
+
+/* ── Narrow panel ───────────────────────────────────────── */
+
+@media (max-width: 330px) {
+  .bz-head,
+  .bz-band,
+  .bz-composer { padding-left: 10px; padding-right: 10px; }
+  .bz-main { padding-left: 10px; padding-right: 10px; }
+  .bz-tabs__tab { padding: 4px 10px; }
+  .bz-iconbtn { width: 26px; height: 26px; }
+}
+
+@media (max-width: 290px) {
+  /* Keep the mode selector and composer whole; shed a secondary action. */
+  #btn-expand { display: none; }
+  .bz-tabs__tab { padding: 4px 8px; font-size: 12px; }
+}
+
+/* Wide panel: hold a comfortable reading measure. */
+@media (min-width: 560px) {
+  .bz-head__row,
+  .bz-head__tabs,
+  .bz-band__state,
+  .bz-band .bz-stream,
+  .bz-messages,
+  .bz-composer__row,
+  .bz-error {
+    max-width: 580px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LEGACY STYLESHEET BOUNDARY
+
+   sidepanel.css is still loaded because it carries the layout for
+   subsystems outside this rebuild (settings, history, onboarding,
+   PDF, permission prompts). It styles the panel's primary elements
+   by id — #agent-activity, #input-area, #messages … — and an id
+   selector outranks the class selectors above, so the old chrome
+   would otherwise reassert itself over the new shell.
+
+   These rules re-declare the shell's intent at `.bz-shell #id`
+   specificity, which wins. They are scoped to the shell, so the old
+   rules still apply normally anywhere else they are needed.
+   ═══════════════════════════════════════════════════════════ */
+
+.bz-shell #agent-activity {
+  display: block;
+  position: static;
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 10px 14px 12px;
+  background: var(--bz-bg);
+  border: 0;
+  border-top: 1px solid var(--bz-hairline);
+  border-radius: 0;
+  box-shadow: none;
+  gap: 0;
+}
+
+.bz-shell #agent-activity.is-idle,
+.bz-shell #agent-activity.hidden { display: none; }
+
+.bz-shell #chat-container {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 4px 14px 8px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.bz-shell #messages {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.bz-shell #input-area {
+  display: block;
+  position: static;
+  padding: 10px 14px 14px;
+  margin: 0;
+  background: var(--bz-bg);
+  border: 0;
+  border-top: 1px solid var(--bz-hairline);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* The mode selector is the tabs recreation; the old toggle's frame,
+   fill and sizing must not layer on top of it. */
+.bz-shell #mode-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  padding: 3px;
+  border: 0;
+  border-radius: 48px;
+  background: var(--bz-p16-bar-bg);
+  box-shadow: none;
+  gap: 3px;
+}
+
+.bz-shell #btn-mode-ask,
+.bz-shell #btn-mode-act,
+.bz-shell #btn-mode-dev {
+  flex: 0 0 auto;
+  width: auto;
+  height: 30px;
+  margin: 0;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 48px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.bz-shell #user-input {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 36px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Reserve space for the X clear button to prevent scrolled text from painting
+   behind it. Must match the padding-right on .bz-search.has-value .bz-search__input. */
+.bz-shell .bz-search.has-value #user-input {
+  padding-right: 28px;
+}
+
+.bz-shell #activity-progress-toggle {
+  display: flex;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.bz-shell #btn-stop {
+  display: inline-flex;
+  width: auto;
+  height: 26px;
+  padding: 0 10px;
+  margin: 0;
+  border: 0;
+  border-radius: 48px;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--bz-text-muted);
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .bz-shell #btn-stop { background: rgba(255, 255, 255, 0.08); }
+.bz-shell #btn-stop.hidden { display: none; }
+
+.bz-shell #btn-send,
+.bz-shell #btn-attach,
+.bz-shell #btn-mic,
+.bz-shell #btn-settings,
+.bz-shell #btn-expand,
+.bz-shell #btn-history,
+.bz-shell #btn-clear {
+  position: static;
+  width: 28px;
+  height: 28px;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bz-text-faint);
+  box-shadow: none;
+}
+
+.bz-shell #btn-send:hover,
+.bz-shell #btn-attach:hover,
+.bz-shell #btn-mic:hover,
+.bz-shell #btn-settings:hover,
+.bz-shell #btn-expand:hover,
+.bz-shell #btn-history:hover,
+.bz-shell #btn-clear:hover {
+  color: var(--bz-text);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme="dark"] .bz-shell #btn-send:hover,
+html[data-theme="dark"] .bz-shell #btn-attach:hover,
+html[data-theme="dark"] .bz-shell #btn-mic:hover,
+html[data-theme="dark"] .bz-shell #btn-settings:hover,
+html[data-theme="dark"] .bz-shell #btn-expand:hover,
+html[data-theme="dark"] .bz-shell #btn-history:hover,
+html[data-theme="dark"] .bz-shell #btn-clear:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.bz-shell #btn-send { color: var(--bz-text); }
+
+/* Kept for the logic that addresses them; never painted. */
+.bz-shell #input-highlight,
+.bz-shell #btn-clear-input,
+.bz-shell #activity-text,
+.bz-shell #activity-live-status {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* The composer's own placeholder is the visible one; the old stylesheet
+   colours it by id, so the shell has to state its intent at that weight. */
+.bz-shell #user-input::placeholder {
+  color: var(--bz-text-faint);
+  opacity: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* The old stylesheet aligns user turns to the right as chat bubbles. The new
+   column is prose: every turn starts at the same left edge. */
+.bz-shell #messages .message,
+.bz-shell #messages .message.user,
+.bz-shell #messages .message.assistant {
+  align-self: stretch;
+  max-width: 100%;
+  margin: 0;
+  text-align: left;
+}
+
+/* The band is above the composer, so its rule is a top edge separating it from response results. */
+.bz-shell #agent-activity {
+  border-top: 1px solid var(--bz-hairline);
+  border-bottom: 0;
+}

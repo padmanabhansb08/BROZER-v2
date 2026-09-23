@@ -1,0 +1,177 @@
+// Minimal i18n for WebBrain extension pages (sidepanel, settings, traces).
+// Sync reads from localStorage so translations apply before first paint.
+// Works identically in Chrome MV3 and Firefox MV2.
+
+import en from './locales/en.js';
+import es from './locales/es.js';
+import fr from './locales/fr.js';
+import tr from './locales/tr.js';
+import zh from './locales/zh.js';
+import ru from './locales/ru.js';
+import uk from './locales/uk.js';
+import ar from './locales/ar.js';
+import ja from './locales/ja.js';
+import ko from './locales/ko.js';
+import id from './locales/id.js';
+import th from './locales/th.js';
+import ms from './locales/ms.js';
+import tl from './locales/tl.js';
+import pl from './locales/pl.js';
+import he from './locales/he.js';
+import hi from './locales/hi.js';
+import pt from './locales/pt.js';
+import vi from './locales/vi.js';
+import bn from './locales/bn.js';
+import fa from './locales/fa.js';
+import nl from './locales/nl.js';
+import de from './locales/de.js';
+import { providerGuideEnglish, providerGuideTranslations } from './locales/provider-guide-copy.mjs';
+import { pdfViewerEnglish } from './locales/pdf-viewer-copy.mjs';
+
+const DICTS = Object.fromEntries(Object.entries({ en, es, fr, tr, zh, ru, uk, ar, ja, ko, id, th, ms, tl, pl, he, hi, pt, vi, bn, fa, nl, de })
+  .map(([code, dict]) => [code, {
+    ...dict,
+    ...providerGuideEnglish,
+    ...pdfViewerEnglish,
+    ...(providerGuideTranslations[code] || {}),
+  }]));
+const LS_KEY = 'wbLocale';
+const RTL_LOCALES = new Set(['ar', 'he', 'fa']);
+
+export const LANGUAGES = [
+  { code: 'en', label: 'English', englishLabel: 'English', flagCode: 'us' },
+  { code: 'zh', label: '中文', englishLabel: 'Chinese', flagCode: 'cn' },
+  // English and Chinese stay pinned first; the rest are sorted by English name.
+  { code: 'ar', label: 'العربية', englishLabel: 'Arabic', flagCode: 'sa' },
+  { code: 'bn', label: 'বাংলা', englishLabel: 'Bengali', flagCode: 'bd' },
+  { code: 'nl', label: 'Nederlands', englishLabel: 'Dutch', flagCode: 'nl' },
+  { code: 'tl', label: 'Filipino', englishLabel: 'Filipino', flagCode: 'ph' },
+  { code: 'fr', label: 'Français', englishLabel: 'French', flagCode: 'fr' },
+  { code: 'de', label: 'Deutsch', englishLabel: 'German', flagCode: 'de' },
+  { code: 'he', label: 'עברית', englishLabel: 'Hebrew', flagCode: 'il' },
+  { code: 'hi', label: 'हिन्दी', englishLabel: 'Hindi', flagCode: 'in' },
+  { code: 'id', label: 'Bahasa Indonesia', englishLabel: 'Indonesian', flagCode: 'id' },
+  { code: 'ja', label: '日本語', englishLabel: 'Japanese', flagCode: 'jp' },
+  { code: 'ko', label: '한국어', englishLabel: 'Korean', flagCode: 'kr' },
+  { code: 'ms', label: 'Bahasa Melayu', englishLabel: 'Malay', flagCode: 'my' },
+  { code: 'fa', label: 'فارسی', englishLabel: 'Persian', flagCode: 'ir' },
+  { code: 'pl', label: 'Polski', englishLabel: 'Polish', flagCode: 'pl' },
+  { code: 'pt', label: 'Português', englishLabel: 'Portuguese', flagCode: 'br' },
+  { code: 'ru', label: 'Русский', englishLabel: 'Russian', flagCode: 'ru' },
+  { code: 'es', label: 'Español', englishLabel: 'Spanish', flagCode: 'es' },
+  { code: 'th', label: 'ไทย', englishLabel: 'Thai', flagCode: 'th' },
+  { code: 'tr', label: 'Türkçe', englishLabel: 'Turkish', flagCode: 'tr' },
+  { code: 'uk', label: 'Українська', englishLabel: 'Ukrainian', flagCode: 'ua' },
+  { code: 'vi', label: 'Tiếng Việt', englishLabel: 'Vietnamese', flagCode: 'vn' },
+];
+
+function detect() {
+  try {
+    const saved = localStorage.getItem(LS_KEY);
+    if (saved && DICTS[saved]) return saved;
+  } catch { /* storage denied */ }
+  const nav = (globalThis.navigator?.language || 'en').slice(0, 2).toLowerCase();
+  return DICTS[nav] ? nav : 'en';
+}
+
+function persistDetectedLocaleIfUnset(code) {
+  if (!code || !DICTS[code]) return;
+  try {
+    const saved = localStorage.getItem(LS_KEY);
+    if (!saved || !DICTS[saved]) localStorage.setItem(LS_KEY, code);
+  } catch { /* ignore */ }
+  try {
+    const api = (typeof browser !== 'undefined' && browser?.storage) ? browser : (typeof chrome !== 'undefined' ? chrome : null);
+    const get = api?.storage?.local?.get;
+    const set = api?.storage?.local?.set;
+    if (typeof get !== 'function' || typeof set !== 'function') return;
+    Promise.resolve(get.call(api.storage.local, { wbLocale: '' })).then((stored) => {
+      const existing = String(stored?.wbLocale || '').trim();
+      if (existing) return;
+      return set.call(api.storage.local, { wbLocale: code });
+    }).catch(() => {});
+  } catch { /* ignore */ }
+}
+
+let currentLocale = detect();
+persistDetectedLocaleIfUnset(currentLocale);
+
+export function getLocale() {
+  return currentLocale;
+}
+
+export async function setLocale(code) {
+  if (!DICTS[code] || code === currentLocale) return;
+  currentLocale = code;
+  try { localStorage.setItem(LS_KEY, code); } catch { /* ignore */ }
+  // Mirror to browser storage so other extension pages pick it up.
+  try {
+    const api = (typeof browser !== 'undefined' && browser?.storage) ? browser : (typeof chrome !== 'undefined' ? chrome : null);
+    await api?.storage?.local?.set?.({ wbLocale: code });
+  } catch { /* ignore */ }
+  applyDOMTranslations(document);
+  document.dispatchEvent(new CustomEvent('wb-locale-changed', { detail: { code } }));
+}
+
+export function t(key, params) {
+  const dict = DICTS[currentLocale] || DICTS.en;
+  let s = dict[key];
+  if (s == null) s = DICTS.en[key];
+  if (s == null) return key;
+  if (params) {
+    s = s.replace(/\{(\w+)\}/g, (_, k) => (params[k] != null ? String(params[k]) : `{${k}}`));
+  }
+  return s;
+}
+
+export function translationsForKey(key) {
+  const fallback = DICTS.en[key];
+  return [...new Set(Object.values(DICTS)
+    .map((dict) => dict[key] ?? fallback)
+    .filter((value) => typeof value === 'string'))];
+}
+
+export function applyDOMTranslations(root) {
+  root = root || document;
+  root.querySelectorAll('[data-i18n]').forEach((el) => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  root.querySelectorAll('[data-i18n-html]').forEach((el) => {
+    el.innerHTML = t(el.dataset.i18nHtml);
+  });
+  root.querySelectorAll('[data-i18n-title]').forEach((el) => {
+    el.title = t(el.dataset.i18nTitle);
+  });
+  root.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  root.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {
+    el.setAttribute('aria-label', t(el.dataset.i18nAriaLabel));
+  });
+  document.documentElement.lang = currentLocale;
+  document.documentElement.dir = RTL_LOCALES.has(currentLocale) ? 'rtl' : 'ltr';
+}
+
+// Cross-page sync: if another page changes the locale, reflect it here too.
+try {
+  const api = (typeof browser !== 'undefined' && browser?.storage) ? browser : (typeof chrome !== 'undefined' ? chrome : null);
+  api?.storage?.onChanged?.addListener?.((changes, area) => {
+    if (area !== 'local' || !changes.wbLocale) return;
+    const code = changes.wbLocale.newValue;
+    if (code && DICTS[code] && code !== currentLocale) {
+      currentLocale = code;
+      try { localStorage.setItem(LS_KEY, code); } catch { /* ignore */ }
+      applyDOMTranslations(document);
+      document.dispatchEvent(new CustomEvent('wb-locale-changed', { detail: { code } }));
+    }
+  });
+} catch { /* ignore */ }
+
+// Apply on first load. If the DOM isn't ready yet, wait for it.
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => applyDOMTranslations(document));
+  } else {
+    applyDOMTranslations(document);
+  }
+}

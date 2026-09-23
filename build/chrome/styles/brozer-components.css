@@ -1,0 +1,775 @@
+/*
+ * BROZER motion components — faithful recreations of six transitions.dev
+ * demos, then adapted to BROZER functions.
+ *
+ * Each block below recreates one demo's own composition (structure, metrics,
+ * radii, colours, timing, easing) rather than applying its animation to
+ * pre-existing markup. The BROZER adaptation only changes the content and
+ * the width the component lives in.
+ *
+ * Structure recreated from the reference demos:
+ *   bz-search  <- p13 input-clear-with-dissolve (256x36 pill, icon, mirror,
+ *                 fake placeholder, clear button, clear glow)
+ *   bz-tabs    <- p16 tabs-sliding (3px-padded bar, 48px radius, 30px pill)
+ *   bz-shimmer <- p15 shimmer-text (::before band, 400%, 2000ms linear)
+ *   bz-swap    <- p28 thinking-states (hidden sizer + absolute text, swap)
+ *   bz-stream  <- p29 reasoning-stream (viewport, 28px mask, translateY)
+ *   bz-block   <- p30 streaming-text (per-word opacity + 1px blur)
+ */
+
+/* ═══════════════════════════════════════════════════════════
+   MOTION TOKENS  (scale shared by every component)
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  --bz-dur-stagger: 40ms;
+  --bz-dur-micro: 80ms;
+  --bz-dur-quick: 150ms;
+  --bz-dur-fast: 250ms;
+  --bz-dur-medium: 350ms;
+  --bz-dur-slow: 400ms;
+  --bz-dur-very-slow: 500ms;
+
+  --bz-ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --bz-ease-in-out: ease-in-out;
+  --bz-ease-out: ease-out;
+  --bz-ease-linear: linear;
+
+  /* p13 — input clear with dissolve */
+  --bz-p13-clear-dur: 1000ms;
+  --bz-p13-text-out-dur: var(--bz-dur-slow);
+  --bz-p13-text-out-fly: 12px;
+  --bz-p13-blur: 2px;
+  --bz-p13-glow-delay: 50ms;
+  --bz-p13-glow-peak-at: 0.15;
+  --bz-p13-glow-opacity: 0.42;
+  --bz-p13-ease: var(--bz-ease-smooth-out);
+
+  /* p16 — tabs sliding */
+  --bz-p16-dur: var(--bz-dur-fast);
+  --bz-p16-ease: var(--bz-ease-smooth-out);
+  --bz-p16-text-muted: rgba(15, 15, 15, 0.8);
+  --bz-p16-text-active: #0f0f0f;
+  --bz-p16-bar-bg: #f1f1f1;
+  --bz-p16-pill-bg: #ffffff;
+
+  /* p15 — shimmer text */
+  --bz-p15-dur: 2000ms;
+  --bz-p15-base: #7c7c7c;
+  --bz-p15-highlight: #0d0d0d;
+  --bz-p15-band: 400%;
+
+  /* p28 — thinking states */
+  --bz-p28-swap-dur: var(--bz-dur-quick);
+  --bz-p28-swap-gap: 50ms;
+  --bz-p28-swap-distance: 8px;
+  --bz-p28-swap-blur: 2px;
+  --bz-p28-shimmer-dur: 2000ms;
+  --bz-p28-base: #7c7c7c;
+  --bz-p28-highlight: #0d0d0d;
+  --bz-p28-band: 400%;
+  --bz-p28-ease: ease-in-out;
+
+  /* p29 — reasoning stream */
+  --bz-p29-step-dur: var(--bz-dur-very-slow);
+  --bz-p29-fade: 28px;
+  --bz-p29-ease: var(--bz-ease-smooth-out);
+
+  /* p30 — streaming text */
+  --bz-p30-word-gap: 60ms;
+  --bz-p30-word-dur: var(--bz-dur-medium);
+  --bz-p30-blur: 1px;
+  --bz-p30-ease: var(--bz-ease-smooth-out);
+}
+
+html[data-theme="dark"] {
+  --bz-p13-glow-opacity: 0.85;
+  --bz-p15-base: #9a9a9a;
+  --bz-p15-highlight: #f5f5f5;
+  --bz-p16-text-muted: rgba(193, 193, 193, 0.8);
+  --bz-p16-text-active: #ffffff;
+  --bz-p16-bar-bg: #202020;
+  --bz-p16-pill-bg: #454545;
+  --bz-p28-base: #9a9a9a;
+  --bz-p28-highlight: #f5f5f5;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   1. MotionInputDissolve   (recreates p13)
+   BROZER: the command composer.
+   ═══════════════════════════════════════════════════════════ */
+
+.bz-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 36px;
+  padding: 0 8px 0 12px;
+  border-radius: 48px;
+  background: #eeeeee;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  transition: background-color 160ms, box-shadow 160ms;
+}
+
+html[data-theme="dark"] .bz-search {
+  background: #1c1c1c;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055);
+}
+
+.bz-search:not(.has-value):hover:not(:focus-within) {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+html[data-theme="dark"] .bz-search:not(.has-value):hover:not(:focus-within) {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+
+.bz-search:focus-within {
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+
+html[data-theme="dark"] .bz-search:focus-within {
+  background: #1c1c1c;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.bz-search__icon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  color: rgba(123, 123, 123, 0.9);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bz-search__icon svg { display: block; width: 100%; height: 100%; }
+
+.bz-search__content {
+  flex: 1 1 auto;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  /* overflow:hidden clips the absolutely-positioned mirror and clear button.
+     Combined with the input's own overflow:hidden it prevents text bleed. */
+  overflow: hidden;
+}
+
+.bz-search__input {
+  position: relative;
+  z-index: 2;
+  /* flex-shrink so the input never pushes bz-search__content wider */
+  flex: 1 1 auto;
+  min-width: 0;
+  /* box-sizing so padding-right is subtracted from width, not added */
+  box-sizing: border-box;
+  width: 100%;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 36px;
+  color: #2f2f2f;
+  caret-color: #2f2f2f;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* When the clear button is visible, pad the input so scrolled text can never
+   reach — let alone overlap — the X button. box-sizing:border-box ensures
+   the input width stays unchanged. */
+.bz-search.has-value .bz-search__input {
+  padding-right: 28px;
+}
+
+html[data-theme="dark"] .bz-search__input {
+  color: #efefef;
+  caret-color: #efefef;
+}
+
+.bz-search__input::placeholder { color: transparent; }
+
+/* The mirror is raised only while clearing. During the dissolve the input is
+   already empty, so hiding its fill colour simply covers the frame in which a
+   fast typist starts the next command. */
+.bz-search.is-clearing .bz-search__input { -webkit-text-fill-color: transparent !important; }
+
+.bz-search__mirror,
+.bz-search__placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 36px;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 2;
+}
+
+.bz-search__mirror { opacity: 0; color: #2f2f2f; }
+
+/* Single inline wrapper so whitespace between word spans survives the
+   mirror's flex layout. */
+.bz-search__mirror-inner {
+  display: inline-block;
+  white-space: pre;
+}
+html[data-theme="dark"] .bz-search__mirror { color: #efefef; }
+.bz-search.is-clearing .bz-search__mirror { opacity: 1; }
+
+.bz-search__placeholder { color: rgba(123, 123, 123, 0.7); text-overflow: ellipsis; }
+html[data-theme="dark"] .bz-search__placeholder { color: rgba(239, 239, 239, 0.5); }
+.bz-search.has-value .bz-search__placeholder { opacity: 0; }
+
+/* Per-word dissolve: rise, blur, fade — staggered left to right. */
+.bz-search__word {
+  display: inline-block;
+  white-space: pre;
+  transform: translateY(0);
+  filter: blur(0);
+  opacity: 1;
+  will-change: transform, opacity, filter;
+}
+
+.bz-search.is-clearing .bz-search__word {
+  transform: translateY(calc(var(--bz-p13-text-out-fly) * -1));
+  filter: blur(var(--bz-p13-blur));
+  opacity: 0;
+  transition:
+    transform var(--bz-p13-text-out-dur) var(--bz-p13-ease),
+    filter var(--bz-p13-text-out-dur) var(--bz-p13-ease),
+    opacity var(--bz-p13-text-out-dur) var(--bz-p13-ease);
+  transition-delay: var(--bz-word-delay, 0ms);
+}
+
+/* The glow that sweeps as the text leaves. */
+.bz-search__glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 3;
+  mix-blend-mode: multiply;
+  background: radial-gradient(
+    ellipse 60% 140% at var(--bz-glow-x, 50%) 50%,
+    rgba(150, 150, 150, 0.55),
+    transparent 70%
+  );
+}
+
+html[data-theme="dark"] .bz-search__glow {
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    ellipse 60% 140% at var(--bz-glow-x, 50%) 50%,
+    rgba(255, 255, 255, 0.3),
+    transparent 70%
+  );
+}
+
+.bz-search__clear {
+  /* Absolutely positioned inside .bz-search__content so it is always clipped
+     by the content's overflow:hidden — the textarea's scrolled text can never
+     paint over it. */
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  z-index: 4;
+  opacity: 0;
+  pointer-events: none;
+  display: none;
+  place-items: center;
+  color: rgba(15, 15, 15, 0.35);
+  transition: opacity var(--bz-dur-quick), color 120ms;
+}
+
+.bz-search.has-value .bz-search__clear { display: grid; opacity: 1; pointer-events: auto; }
+.bz-search__clear:hover { color: #2f2f2f; }
+html[data-theme="dark"] .bz-search__clear { color: rgba(239, 239, 239, 0.4); }
+html[data-theme="dark"] .bz-search__clear:hover { color: #efefef; }
+.bz-search__clear svg { display: block; width: 100%; height: 100%; }
+.bz-search__clear:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 50%; }
+
+/* ═══════════════════════════════════════════════════════════
+   2. MotionSlidingTabs   (recreates p16)
+   BROZER: ASK / ACT / DEV.
+   ═══════════════════════════════════════════════════════════ */
+
+.bz-tabs {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 48px;
+  background: var(--bz-p16-bar-bg);
+}
+
+.bz-tabs__tab {
+  position: relative;
+  z-index: 1;
+  appearance: none;
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
+  height: 30px;
+  padding: 4px 12px;
+  border-radius: 48px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+  color: var(--bz-p16-text-muted);
+  transition: color var(--bz-p16-dur) var(--bz-p16-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bz-tabs__tab:not([aria-selected="true"]):hover { color: var(--bz-p16-text-active); }
+.bz-tabs__tab[aria-selected="true"] { color: var(--bz-p16-text-active); }
+.bz-tabs__tab:focus-visible { outline: 2px solid var(--bz-p16-text-active); outline-offset: 2px; }
+
+.bz-tabs__pill {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  height: 30px;
+  width: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 48px;
+  background: var(--bz-p16-pill-bg);
+  transform: translateX(0);
+  will-change: transform, width;
+  transition:
+    transform var(--bz-p16-dur) var(--bz-p16-ease),
+    width var(--bz-p16-dur) var(--bz-p16-ease);
+}
+
+.bz-tabs__pill.is-snapping { transition: none; }
+
+/* ═══════════════════════════════════════════════════════════
+   3. MotionShimmerText   (recreates p15)
+   BROZER: the currently active execution state.
+   ═══════════════════════════════════════════════════════════ */
+
+.bz-shimmer {
+  position: relative;
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--bz-p15-base);
+}
+
+.bz-shimmer::before {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 40%,
+    var(--bz-p15-highlight) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: var(--bz-p15-band) 100%;
+  background-position: 100% 0;
+  background-repeat: no-repeat;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.bz-shimmer.is-shimmering::before {
+  animation: bz-shimmer var(--bz-p15-dur) var(--bz-ease-linear) infinite;
+}
+
+@keyframes bz-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0% 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   4. MotionThinkingStates   (recreates p28)
+   BROZER: execution-state transitions. Carries its own shimmer,
+   exactly as the demo does.
+   ═══════════════════════════════════════════════════════════ */
+
+.bz-swap {
+  position: relative;
+  display: inline-block;
+  text-align: center;
+  line-height: 18px;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Hidden sizer reserves the outgoing/incoming width so nothing reflows. */
+.bz-swap__sizer {
+  display: block;
+  visibility: hidden;
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 18px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bz-swap__text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: block;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--bz-p28-base);
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transform: translateY(0);
+  filter: blur(0);
+  opacity: 1;
+  will-change: transform, filter, opacity;
+  transition:
+    transform var(--bz-p28-swap-dur) var(--bz-p28-ease),
+    filter var(--bz-p28-swap-dur) var(--bz-p28-ease),
+    opacity var(--bz-p28-swap-dur) var(--bz-p28-ease);
+}
+
+.bz-swap__text::before {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 40%,
+    var(--bz-p28-highlight) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: var(--bz-p28-band) 100%;
+  background-repeat: no-repeat;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: bz-shimmer var(--bz-p28-shimmer-dur) var(--bz-ease-linear) infinite;
+}
+
+/* A settled run keeps the label but stops the sweep. */
+.bz-swap.is-paused .bz-swap__text::before { animation-play-state: paused; }
+.bz-swap.is-idle .bz-swap__text::before { display: none; }
+
+.bz-swap__text.is-exit {
+  transform: translateY(calc(var(--bz-p28-swap-distance) * -1));
+  filter: blur(var(--bz-p28-swap-blur));
+  opacity: 0;
+}
+
+.bz-swap__text.is-enter-start {
+  transition: none;
+  transform: translateY(var(--bz-p28-swap-distance));
+  filter: blur(var(--bz-p28-swap-blur));
+  opacity: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   5. MotionReasoningStream   (recreates p29)
+   BROZER: sanitized live activity.
+   ═══════════════════════════════════════════════════════════ */
+
+.bz-stream {
+  position: relative;
+  overflow: hidden;
+}
+
+.bz-stream__viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    transparent 0,
+    black var(--bz-p29-fade),
+    black calc(100% - var(--bz-p29-fade)),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    transparent 0,
+    black var(--bz-p29-fade),
+    black calc(100% - var(--bz-p29-fade)),
+    transparent 100%
+  );
+}
+
+/* The list translates as a whole — the demo scrolls its content rather than
+   animating each row's position. */
+.bz-stream__scroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  transform: translateY(0);
+  will-change: transform;
+  transition: transform var(--bz-p29-step-dur) var(--bz-p29-ease);
+}
+
+.bz-stream__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 13px;
+  line-height: 1.4;
+  opacity: 0;
+  transition: opacity var(--bz-p29-step-dur) var(--bz-p29-ease);
+}
+
+.bz-stream__row.is-in { opacity: 1; }
+
+/* Settled activity reads quiet; only the live row stays at full strength. */
+.bz-stream__row.is-done { opacity: 0.4; }
+
+.bz-stream__mark {
+  flex: 0 0 auto;
+  width: 12px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.bz-stream__label { min-width: 0; overflow-wrap: anywhere; }
+
+/* ═══════════════════════════════════════════════════════════
+   6. MotionStreamingText   (recreates p30)
+   BROZER: the real model response.
+   ═══════════════════════════════════════════════════════════ */
+
+.bz-block {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.bz-block__w {
+  opacity: 0;
+  filter: blur(var(--bz-p30-blur));
+  transition:
+    opacity var(--bz-p30-word-dur) var(--bz-p30-ease),
+    filter var(--bz-p30-word-dur) var(--bz-p30-ease);
+}
+
+.bz-block__w.is-in { opacity: 1; filter: blur(0); }
+
+/* ═══════════════════════════════════════════════════════════
+   REDUCED MOTION
+   Every component keeps working; only movement is removed.
+   ═══════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .bz-search__word,
+  .bz-tabs__pill,
+  .bz-swap__text,
+  .bz-stream__scroll,
+  .bz-stream__row,
+  .bz-block__w {
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .bz-search.is-clearing .bz-search__word {
+    transition: opacity var(--bz-dur-quick) linear !important;
+    transition-delay: 0ms !important;
+    opacity: 0;
+  }
+
+  .bz-search__glow { opacity: 0 !important; }
+
+  .bz-tabs__pill { transition: none !important; }
+
+  .bz-shimmer::before,
+  .bz-swap__text::before {
+    animation: none !important;
+  }
+
+  /* Without the sweep the active state still has to read as active. */
+  .bz-shimmer.is-shimmering { color: var(--bz-p15-highlight); }
+  .bz-swap:not(.is-idle) .bz-swap__text { color: var(--bz-p28-highlight); }
+
+  .bz-swap__text { transition: opacity var(--bz-dur-quick) linear !important; }
+  .bz-swap__text.is-exit,
+  .bz-swap__text.is-enter-start { opacity: 0; }
+
+  .bz-stream__scroll { transition: none !important; }
+  .bz-stream__row { transition: opacity var(--bz-dur-quick) linear !important; }
+
+  .bz-block__w { transition: none !important; opacity: 1 !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   7. MotionExpandableTrace (beautifului.dev style)
+   ═══════════════════════════════════════════════════════════ */
+.bz-thinking-trace {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 6px 0;
+}
+
+.bz-thinking-trace__header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--bz-text-muted);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--bz-dur-quick), color var(--bz-dur-quick);
+  width: fit-content;
+}
+
+.bz-thinking-trace__header:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--bz-text);
+}
+
+.bz-thinking-trace__icon {
+  display: flex;
+  align-items: center;
+  color: var(--bz-text-muted);
+}
+
+.bz-thinking-trace__label {
+  white-space: nowrap;
+}
+
+.bz-thinking-trace__chevron {
+  display: flex;
+  align-items: center;
+  transition: transform 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.bz-thinking-trace__header[aria-expanded="true"] .bz-thinking-trace__chevron {
+  transform: rotate(180deg);
+}
+
+.bz-thinking-trace__drawer {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 300ms cubic-bezier(0.23, 1, 0.32, 1), opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.bz-thinking-trace__drawer.is-expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.bz-thinking-trace__inner {
+  overflow: hidden;
+  position: relative;
+  padding-left: 14px;
+  margin-top: 4px;
+  margin-left: 6px;
+}
+
+.bz-thinking-trace__line {
+  position: absolute;
+  left: 3px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--bz-hairline);
+}
+
+.bz-thinking-trace__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.bz-thinking-trace__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--bz-text-muted);
+}
+
+.bz-thinking-trace__check {
+  display: flex;
+  align-items: center;
+  color: var(--bz-text-faint);
+}
+
+.bz-thinking-trace__primary {
+  font-weight: 500;
+  color: var(--bz-text);
+}
+
+.bz-thinking-trace__primary.is-reasoning {
+  font-weight: 400;
+  color: var(--bz-text-muted);
+  white-space: normal;
+  line-height: 1.5;
+}
+
+.bz-thinking-trace__secondary {
+  font-size: 11px;
+  color: var(--bz-text-faint);
+}
+
+.bz-thinking-trace__secondary.is-mono {
+  font-family: var(--bz-mono);
+}
+
+.bz-thinking-trace__diff {
+  font-family: var(--bz-mono);
+  font-size: 11px;
+  color: var(--bz-text-faint);
+}
+
