@@ -45,16 +45,16 @@
        hero browser mockup) reads from these vars; hardcoded rgba(255,255,255,*)
        values were swapped for --tint-* tokens that invert per theme. */
     :root {
-      --bg: #0b0e17;
-      --bg-card: #111827;
-      --bg-card-hover: #1a2233;
-      --surface: #161d2e;
-      --border: rgba(255,255,255,0.07);
-      --text: #e4e4ec;
-      --text-dim: #8b8fa4;
-      --accent: #6c63ff;
-      --accent-glow: rgba(108,99,255,0.25);
-      --accent2: #a78bfa;
+      --bg: #121418;
+      --bg-card: #1a1d24;
+      --bg-card-hover: #242832;
+      --surface: #1f222b;
+      --border: rgba(255,255,255,0.08);
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --accent: #64748b;
+      --accent-glow: rgba(148,163,184,0.22);
+      --accent2: #94a3b8;
       --success: #34d399;
       --warning: #fbbf24;
       /* Subtle tints that ride on top of the bg/card — used for
@@ -66,17 +66,15 @@
       --tint-stronger: rgba(255,255,255,0.22);
       --shadow-card: rgba(0,0,0,0.30);
       --shadow-strong: rgba(0,0,0,0.40);
-      --nav-bg: rgba(11,14,23,0.80);
+      --nav-bg: rgba(18,20,24,0.85);
       --url-bg: rgba(0,0,0,0.30);
       /* Browser mockup interior: in dark mode the side panel keeps its
-         original near-black blues so it reads as the WebBrain plugin UI.
-         In light mode (override below) these become warm cream tones. */
-      --sp-bg: #1a1a2e;
-      --sp-msg-assistant-bg: #16213e;
-      --sp-msg-assistant-border: rgba(255,255,255,0.06);
-      --sp-input-bg: #1e2746;
-      /* Hero gradient text accent — keeps the same pink pop in both themes. */
-      --hero-gradient-3: #e879f9;
+         original near-black slate UI. */
+      --sp-bg: #121418;
+      --sp-msg-assistant-bg: #1a1d24;
+      --sp-msg-assistant-border: rgba(255,255,255,0.08);
+      --sp-input-bg: #1f222b;
+      --hero-gradient-3: #94a3b8;
       --radius: 16px;
       --radius-sm: 10px;
       --max-w: 1100px;
@@ -84,16 +82,16 @@
     }
 
     :root[data-theme="light"] {
-      --bg: #f7f1e6;
-      --bg-card: #fffdf8;
-      --bg-card-hover: #f2e9d4;
-      --surface: #ede2cb;
-      --border: rgba(89,55,25,0.15);
-      --text: #2c1810;
-      --text-dim: #6b5b47;
-      --accent: #5b52e8;
-      --accent-glow: rgba(91,82,232,0.20);
-      --accent2: #7c6ce6;
+      --bg: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --surface: #f1f5f9;
+      --border: rgba(15,23,42,0.12);
+      --text: #0f172a;
+      --text-dim: #475569;
+      --accent: #475569;
+      --accent-glow: rgba(71,85,105,0.20);
+      --accent2: #334155;
       --success: #2d8866;
       --warning: #b97a00;
       --tint-soft: rgba(89,55,25,0.05);
@@ -1422,7 +1420,7 @@
       box-shadow: 0 10px 28px rgba(0,0,0,0.40);
       background:
         linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,0.72) 100%),
-        linear-gradient(135deg, #2d1b69, #6c63ff 65%, #ec4899);
+        linear-gradient(135deg, #1e293b, #475569 65%, #94a3b8);
       color: #fff;
     }
     /* Soft frosted play disc — readable as "video" without the loud

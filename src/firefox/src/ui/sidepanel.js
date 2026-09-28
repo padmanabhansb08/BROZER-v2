@@ -1436,7 +1436,7 @@ function triggerCompletionConfetti() {
     const layer = document.createElement('div');
     layer.className = 'completion-confetti';
     layer.setAttribute('aria-hidden', 'true');
-    const colors = ['#4caf50', '#6c63ff', '#ffb703', '#ef476f', '#00b4d8', '#f77f00'];
+    const colors = ['#4caf50', '#64748b', '#ffb703', '#ef476f', '#00b4d8', '#f77f00'];
     for (let i = 0; i < 42; i += 1) {
       const piece = document.createElement('span');
       piece.className = 'confetti-piece';
@@ -11889,7 +11889,7 @@ function showInspectionBanner(toolName) {
   if (banner) banner.classList.remove('hidden');
 
   browser.browserAction?.setBadgeText?.({ text: '🔍' }).catch(() => {});
-  browser.browserAction?.setBadgeBackgroundColor?.({ color: '#6c63ff' }).catch(() => {});
+  browser.browserAction?.setBadgeBackgroundColor?.({ color: '#64748b' }).catch(() => {});
 }
 
 function hideInspectionBanner() {

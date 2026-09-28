@@ -540,6 +540,54 @@ export class WebGPUVisionProvider extends WebGPUOffscreenProvider {
     };
   }
 
+  async ground(image, candidateLabels, options = {}) {
+    if (!image) throw new Error('An image must be provided for grounding.');
+    if (!candidateLabels || candidateLabels.length === 0) throw new Error('Candidate labels must be provided.');
+    
+    // We send this to the inference worker
+    const response = await this._dispatch({
+      type: 'webgpu-vision-ground',
+      imageUrl: image.url || image, // Assuming image is an object with a url or a string
+      candidateLabels,
+      threshold: options.threshold || 0.15,
+    }, { timeoutMs: WEBGPU_VISION_INFERENCE_TIMEOUT_MS });
+    
+    if (!response || response.error) {
+      const error = new Error(`In-browser grounding: ${response?.error || 'no response'}`);
+      error.code = 'vision_grounding_error';
+      throw error;
+    }
+    
+    // Geometric validation (GroundingValidator)
+    const validDetections = (response.detections || []).filter(det => {
+      const box = det.box;
+      if (!box) return false;
+      
+      const validCoords = Number.isFinite(box.xmin) && Number.isFinite(box.ymin) 
+                       && Number.isFinite(box.xmax) && Number.isFinite(box.ymax);
+      if (!validCoords) return false;
+                       
+      const validSize = (box.xmax - box.xmin) > 5 && (box.ymax - box.ymin) > 5;
+      if (!validSize) return false;
+      
+      const insideBounds = box.xmin >= 0 && box.ymin >= 0 
+                        && box.xmax <= (options.imageWidth || Infinity) 
+                        && box.ymax <= (options.imageHeight || Infinity);
+      if (!insideBounds) return false;
+      
+      if (det.score < (options.threshold || 0.15)) return false;
+      
+      return true;
+    });
+
+    return {
+      ok: true,
+      imageWidth: options.imageWidth || null,
+      imageHeight: options.imageHeight || null,
+      detections: validDetections,
+    };
+  }
+
   /** Probe WebGPU and the packaged runtime without downloading model weights. */
   async testConnection() {
     return this._testWebGPU();

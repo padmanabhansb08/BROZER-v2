@@ -6,7 +6,7 @@
   overflow: hidden;
   border: 1px solid var(--border, rgba(255, 255, 255, .10));
   border-radius: 12px;
-  background: var(--panel, var(--bg2, #16213e));
+  background: var(--panel, var(--bg2, #1a1d24));
   box-shadow: 0 12px 34px rgba(3, 5, 14, .13);
   opacity: 0;
   transition: opacity .18s ease;
@@ -36,7 +36,7 @@
 }
 
 .apocalypse-comm-dismiss:hover { color: #fff; background: rgba(10, 15, 13, .84); }
-.apocalypse-comm-dismiss:focus-visible { outline: 3px solid var(--focus-ring, rgba(108, 99, 255, .42)); outline-offset: 2px; }
+.apocalypse-comm-dismiss:focus-visible { outline: 3px solid var(--focus-ring, rgba(148, 163, 184, .42)); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   .apocalypse-comm-slot { transition: none; }

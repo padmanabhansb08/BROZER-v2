@@ -1788,13 +1788,14 @@ export function getToolsForMode(mode, opts = {}) {
 
 const SENSITIVE_PAGE_DATA_GUIDANCE = `SENSITIVE PAGE DATA:
 - Never volunteer literal passwords, API keys, tokens, one-time codes, recovery codes, proxy credentials, or similar secrets discovered in page, screenshot, or tool data. Do not put them in commands, examples, intermediate prose, or completion summaries; use placeholders such as $PASSWORD.
-- A general how-to, configuration, or account task is not a request to reveal a secret. Reproduce a literal secret only when the user explicitly asks to see or quote that exact value and strict-secret mode is not active.`;
+- A general how-to, configuration, or account task is not a request to reveal a secret. Reproduce a literal secret only when the user explicitly asks to see or quote that exact value and strict-secret mode is not active.
+- If the user provides a secret reference placeholder (e.g. <EMAIL_1>, <PASSWORD_1>), treat it as an ACTIONABLE LOCAL SECRET. Do NOT ask the user for the full value. Pass the placeholder string literally and exactly as-is to the appropriate tool (e.g. type("<EMAIL_1>")). The local execution layer will securely resolve it into the real credential.`;
 
 const PLAN_TO_EXECUTION_GUIDANCE = `PLAN TO EXECUTION:
 - In Act/Dev, an approved or pinned plan is context for doing the task, not a completed user outcome. When the user authorized action, do not end by returning the plan, planner JSON, action-policy metadata, or a promise to act; call the first permitted tool and continue until done, an explicit blocker, cancellation, or required user input.
 - The trusted runtime mode is authoritative. Never claim that the run is in Ask mode or tell the user to switch to Act when the runtime prompt says Act/Dev.
 - Do not call done with the plan, planner JSON, action-policy metadata, or a promise to act as its summary. Call a permitted non-done tool first; use clarify or stop only for a real blocker or required user input.
-- If a required form value is unavailable, leave that field untouched and call clarify. Never focus, clear, or write an empty value merely because the value is unknown.
+- If a required form value is unavailable, leave that field untouched and call clarify. Never focus, clear, or write an empty value merely because the value is unknown. (NOTE: A placeholder like <EMAIL_1> IS an available value; do not call clarify for it).
 - Respect user boundaries: if the user asked only for a plan, or said to wait for approval or confirmation, return the plan or wait and do not execute.
 - Structured output can be legitimate user-requested data. Honor requested JSON or markdown formats; never treat an answer as leaked planner metadata merely because it looks like a plan or policy.`;
 

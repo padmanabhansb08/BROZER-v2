@@ -86,8 +86,8 @@ export function buildShell(root) {
   const brand = el('span', 'bz-brand', 'BROZER');
   const headActions = el('div', 'bz-head__actions');
 
-  const btnHistory = iconButton('btn-history', 'History',
-    ['M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8', 'M3 3v5h5', 'M12 7v5l4 2']);
+  const btnInspect = iconButton('btn-inspect', 'Output Inspector',
+    ['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z', 'm9 12 2 2 4-4']);
   const btnNew = iconButton('btn-clear', 'New conversation', ['M5 12h14', 'M12 5v14']);
   const btnSettings = iconButton('btn-settings', 'Settings',
     ['M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
@@ -95,7 +95,7 @@ export function buildShell(root) {
   const btnExpand = iconButton('btn-expand', 'Open in window',
     ['M15 3h6v6', 'M10 14 21 3', 'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6']);
 
-  headActions.append(btnHistory, btnNew, btnSettings, btnExpand);
+  headActions.append(btnInspect, btnNew, btnSettings, btnExpand);
   brandRow.append(brand, headActions);
 
   // ASK / ACT / DEV — the sliding-tabs recreation is the mode selector.
@@ -265,7 +265,7 @@ export function buildShell(root) {
   const shellApi = {
     app, shell, head, band, main, messages, composer,
     tabs, state, stream, field,
-    buttons: { btnStop, btnSend, btnAttach, btnMic, btnSettings, btnExpand, btnHistory, btnNew },
+    buttons: { btnStop, btnSend, btnAttach, btnMic, btnSettings, btnExpand, btnInspect, btnNew },
     renderError,
     clearError,
     onModeRequest: null,

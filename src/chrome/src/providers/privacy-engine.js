@@ -103,23 +103,31 @@ export function decorateProviderWithPrivacyEngine(provider) {
 
   const originalGround = provider.ground;
   if (typeof originalGround === 'function') {
-    provider.ground = async function (imageBuffer, text, options) {
-      // Create a dummy message structure to run through the standard sanitizer,
-      // ensuring visual PII in the image buffer is redacted before grounding.
+    provider.ground = async function (imageInput, text, options) {
+      const dataUrl = (typeof imageInput === 'object' && imageInput !== null && imageInput.url) ? imageInput.url : (imageInput instanceof Buffer || typeof imageInput?.toString === 'function' ? `data:image/png;base64,${imageInput.toString('base64')}` : imageInput);
+      
       const messages = [{
         role: 'user',
         content: [
-          { type: 'image_url', image_url: { url: `data:image/png;base64,${imageBuffer.toString('base64')}` } },
+          { type: 'image_url', image_url: { url: dataUrl } },
           { type: 'text', text: text }
         ]
       }];
       const sanitizedMessages = await PrivacyEngine.sanitize(messages, options);
       
       // Extract the redacted image data URL back out
-      const sanitizedImageContent = sanitizedMessages[0].content.find(c => c.type === 'image_url');
+      const sanitizedImageContent = sanitizedMessages[0]?.content?.find(c => c.type === 'image_url');
+      if (!sanitizedImageContent?.image_url?.url) {
+        throw new Error('Visual privacy sanitization failed');
+      }
       const sanitizedDataUrl = sanitizedImageContent.image_url.url;
       
-      return originalGround.call(this, sanitizedDataUrl, text, options);
+      // If the original input was an object, we should preserve it but replace the url
+      const finalImage = (typeof imageInput === 'object' && imageInput !== null && imageInput.url) 
+        ? { ...imageInput, url: sanitizedDataUrl }
+        : sanitizedDataUrl;
+        
+      return originalGround.call(this, finalImage, text, options);
     };
   }
 

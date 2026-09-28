@@ -1,2 +1,3 @@
-2026/09/17-11:15:45.196 3d04 Creating DB C:\Users\Acer\OneDrive\Desktop\BROZER-v2\test-profile\Default\Session Storage since it was missing.
-2026/09/17-11:15:45.218 3d04 Reusing MANIFEST C:\Users\Acer\OneDrive\Desktop\BROZER-v2\test-profile\Default\Session Storage/MANIFEST-000001
+2026/09/28-09:41:21.484 2450 Reusing MANIFEST C:\Users\aml\Desktop\BROZER-v2\test-profile\Default\Session Storage/MANIFEST-000001
+2026/09/28-09:41:21.485 2450 Recovering log #3
+2026/09/28-09:41:21.487 2450 Reusing old log C:\Users\aml\Desktop\BROZER-v2\test-profile\Default\Session Storage/000003.log 

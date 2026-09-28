@@ -607,7 +607,7 @@ const selectionScopeDescriptionEl = document.getElementById('selection-scope-des
 const selectionScopeRestoreBtn = document.getElementById('selection-scope-restore');
 const selectionScopeNewConversationBtn = document.getElementById('selection-scope-new-conversation');
 let selectionAskActionEl = document.getElementById('selection-ask-action');
-const historyBtn = document.getElementById('btn-history');
+const inspectBtn = document.getElementById('btn-inspect');
 const expandBtn = document.getElementById('btn-expand');
 const settingsBtn = document.getElementById('btn-settings');
 const uiScaleMenu = document.getElementById('ui-scale-menu');
@@ -1188,7 +1188,7 @@ const brozerPanel = {
   setMode: (mode, opts) => shellApi?.tabs.setActive(mode, opts),
   setExecutionState: (label) => { shellApi?.state.set(label); shellApi?.band.classList.remove('is-idle'); },
   setExecutionLive: (live) => shellApi?.state.setActivity(live ? 'running' : 'paused'),
-  clearExecutionState: () => { shellApi?.state.clear(); shellApi?.stream.clear(); shellApi?.clearError(); shellApi?.band.classList.add('is-idle'); },
+  clearExecutionState: () => { shellApi?.state.clear(); shellApi?.stream.clear(); shellApi?.clearError(); shellApi?.band.classList.add('is-idle'); resetOutputInspector(); },
   pushActivity: (label) => { shellApi?.stream.push(label); shellApi?.band.classList.remove('is-idle'); },
   settleActivity: () => shellApi?.stream.resolveActive(),
   dissolveComposer: (text) => shellApi?.field.dissolve(text),
@@ -1742,7 +1742,7 @@ function triggerCompletionConfetti() {
     const layer = document.createElement('div');
     layer.className = 'completion-confetti';
     layer.setAttribute('aria-hidden', 'true');
-    const colors = ['#4caf50', '#6c63ff', '#ffb703', '#ef476f', '#00b4d8', '#f77f00'];
+    const colors = ['#4caf50', '#64748b', '#ffb703', '#ef476f', '#00b4d8', '#f77f00'];
     for (let i = 0; i < 42; i += 1) {
       const piece = document.createElement('span');
       piece.className = 'confetti-piece';
@@ -2951,6 +2951,71 @@ async function resetChatHistoryStateForTab(tabId) {
   chatHistoryTabInfoByTab.delete(numericTabId);
   chatHistorySaveSeqByTab.delete(numericTabId);
 }
+
+// Execution State Mapping for Visual Timeline
+const TOOL_STATE_MAP = {
+  navigate: 'OPENING',
+  fetch_url: 'OPENING',
+  go_back: 'OPENING',
+  go_forward: 'OPENING',
+  promote_iframe: 'OPENING',
+  
+  get_accessibility_tree: 'UNDERSTANDING',
+  read_page: 'UNDERSTANDING',
+  inspect_viewport: 'UNDERSTANDING',
+  extract_data: 'UNDERSTANDING',
+  get_interactive_elements: 'UNDERSTANDING',
+  get_selection: 'UNDERSTANDING',
+  read_page_source: 'UNDERSTANDING',
+  read_console: 'UNDERSTANDING',
+  inspect_network_requests: 'UNDERSTANDING',
+  inspect_event_listeners: 'UNDERSTANDING',
+  
+  click: 'ACTING',
+  click_ax: 'ACTING',
+  type_text: 'ACTING',
+  type_ax: 'ACTING',
+  set_field: 'ACTING',
+  set_checked: 'ACTING',
+  scroll: 'ACTING',
+  hover: 'ACTING',
+  drag_drop: 'ACTING',
+  press_keys: 'ACTING',
+  execute_js: 'ACTING',
+  patch_element: 'ACTING',
+  inject_css: 'ACTING',
+  remove_injected_css: 'ACTING',
+  revert_patch: 'ACTING',
+  highlight_element: 'ACTING',
+  download_social_media: 'ACTING',
+  upload_file: 'ACTING',
+  
+  verify_form: 'VERIFYING',
+  wait_for_element: 'VERIFYING',
+  wait_for_stable: 'VERIFYING',
+  
+  done: 'COMPLETED'
+};
+
+const STATE_ICONS = {
+  OPENING: '↗',
+  UNDERSTANDING: '✦',
+  PLANNING: '◌',
+  ACTING: '→',
+  VERIFYING: '○',
+  COMPLETED: '✓',
+  STOPPED: '■',
+  FAILED: '×'
+};
+
+const STATE_LABELS = {
+  OPENING: 'OPENING PAGE',
+  UNDERSTANDING: 'UNDERSTANDING PAGE',
+  PLANNING: 'PLANNING',
+  ACTING: 'PERFORMING ACTION',
+  VERIFYING: 'CHECKING PAGE',
+  COMPLETED: 'COMPLETED'
+};
 
 // Tool names → i18n key for the human-friendly label. Resolved at render
 // time so language changes take effect without a reload.
@@ -10779,6 +10844,12 @@ function findLastActiveCompactStep(toolName = '') {
   if (!currentAssistantEl) return null;
   const activeSteps = [...currentAssistantEl.querySelectorAll('.steps-container .step-item.active')];
   if (toolName) {
+    const targetState = TOOL_STATE_MAP[toolName];
+    // If the toolName corresponds to a state, try to find a step with that state
+    if (targetState) {
+      const matchingStep = activeSteps.slice().reverse().find(step => step.dataset.state === targetState);
+      if (matchingStep) return matchingStep;
+    }
     const matchingStep = activeSteps
       .slice()
       .reverse()
@@ -10792,20 +10863,34 @@ function appendCompactStep(toolName, args) {
   const container = getOrCreateStepsContainer();
   if (!container) return;
 
-  // A previous call may live before an answered clarification boundary while
-  // this call belongs to the new segment after it. Never leave the old spinner
-  // active merely because the timeline now has more than one steps container.
+  const mappedState = TOOL_STATE_MAP[toolName] || 'ACTING';
   const prev = findLastActiveCompactStep();
+  
+  if (prev && prev.dataset.state === mappedState && toolName !== 'done') {
+    // If we're already in this state, just update the label and add args to details
+    const label = prev.querySelector('.step-subtext');
+    if (label) label.textContent = friendlyToolLabel(toolName, args);
+    const details = prev.nextElementSibling;
+    if (details && details.classList.contains('step-details')) {
+      details.innerHTML += `<div class="detail-label">${escapeHtml(t('sp.step.input_label') || 'Input')}</div><div class="detail-args">${escapeHtml(JSON.stringify(args, null, 2))}</div>`;
+    }
+    return;
+  }
+
   if (prev) {
     prev.classList.remove('active');
     prev.classList.add('done');
     const icon = prev.querySelector('.step-icon');
-    if (icon) { icon.className = 'step-icon check'; icon.textContent = '\u2713'; }
+    if (icon) {
+      const state = prev.dataset.state;
+      icon.className = 'step-icon check';
+      icon.textContent = STATE_ICONS.COMPLETED || '✓';
+    }
   }
 
   if (toolName === 'done') {
     const rejectedSteps = currentAssistantEl?.querySelectorAll?.(
-      '.step-item[data-tool="done"][data-rejected-completion="true"]',
+      '.step-item[data-state="COMPLETED"][data-rejected-completion="true"]',
     ) || [];
     const priorRejected = rejectedSteps[rejectedSteps.length - 1];
     if (priorRejected) {
@@ -10815,9 +10900,9 @@ function appendCompactStep(toolName, args) {
       const priorIcon = priorRejected.querySelector('.step-icon');
       if (priorIcon) {
         priorIcon.className = 'step-icon spinning';
-        priorIcon.textContent = '';
+        priorIcon.textContent = STATE_ICONS.COMPLETED || '✓';
       }
-      const priorLabel = priorRejected.querySelector('.step-label');
+      const priorLabel = priorRejected.querySelector('.step-subtext');
       if (priorLabel) priorLabel.textContent = friendlyToolLabel(toolName, args);
       const priorDetails = priorRejected.nextElementSibling;
       if (priorDetails?.classList?.contains('step-details')) {
@@ -10832,29 +10917,38 @@ function appendCompactStep(toolName, args) {
   const step = document.createElement('div');
   step.className = 'step-item active';
   step.dataset.tool = toolName;
+  step.dataset.state = mappedState;
+
+  const header = document.createElement('div');
+  header.className = 'step-header';
 
   const icon = document.createElement('span');
   icon.className = 'step-icon spinning';
-  icon.textContent = '';
+  icon.textContent = STATE_ICONS[mappedState] || '●';
+
+  const title = document.createElement('span');
+  title.className = 'step-title';
+  title.textContent = STATE_LABELS[mappedState] || mappedState;
 
   const label = document.createElement('span');
-  label.className = 'step-label';
+  label.className = 'step-subtext step-label';
   label.textContent = friendlyToolLabel(toolName, args);
 
-  // Small toggle to peek at details
   const toggle = document.createElement('button');
   toggle.className = 'step-details-toggle';
-  toggle.textContent = t('sp.step.details');
+  toggle.textContent = t('sp.step.details') || 'Details';
 
-  step.appendChild(icon);
+  header.appendChild(icon);
+  header.appendChild(title);
+  header.appendChild(toggle);
+  
+  step.appendChild(header);
   step.appendChild(label);
-  step.appendChild(toggle);
   container.appendChild(step);
 
-  // Hidden details panel (populated when result arrives)
   const details = document.createElement('div');
   details.className = 'step-details';
-  details.innerHTML = `<div class="detail-label">${escapeHtml(t('sp.step.input_label'))}</div><div class="detail-args">${escapeHtml(JSON.stringify(args, null, 2))}</div>`;
+  details.innerHTML = `<div class="detail-label">${escapeHtml(t('sp.step.input_label') || 'Input')}</div><div class="detail-args">${escapeHtml(JSON.stringify(args, null, 2))}</div>`;
   container.appendChild(details);
   bindCompactStepDetailsToggle(toggle);
 }
@@ -10871,18 +10965,16 @@ function updateActiveToolProgress(toolName, message) {
     return;
   }
   const active = findLastActiveCompactStep(toolName);
-  const label = active?.querySelector('.step-label');
+  const label = active?.querySelector('.step-subtext') || active?.querySelector('.step-label');
   if (label) label.textContent = message;
 }
 
 function markLastStepDone(toolName, result) {
-  // A blocking clarify/confirmation tool emits its result only after its card
-  // is answered. Settle that original pre-card step; do not create or search a
-  // post-card container until a later tool_call actually starts there.
   const active = findLastActiveCompactStep(toolName);
   if (active) {
-    active.classList.remove('active');
-    active.classList.add('done');
+    // DO NOT mark it done immediately unless it's a completely new state arriving next,
+    // or if the tool is done/failed. We let the next tool transition it.
+    // However, if the result is an error or blocked, we mark it failed.
     const rejectedCompletion = toolName === 'done' && result?.blockedDone === true;
     if (toolName === 'done') {
       active.dataset.rejectedCompletion = rejectedCompletion ? 'true' : 'false';
@@ -10891,27 +10983,37 @@ function markLastStepDone(toolName, result) {
       || !!result?.error
       || result?.success === false
       || result?.outcome === 'failed';
-    const icon = active.querySelector('.step-icon');
-    if (icon) {
-      icon.className = failed ? 'step-icon fail' : 'step-icon check';
-      icon.textContent = failed ? '\u2717' : '\u2713';
+      
+    if (failed || toolName === 'done') {
+      active.classList.remove('active');
+      active.classList.add('done');
+      const icon = active.querySelector('.step-icon');
+      if (icon) {
+        icon.className = failed ? 'step-icon fail' : 'step-icon check';
+        icon.textContent = failed ? (STATE_ICONS.FAILED || '×') : (STATE_ICONS.COMPLETED || '✓');
+      }
+      if (failed) {
+        active.dataset.state = 'FAILED';
+        const title = active.querySelector('.step-title');
+        if (title) title.textContent = STATE_LABELS.FAILED || 'ACTION FAILED';
+      }
     }
+
     if (toolName === 'done') {
-      const label = active.querySelector('.step-label');
+      const label = active.querySelector('.step-subtext');
       if (label) {
         const key = rejectedCompletion
           ? 'sp.tool.done.rejected'
           : (failed ? 'sp.tool.done.failed' : 'sp.tool.done.completed');
-        label.textContent = String(t(key)).trim();
+        label.textContent = String(t(key) || key).trim();
       }
     }
 
-    // Append result to the details panel
     const details = active.nextElementSibling;
     if (details && details.classList.contains('step-details')) {
       const resultDiv = document.createElement('div');
       resultDiv.className = 'detail-result';
-      resultDiv.innerHTML = `<div class="detail-label">${escapeHtml(t('sp.step.result_label'))}</div>${escapeHtml(truncate(JSON.stringify(result), 1200))}`;
+      resultDiv.innerHTML = `<div class="detail-label">${escapeHtml(t('sp.step.result_label') || 'Result')}</div>${escapeHtml(truncate(JSON.stringify(result), 1200))}`;
       const expandAll = details.querySelector?.('.step-expand-all') || null;
       if (expandAll && typeof details.insertBefore === 'function') details.insertBefore(resultDiv, expandAll);
       else details.appendChild(resultDiv);
@@ -10924,8 +11026,11 @@ function markLastStepFailed() {
   if (active) {
     active.classList.remove('active');
     active.classList.add('done');
+    active.dataset.state = 'FAILED';
     const icon = active.querySelector('.step-icon');
-    if (icon) { icon.className = 'step-icon fail'; icon.textContent = '\u2717'; }
+    if (icon) { icon.className = 'step-icon fail'; icon.textContent = STATE_ICONS.FAILED || '×'; }
+    const title = active.querySelector('.step-title');
+    if (title) title.textContent = STATE_LABELS.FAILED || 'ACTION FAILED';
   }
 }
 
@@ -11161,7 +11266,45 @@ function renderAssistantTextUpdate(assistantEl, content, options = {}) {
   if (!textEl) return;
 
   if (isStoppedByUserStatus(content)) {
-    textEl.innerHTML = t('sp.stopped_by_user_html');
+    const container = getOrCreateStepsContainer(assistantEl);
+    if (container) {
+      const prev = findLastActiveCompactStep();
+      if (prev) {
+        prev.classList.remove('active');
+        prev.classList.add('done');
+        const prevIcon = prev.querySelector('.step-icon');
+        if (prevIcon) {
+          prevIcon.className = 'step-icon fail';
+          prevIcon.textContent = STATE_ICONS.STOPPED || '■';
+        }
+      }
+
+      const step = document.createElement('div');
+      step.className = 'step-item done';
+      step.dataset.state = 'STOPPED';
+
+      const header = document.createElement('div');
+      header.className = 'step-header';
+
+      const icon = document.createElement('span');
+      icon.className = 'step-icon fail';
+      icon.textContent = STATE_ICONS.STOPPED || '■';
+
+      const title = document.createElement('span');
+      title.className = 'step-title';
+      title.textContent = 'RUN STOPPED';
+
+      const label = document.createElement('span');
+      label.className = 'step-subtext step-label';
+      label.textContent = 'Execution stopped by the user.';
+
+      header.appendChild(icon);
+      header.appendChild(title);
+      step.appendChild(header);
+      step.appendChild(label);
+      container.appendChild(step);
+    }
+    textEl.innerHTML = '';
     clearStreamedAssistantText(textEl);
     delete textEl.dataset.suppressToolCallStream;
     if (!assistantEl.querySelector('.msg-copy-btn')) addMessageCopyButton(assistantEl);
@@ -12324,7 +12467,7 @@ function showInspectionBanner(toolName) {
 
   // Set extension badge
   chrome.action?.setBadgeText?.({ text: '🔍' }).catch(() => {});
-  chrome.action?.setBadgeBackgroundColor?.({ color: '#6c63ff' }).catch(() => {});
+  chrome.action?.setBadgeBackgroundColor?.({ color: '#64748b' }).catch(() => {});
 }
 
 function hideInspectionBanner() {
@@ -14475,27 +14618,10 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-async function openChatHistoryPage() {
-  let url = chrome.runtime.getURL('src/ui/history.html');
-  try {
-    const tabInfo = await getTabInfoForHistory(currentTabId);
-    if (tabInfo?.url) {
-      const pageUrl = new URL(url);
-      pageUrl.searchParams.set('url', tabInfo.url);
-      url = pageUrl.toString();
-    }
-  } catch {
-    // Opening the unfiltered history page is still useful.
-  }
-  try {
-    await chrome.tabs.create({ url });
-  } catch {
-    window.open(url, '_blank', 'noopener');
-  }
-}
 
-historyBtn?.addEventListener('click', () => {
-  void openChatHistoryPage();
+
+inspectBtn?.addEventListener('click', () => {
+  toggleOutputInspector();
 });
 
 settingsBtn.addEventListener('click', () => {
@@ -14657,3 +14783,169 @@ export function runWithViewTransition(updateFn) {
   if (updateError) throw updateError;
   return transition;
 }
+
+// ==========================================================================
+// OUTPUT INSPECTOR
+// ==========================================================================
+
+let outputInspectorEl = null;
+
+function toggleOutputInspector() {
+  if (!outputInspectorEl) {
+    outputInspectorEl = document.createElement('div');
+    outputInspectorEl.id = 'output-inspector';
+    outputInspectorEl.className = 'output-inspector hidden';
+    
+    outputInspectorEl.innerHTML = `
+      <div class="inspector-header">
+        <span class="inspector-title">OUTPUT INSPECTOR</span>
+        <button class="inspector-close" aria-label="Close Inspector">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="inspector-body">
+        <div class="inspector-section" id="inspect-observation">
+          <div class="inspector-section-header">
+            <span class="inspector-section-title">OBSERVATION</span>
+            <span class="inspector-status-icon"></span>
+          </div>
+          <div class="inspector-section-content" id="inspect-observation-content"></div>
+        </div>
+
+        <div class="inspector-connector"></div>
+
+        <div class="inspector-section" id="inspect-privacy-engine">
+          <div class="inspector-section-header">
+            <span class="inspector-section-title">🔐 PRIVACY ENGINE</span>
+            <span class="inspector-status-icon"></span>
+          </div>
+          <div class="inspector-section-content" id="inspect-privacy-engine-content"></div>
+        </div>
+
+        <div class="inspector-connector"></div>
+
+        <div class="inspector-section" id="inspect-visual-privacy">
+          <div class="inspector-section-header">
+            <span class="inspector-section-title">👁 VISUAL PRIVACY</span>
+            <span class="inspector-status-icon"></span>
+          </div>
+          <div class="inspector-section-content" id="inspect-visual-privacy-content"></div>
+        </div>
+
+        <div class="inspector-connector"></div>
+
+        <div class="inspector-section" id="inspect-sanitized-output">
+          <div class="inspector-section-header">
+            <span class="inspector-section-title">SANITIZED OUTPUT</span>
+            <span class="inspector-status-icon"></span>
+          </div>
+          <div class="inspector-section-content" id="inspect-sanitized-output-content"></div>
+        </div>
+
+        <hr class="inspector-divider" />
+
+        <div class="inspector-section model-boundary" id="inspect-model-boundary">
+          <div class="inspector-section-header">
+            <span class="inspector-section-title">MODEL BOUNDARY</span>
+            <span class="inspector-status-icon"></span>
+          </div>
+          <div class="inspector-section-content" id="inspect-model-boundary-content"></div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(outputInspectorEl);
+    
+    outputInspectorEl.querySelector('.inspector-close').addEventListener('click', () => {
+      toggleOutputInspector();
+    });
+  }
+
+  const isHidden = outputInspectorEl.classList.contains('hidden');
+  if (isHidden) {
+    outputInspectorEl.classList.remove('hidden');
+  } else {
+    outputInspectorEl.classList.add('hidden');
+  }
+}
+
+function resetOutputInspector() {
+  if (!outputInspectorEl) return;
+  const sections = ['observation', 'privacy-engine', 'visual-privacy', 'sanitized-output', 'model-boundary'];
+  for (const s of sections) {
+    const el = outputInspectorEl.querySelector(\`#inspect-\${s}\`);
+    if (el) {
+      el.classList.remove('active', 'done', 'failed');
+      const content = el.querySelector('.inspector-section-content');
+      if (content) content.innerHTML = '';
+      const icon = el.querySelector('.inspector-status-icon');
+      if (icon) icon.innerHTML = '';
+    }
+  }
+}
+
+function updateOutputInspectorSection(sectionId, state, htmlContent = '') {
+  if (!outputInspectorEl) return;
+  const el = outputInspectorEl.querySelector(\`#inspect-\${sectionId}\`);
+  if (!el) return;
+  
+  el.classList.remove('active', 'done', 'failed');
+  el.classList.add(state); // 'active', 'done', or 'failed'
+  
+  const icon = el.querySelector('.inspector-status-icon');
+  if (icon) {
+    if (state === 'active') icon.innerHTML = '<span class="shimmer-icon">◉</span>';
+    else if (state === 'done') icon.innerHTML = '✓';
+    else if (state === 'failed') icon.innerHTML = '⚠';
+  }
+  
+  const content = el.querySelector('.inspector-section-content');
+  if (content && htmlContent) {
+    content.innerHTML = htmlContent;
+  }
+}
+
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.type === 'privacy_engine_update') {
+    if (!outputInspectorEl) return;
+    if (msg.status === 'inspecting') {
+      updateOutputInspectorSection('privacy-engine', 'active', 'Scanning observation...');
+    } else if (msg.status === 'complete') {
+      const sanitizedCount = msg.categories.length;
+      let html = \`<div>✓ Inspection complete</div><div class="inspector-muted">\${sanitizedCount} sensitive values detected</div>\`;
+      if (sanitizedCount > 0) {
+        html += '<ul class="inspector-list">';
+        msg.categories.forEach(cat => {
+          html += \`<li>\${escapeHtml(cat.name)}<br/><span class="inspector-placeholder">\${escapeHtml(cat.placeholder)}</span></li>\`;
+        });
+        html += '</ul>';
+      }
+      updateOutputInspectorSection('privacy-engine', 'done', html);
+      updateOutputInspectorSection('sanitized-output', 'done', html);
+      updateOutputInspectorSection('model-boundary', 'done', '<div>✓ Safe to send</div><div class="inspector-muted">No raw sensitive values detected.</div>');
+    } else if (msg.status === 'failed') {
+      updateOutputInspectorSection('privacy-engine', 'failed', '<div class="inspector-error">⚠ Inspection failed</div><div class="inspector-muted">Observation withheld from model.</div>');
+      updateOutputInspectorSection('model-boundary', 'failed', '<div class="inspector-error">Withheld from model.</div>');
+    }
+  } else if (msg.type === 'visual_privacy_update') {
+    if (!outputInspectorEl) return;
+    if (msg.status === 'inspecting') {
+      updateOutputInspectorSection('visual-privacy', 'active', 'Inspecting screenshot...');
+    } else if (msg.status === 'complete') {
+      let html = '<div>✓ Screenshot inspected</div>';
+      if (msg.redactedCount > 0) {
+        html += \`<div class="inspector-muted">\${msg.redactedCount} sensitive regions detected</div>\`;
+        if (msg.previewDataUrl) {
+          html += \`<div class="inspector-preview-box"><img src="\${msg.previewDataUrl}" class="inspector-preview-img" alt="sanitized preview" /></div>\`;
+        }
+        html += \`<div class="inspector-muted">\${msg.redactedCount} / \${msg.redactedCount} regions redacted</div>\`;
+      } else {
+         html += '<div class="inspector-muted">0 sensitive regions detected</div>';
+      }
+      updateOutputInspectorSection('visual-privacy', 'done', html);
+    } else if (msg.status === 'failed') {
+      updateOutputInspectorSection('visual-privacy', 'failed', '<div class="inspector-error">⚠ Visual Inspection Failed</div><div class="inspector-muted">Image withheld from model.</div>');
+      updateOutputInspectorSection('model-boundary', 'failed', '<div class="inspector-error">Withheld from model.</div>');
+    }
+  }
+});

@@ -93,7 +93,9 @@ export class ActionValidator {
     const set = new Set();
 
     function recurse(val) {
-      if (typeof val === 'string') {
+      if (SecretStore.isSecretRef(val)) {
+        set.add(val.id);
+      } else if (typeof val === 'string') {
         const matches = val.match(/(?<!\\)<[A-Z0-9_]+_\d+>/g);
         if (matches) {
           matches.forEach(m => set.add(m));

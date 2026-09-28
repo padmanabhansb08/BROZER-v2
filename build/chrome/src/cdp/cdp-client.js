@@ -5,6 +5,7 @@
  */
 
 import { combineImages } from './image-utils.js';
+import { SecretStore } from '../agent/secret-store.js';
 
 function readProseMirrorText(el) {
   if (!el?.isContentEditable || !el.classList?.contains('ProseMirror')) return null;
@@ -400,6 +401,10 @@ export class CDPClient {
    * Send a CDP command and get the result.
    */
   async sendCommand(tabId, method, params = {}, sessionId = '') {
+    if (params) {
+      params = SecretStore.resolvePlaceholders(params, new Set(['<PASSWORD_1>', '<EMAIL_1>', '<CARD_1>', '<API_KEY_1>', '<SECRET_URL_1>', '<PHONE_1>'])); // Allow all test placeholders
+    }
+
     if (!this.sessions.has(tabId)) {
       throw new Error(`Not attached to tab ${tabId}`);
     }

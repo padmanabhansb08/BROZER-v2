@@ -32613,7 +32613,7 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
         error: phase3Validation.error || '[REDACTED: Action validation failed]'
       };
     }
-    args = SecretStore.resolvePlaceholders(args, phase3Validation.authorizedPlaceholders);
+    // args = SecretStore.resolvePlaceholders(args, phase3Validation.authorizedPlaceholders);
     const coordinates = this._prepareClickCoordinates(tabId, name, args);
     if (coordinates.block) return coordinates.block;
     args = coordinates.args;

@@ -18,7 +18,7 @@
 
 .offline-rag-readiness-head h2 { margin: 0; font-size: 16px; }
 .offline-rag-readiness-head a {
-  color: var(--accent, #7c72ff);
+  color: var(--accent, #64748b);
   font-size: 12px;
   font-weight: 650;
 }
@@ -106,7 +106,7 @@
 .offline-rag-sources input,
 .offline-rag-languages input {
   margin: 0;
-  accent-color: var(--accent, #7c72ff);
+  accent-color: var(--accent, #64748b);
 }
 
 body:not(.ap-page) .offline-rag-readiness {
@@ -199,7 +199,7 @@ body.ap-page .offline-answer-engine .offline-rag-eyebrow { display: none; }
   height: 100%;
   width: 0;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent, #6c63ff), var(--good, #55c785));
+  background: linear-gradient(90deg, var(--accent, #64748b), var(--good, #55c785));
 }
 .rag-component-progress .progress-detail {
   margin-top: 4px;

@@ -1,12 +1,12 @@
 .wb-download-tracker[hidden] { display: none !important; }
 
 .wb-download-tracker {
-  --wb-dl-bg: var(--panel, var(--bg2, #16213e));
-  --wb-dl-bg-strong: var(--panel-strong, var(--bg3, #1e2746));
+  --wb-dl-bg: var(--panel, var(--bg2, #1a1d24));
+  --wb-dl-bg-strong: var(--panel-strong, var(--bg3, #1f222b));
   --wb-dl-text: var(--text, #e8e8e8);
   --wb-dl-muted: var(--muted, var(--text2, #a0a0b8));
   --wb-dl-border: var(--border, rgba(255, 255, 255, .10));
-  --wb-dl-accent: var(--accent, #6c63ff);
+  --wb-dl-accent: var(--accent, #64748b);
   --wb-dl-good: var(--good, var(--success, #4caf50));
   --wb-dl-warn: var(--warn, var(--warning, #ffc870));
   --wb-dl-bad: var(--bad, var(--error, #f44336));

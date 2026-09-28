@@ -2,31 +2,31 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { PrivacyEngine, decorateProviderWithPrivacyEngine } from '../src/chrome/src/providers/privacy-engine.js';
 
-test('PrivacyEngine - Email sanitization', () => {
+test('PrivacyEngine - Email sanitization', async () => {
   const messages = [
     { role: 'user', content: 'Send the report to john@example.com and CC john@example.com' }
   ];
-  const sanitized = PrivacyEngine.sanitize(messages);
+  const sanitized = await PrivacyEngine.sanitize(messages);
   assert.equal(sanitized[0].content, 'Send the report to <EMAIL_1> and CC <EMAIL_1>');
 });
 
-test('PrivacyEngine - Phone number sanitization', () => {
+test('PrivacyEngine - Phone number sanitization', async () => {
   const messages = [
     { role: 'user', content: 'Call +91 9876543210 or (123) 456-7890' }
   ];
-  const sanitized = PrivacyEngine.sanitize(messages);
+  const sanitized = await PrivacyEngine.sanitize(messages);
   assert.equal(sanitized[0].content, 'Call <PHONE_1> or <PHONE_2>');
 });
 
-test('PrivacyEngine - Multiple distinct email values', () => {
+test('PrivacyEngine - Multiple distinct email values', async () => {
   const messages = [
     { role: 'user', content: 'Email john@example.com and alice@example.com' }
   ];
-  const sanitized = PrivacyEngine.sanitize(messages);
+  const sanitized = await PrivacyEngine.sanitize(messages);
   assert.equal(sanitized[0].content, 'Email <EMAIL_1> and <EMAIL_2>');
 });
 
-test('PrivacyEngine - Tool call JSON arguments sanitization', () => {
+test('PrivacyEngine - Tool call JSON arguments sanitization', async () => {
   const messages = [
     {
       role: 'assistant',
@@ -43,13 +43,13 @@ test('PrivacyEngine - Tool call JSON arguments sanitization', () => {
       ]
     }
   ];
-  const sanitized = PrivacyEngine.sanitize(messages);
+  const sanitized = await PrivacyEngine.sanitize(messages);
   const parsedArgs = JSON.parse(sanitized[0].tool_calls[0].function.arguments);
   assert.equal(parsedArgs.ref_id, 'ref_42');
   assert.equal(parsedArgs.text, '<EMAIL_1>');
 });
 
-test('PrivacyEngine - Tool result message sanitization', () => {
+test('PrivacyEngine - Tool result message sanitization', async () => {
   const messages = [
     {
       role: 'tool',
@@ -57,7 +57,7 @@ test('PrivacyEngine - Tool result message sanitization', () => {
       content: '<untrusted_page_content>Found user: john@example.com phone: +91 9876543210</untrusted_page_content>'
     }
   ];
-  const sanitized = PrivacyEngine.sanitize(messages);
+  const sanitized = await PrivacyEngine.sanitize(messages);
   assert.equal(
     sanitized[0].content,
     '<untrusted_page_content>Found user: <EMAIL_1> phone: <PHONE_1></untrusted_page_content>'
@@ -83,12 +83,12 @@ test('PrivacyEngine - Multimodal content blocks preservation', async () => {
   );
 });
 
-test('PrivacyEngine - Original message object immutability', () => {
+test('PrivacyEngine - Original message object immutability', async () => {
   const original = [
     { role: 'user', content: 'Contact john@example.com' }
   ];
   const originalJson = JSON.stringify(original);
-  const sanitized = PrivacyEngine.sanitize(original);
+  const sanitized = await PrivacyEngine.sanitize(original);
 
   assert.notStrictEqual(original, sanitized);
   assert.notStrictEqual(original[0], sanitized[0]);

@@ -190,7 +190,7 @@ host.lang = localization.locale;
     shadow.innerHTML = `
       <style>
         :host {
-          --accent:#6c63ff; --accent-strong:#554cf2; --bg:#fff;
+          --accent:#64748b; --accent-strong:#554cf2; --bg:#fff;
           --hover:#f4f3ff; --text:#171722; --muted:#666679; --border:#dedee9;
           --shadow:0 18px 50px rgba(24,20,70,.22),0 3px 12px rgba(24,20,70,.12);
           color-scheme:light dark;
@@ -200,11 +200,11 @@ host.lang = localization.locale;
         [hidden] { display:none !important; }
         .selection-highlight {
           position:fixed; border-radius:3px; pointer-events:none;
-          background:rgba(108,99,255,.3); box-shadow:inset 0 0 0 1px rgba(85,76,242,.18);
+          background:rgba(148, 163, 184,.3); box-shadow:inset 0 0 0 1px rgba(85,76,242,.18);
         }
         .shortcut {
           position:fixed; width:${BUTTON_SIZE}px; height:${BUTTON_SIZE}px; display:grid;
-          place-items:center; padding:0; border:1px solid rgba(108,99,255,.34);
+          place-items:center; padding:0; border:1px solid rgba(148, 163, 184,.34);
           border-radius:14px; background:var(--bg); color:var(--accent);
           box-shadow:0 10px 26px rgba(35,30,95,.22),0 2px 7px rgba(35,30,95,.12);
           cursor:pointer; pointer-events:auto; transition:transform 130ms ease,box-shadow 130ms ease;
@@ -267,7 +267,7 @@ host.lang = localization.locale;
           color:var(--muted); font-size:12px; line-height:1.25;
         }
         .shortcut:focus-visible,.action:focus-visible,.hide:focus-visible,.send:focus-visible,textarea:focus-visible,.context-option input:focus-visible {
-          outline:3px solid rgba(108,99,255,.34); outline-offset:2px;
+          outline:3px solid rgba(148, 163, 184,.34); outline-offset:2px;
         }
         .toast {
           position:fixed; left:50%; bottom:22px; max-width:min(440px,calc(100vw - 24px));

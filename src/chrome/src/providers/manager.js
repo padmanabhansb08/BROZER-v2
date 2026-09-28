@@ -414,10 +414,13 @@ export class ProviderManager {
       configs[WEBBRAIN_CLOUD_PROVIDER_ID].deviceGuid = await this._getDeviceGuid(data[WEBBRAIN_DEVICE_GUID_KEY]);
       configs[WEBBRAIN_CLOUD_PROVIDER_ID].helpImproveWebBrain = data[HELP_IMPROVE_WEBBRAIN_KEY] !== false;
     }
-    this.activeProviderId = legacyActiveProviderId || WEBBRAIN_CLOUD_PROVIDER_ID;
-    if (!configs[this.activeProviderId]) this.activeProviderId = WEBBRAIN_CLOUD_PROVIDER_ID;
-    if (this.activeProviderId !== WEBBRAIN_CLOUD_PROVIDER_ID && configs[this.activeProviderId]?.configured !== true) {
-      this.activeProviderId = WEBBRAIN_CLOUD_PROVIDER_ID;
+    const defaultProviderId = this._fallbackProviderId(configs);
+    this.activeProviderId = (legacyActiveProviderId && legacyActiveProviderId !== WEBBRAIN_CLOUD_PROVIDER_ID)
+      ? legacyActiveProviderId
+      : defaultProviderId;
+    if (!configs[this.activeProviderId]) this.activeProviderId = defaultProviderId;
+    if (this.activeProviderId !== defaultProviderId && configs[this.activeProviderId]?.configured !== true) {
+      this.activeProviderId = defaultProviderId;
       providerStateMigrated = true;
     }
 
@@ -425,18 +428,15 @@ export class ProviderManager {
     for (const [id, config] of Object.entries(configs)) {
       this.providers.set(id, this._createProvider(id, config));
     }
-    // A persisted WebGPU selection can outlive its cache (Chrome eviction or
-    // manual clear). Revalidate like setActive() does; otherwise chats fail
-    // readiness indefinitely instead of using the Cloud fallback.
     if (this.activeProviderId === 'webgpu') {
       try {
         const download = await this.providers.get('webgpu')?.downloadStatus?.().catch(() => null);
-        if (download && download.ready !== true) {
-          await this.setActive(WEBBRAIN_CLOUD_PROVIDER_ID);
-          providerStateMigrated = false; // setActive persisted the migrated configs too.
+        if (download && download.ready !== true && defaultProviderId !== 'webgpu') {
+          await this.setActive(defaultProviderId);
+          providerStateMigrated = false;
         }
       } catch {
-        // Probe failures must not block startup; chat will report the missing download.
+        // Probe failures must not block startup
       }
     }
     if (providerStateMigrated) await this.save();
@@ -1250,6 +1250,13 @@ export class ProviderManager {
       this._canDuplicateProvider(sourceId, sourceConfig) &&
       sourceConfig.configured === true &&
       sourceConfig.type === config.type;
+  }
+
+  _fallbackProviderId(configs = {}) {
+    const configured = Object.entries(configs)
+      .find(([id, config]) => id !== WEBBRAIN_CLOUD_PROVIDER_ID && config?.configured === true);
+    if (configured) return configured[0];
+    return 'webgpu';
   }
 
   /**
@@ -2070,9 +2077,9 @@ export class ProviderManager {
     this.providers.delete(id);
     if (previousActiveProviderId === id) {
       const source = this.providers.get(sourceId);
-      this.activeProviderId = source && (sourceId === WEBBRAIN_CLOUD_PROVIDER_ID || source.config?.configured === true)
+      this.activeProviderId = source && source.config?.configured === true
         ? sourceId
-        : WEBBRAIN_CLOUD_PROVIDER_ID;
+        : this._fallbackProviderId(this.getAll());
     }
     try {
       if (duplicate.config?.shareQueriesForResearch === true) {

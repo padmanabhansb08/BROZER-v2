@@ -447,10 +447,7 @@ const pinCoachmarkDismissed = (async function initPinCoachmark() {
 
     try {
       const { providers = {}, active } = await sendToBackground('get_providers');
-      if (active === 'webbrain_cloud' && providers.webbrain_cloud?.enabled !== false) {
-        showCloudReady();
-        return;
-      }
+
       const localProviderIds = Object.keys(providers)
         .filter((id) => providers[id]?.category === 'local' || LOCAL_PROVIDER_ORDER.includes(id))
         .sort((a, b) => providerSortIndex(a) - providerSortIndex(b) || a.localeCompare(b));
@@ -735,7 +732,6 @@ const storeReviewFeedbackEl = document.getElementById('store-review-feedback');
 const scheduledJobsEl = document.getElementById('scheduled-jobs');
 const stopBtn = document.getElementById('btn-stop');
 const RECOMMENDED_ACTIONS_COLLAPSED_KEY = 'recommendedActionsCollapsed';
-const WEBBRAIN_PROMOTION_ACTION_IDS = new Set(['tweet-webbrain', 'post-webbrain-linkedin']);
 const PLACEHOLDER_ROTATION_INTERVAL_MS = 10_000;
 const ASK_PLACEHOLDER_KEYS = [
   'sp.input.ask_placeholder',
@@ -1215,7 +1211,7 @@ const failedConversationClearRecoveryTabs = new Set();
 let recommendationsRequestId = 0;
 let providerSelectionRequestId = 0;
 let providerTestRequestId = 0;
-let selectedProviderId = 'webbrain_cloud';
+let selectedProviderId = 'webgpu';
 let standaloneWebgpuEnabled = false;
 let standaloneWebgpuReady = false;
 let standaloneWebgpuActive = false;
@@ -1742,7 +1738,7 @@ function triggerCompletionConfetti() {
     const layer = document.createElement('div');
     layer.className = 'completion-confetti';
     layer.setAttribute('aria-hidden', 'true');
-    const colors = ['#4caf50', '#6c63ff', '#ffb703', '#ef476f', '#00b4d8', '#f77f00'];
+    const colors = ['#4caf50', '#64748b', '#ffb703', '#ef476f', '#00b4d8', '#f77f00'];
     for (let i = 0; i < 42; i += 1) {
       const piece = document.createElement('span');
       piece.className = 'confetti-piece';
@@ -5502,14 +5498,7 @@ async function refreshRecommendedActions() {
       btn.className = 'recommended-action-chip';
       btn.textContent = action.label;
       btn.dataset.actionId = action.id;
-      if (WEBBRAIN_PROMOTION_ACTION_IDS.has(action.id)) {
-        btn.classList.add('recommended-action-chip-promotion');
-        btn.prepend(createWebbrainPromotionIcon(action.id));
-      }
-      btn.dataset.prompt = action.prompt;
-      btn.addEventListener('click', () => runRecommendedAction(actionForClick));
-      recommendedActionsListEl.appendChild(btn);
-    });
+  );
     recommendedActionsEl.classList.toggle('hidden', actions.length === 0);
     animateWebbrainPromotionOnce();
   } catch {
@@ -7347,21 +7336,8 @@ async function loadProviders() {
     providerPickerMenu?.replaceChildren();
     providerPickerLabelById.clear();
 
-    const cloudConfig = res.providers.webbrain_cloud || { label: 'BROZER NAVIGATOR' };
-    const cloudLabel = cloudConfig.label || 'BROZER NAVIGATOR';
-    const cloudGroup = document.createElement('optgroup');
-    cloudGroup.label = t('sp.providers.no_setup_group');
-    const cloudOption = document.createElement('option');
-    cloudOption.value = 'webbrain_cloud';
-    cloudOption.textContent = `${cloudLabel} — ${t('sp.providers.no_setup')}`;
-    cloudGroup.appendChild(cloudOption);
-    providerSelect.appendChild(cloudGroup);
-    providerPickerLabelById.set('webbrain_cloud', cloudLabel);
-    appendProviderPickerGroup(cloudGroup.label);
-    appendProviderPickerOption('webbrain_cloud', cloudLabel, t('sp.providers.no_setup'));
-
     const configuredEntries = Object.entries(res.providers)
-      .filter(([id, config]) => id !== 'webbrain_cloud' && config?.configured === true);
+      .filter(([id, config]) => config?.configured === true);
     if (configuredEntries.length) {
       const activeGroup = document.createElement('optgroup');
       activeGroup.label = t('sp.providers.active_group');
@@ -7384,8 +7360,8 @@ async function loadProviders() {
     providerSelect.appendChild(moreOption);
     appendProviderPickerOption(MORE_PROVIDERS_OPTION_VALUE, t('sp.providers.more'), '');
 
-    const selectableProviderIds = new Set(['webbrain_cloud', ...configuredEntries.map(([id]) => id)]);
-    selectedProviderId = selectableProviderIds.has(res.active) ? res.active : 'webbrain_cloud';
+    const selectableProviderIds = new Set(['webgpu', ...configuredEntries.map(([id]) => id)]);
+    selectedProviderId = selectableProviderIds.has(res.active) ? res.active : (configuredEntries[0]?.[0] || 'webgpu');
     providerSelect.value = selectedProviderId;
     syncProviderPickerButton();
     syncStandaloneWebgpuUi();
@@ -7452,7 +7428,7 @@ async function refreshStandaloneWebgpuStatus() {
 }
 
 function isWebBrainCloudProviderSelected() {
-  return providerSelect?.value === 'webbrain_cloud';
+  return false;
 }
 
 function markSelectedProviderUntested() {
@@ -7469,12 +7445,7 @@ function markSelectedProviderFailed(error) {
 async function testConnection(options = {}) {
   const providerId = options.providerId || providerSelect.value;
   const requestId = ++providerTestRequestId;
-  if (options.skipWebBrainCloud && providerId === 'webbrain_cloud') {
-    if (requestId === providerTestRequestId && providerSelect.value === providerId) {
-      markSelectedProviderUntested();
-    }
-    return;
-  }
+
   statusDot.className = 'status-dot connecting';
   try {
     const res = await sendToBackground('test_provider', {
@@ -12467,7 +12438,7 @@ function showInspectionBanner(toolName) {
 
   // Set extension badge
   chrome.action?.setBadgeText?.({ text: '🔍' }).catch(() => {});
-  chrome.action?.setBadgeBackgroundColor?.({ color: '#6c63ff' }).catch(() => {});
+  chrome.action?.setBadgeBackgroundColor?.({ color: '#64748b' }).catch(() => {});
 }
 
 function hideInspectionBanner() {

@@ -90,7 +90,38 @@ export class SecretStore {
     return SecretStore._deepResolve(args, authSet);
   }
 
+  /**
+   * Create a typed opaque secret reference object.
+   *
+   * @param {string} id - Placeholder id (e.g. "<EMAIL_1>")
+   * @param {string} category - Secret category
+   * @returns {Object} Typed reference { type: "secret_ref", id, category }
+   */
+  static createSecretRef(id, category = 'SECRET') {
+    return {
+      type: 'secret_ref',
+      id,
+      category
+    };
+  }
+
+  /**
+   * Check if an object is a typed secret reference.
+   */
+  static isSecretRef(obj) {
+    return obj && typeof obj === 'object' && obj.type === 'secret_ref' && typeof obj.id === 'string';
+  }
+
   static _deepResolve(target, authSet) {
+    if (SecretStore.isSecretRef(target)) {
+      const ph = target.id;
+      if (authSet.has(ph) && SecretStore.has(ph)) {
+        const raw = SecretStore.resolve(ph);
+        return raw !== null ? raw : ph;
+      }
+      return target;
+    }
+
     if (typeof target === 'string') {
       let resolvedText = target;
       // Match placeholder pattern <CATEGORY_N>

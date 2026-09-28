@@ -56,7 +56,7 @@ function calculatePercentiles(samples) {
 
 async function runProductionValidationSuite() {
   console.log('===============================================================');
-  console.log('--- WEBBRAIN PHASE 6: PRODUCTION VALIDATION & BENCHMARK SUITE ---');
+  console.log('--- BROZER PHASE 6: PRODUCTION VALIDATION & BENCHMARK SUITE ---');
   console.log('===============================================================\n');
 
   // Environment Logging
@@ -66,7 +66,7 @@ async function runProductionValidationSuite() {
   console.log(`  CPU Architecture: ${cpus[0]?.model || 'Unknown CPU'} (${cpus.length} cores)`);
   console.log(`  Total RAM:       ${(os.totalmem() / 1024 / 1024 / 1024).toFixed(2)} GB`);
   console.log(`  Node.js Version:  ${process.version}`);
-  console.log(`  Extension Target: WebBrain Chrome / Firefox Manifest V3`);
+  console.log(`  Extension Target: BROZER Chrome / Firefox Manifest V3`);
   console.log(`  Benchmark Date:   ${new Date().toISOString()}\n`);
 
   let passed = 0;
@@ -198,10 +198,10 @@ async function runProductionValidationSuite() {
     assert.strictEqual(res.compacted, false);
   });
 
-  // GATE 6B: Provider Interoperability Matrix (5 Providers)
-  console.log('\n--- GATE 6B: Provider Interoperability Matrix (5 Provider Backends) ---');
+  // GATE 6B: Provider Interoperability Matrix (MOCKED)
+  console.log('\n--- GATE 6B: Provider Interoperability Matrix (MOCKED Backends) ---');
 
-  await gateTest('6B-01', 'Anthropic Claude Messages API Interoperability', async () => {
+  await gateTest('6B-01', 'Anthropic Claude Messages API (MOCK)', async () => {
     const mockClaude = {
       async chat(messages) {
         return { role: 'assistant', content: [{ type: 'text', text: 'Claude response' }] };
@@ -212,7 +212,7 @@ async function runProductionValidationSuite() {
     assert.ok(res !== null);
   });
 
-  await gateTest('6B-02', 'OpenAI GPT-4o Chat Completions Interoperability', async () => {
+  await gateTest('6B-02', 'OpenAI GPT-4o Chat Completions (MOCK)', async () => {
     const mockGpt = {
       async chat(messages) {
         return { role: 'assistant', content: 'GPT response' };
@@ -223,7 +223,7 @@ async function runProductionValidationSuite() {
     assert.ok(res !== null);
   });
 
-  await gateTest('6B-03', 'Google Gemini REST / SDK API Interoperability', async () => {
+  await gateTest('6B-03', 'Google Gemini REST / SDK API (MOCK)', async () => {
     const mockGemini = {
       async chat(messages) {
         return { role: 'assistant', content: 'Gemini response' };
@@ -234,7 +234,7 @@ async function runProductionValidationSuite() {
     assert.ok(res !== null);
   });
 
-  await gateTest('6B-04', 'Ollama / WebGPU Local Provider Routing', async () => {
+  await gateTest('6B-04', 'Ollama / WebGPU Local Provider Routing (MOCK)', async () => {
     const mockOllama = {
       async chat(messages) {
         return { role: 'assistant', content: 'Ollama response' };
@@ -245,7 +245,7 @@ async function runProductionValidationSuite() {
     assert.ok(res !== null);
   });
 
-  await gateTest('6B-05', 'OpenRouter Gateway Multi-Model Bridge', async () => {
+  await gateTest('6B-05', 'OpenRouter Gateway Multi-Model Bridge (MOCK)', async () => {
     const mockOpenRouter = {
       async chat(messages) {
         return { role: 'assistant', content: 'OpenRouter response' };
@@ -259,7 +259,7 @@ async function runProductionValidationSuite() {
   // GATE 6C: Performance Overhead Benchmarks (Cold vs Warm Percentiles)
   console.log('\n--- GATE 6C: Performance Overhead Benchmarks (Cold-Start vs Warm-Start) ---');
 
-  await gateTest('6C-01', 'Text Sanitization Overhead (Cold vs Warm Percentiles)', async () => {
+  await gateTest('6C-01', 'A. Privacy microbenchmark (Text Sanitization)', async () => {
     const samplePayload = `User email is benchmark.test@example.com and phone is +1-555-123-4567. Key: sk-1234567890abcdef1234567890. ` .repeat(50);
     
     // Cold start (1st execution)
@@ -282,7 +282,7 @@ async function runProductionValidationSuite() {
     assert.ok(Number(warmStats.p95) < 4.0, `Text sanitization p95 (${warmStats.p95} ms) MUST be < 4.0 ms!`);
   });
 
-  await gateTest('6C-02', 'Visual OCR & Redaction Overhead (Cold vs Warm Percentiles)', async () => {
+  await gateTest('6C-02', 'B. Image processing benchmark (ImageRedactor) (Cold vs Warm)', async () => {
     const rawParsed = {
       mimeType: 'image/png',
       base64Data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
@@ -308,7 +308,23 @@ async function runProductionValidationSuite() {
     assert.ok(Number(warmStats.p95) < 120.0, `Visual redaction p95 (${warmStats.p95} ms) MUST be < 120.0 ms!`);
   });
 
-  await gateTest('6C-03', 'Persistence Write Gate Overhead (Cold vs Warm Percentiles)', async () => {
+  await gateTest('6C-03', 'C. Real OCR benchmark', async () => {
+    console.log('     [NOT BENCHMARKED] Unmeasured in pure JS context');
+  });
+
+  await gateTest('6C-04', 'D. Model preprocessing benchmark', async () => {
+    console.log('     [NOT BENCHMARKED] Unmeasured in pure JS context');
+  });
+
+  await gateTest('6C-05', 'E. Real WebGPU/ONNX inference benchmark', async () => {
+    console.log('     [NOT BENCHMARKED] Unmeasured in pure JS context');
+  });
+
+  await gateTest('6C-06', 'F. End-to-end agent latency', async () => {
+    console.log('     [NOT BENCHMARKED] Unmeasured in pure JS context');
+  });
+
+  await gateTest('6C-07', 'Persistence Write Gate Overhead (Cold vs Warm Percentiles)', async () => {
     const messages = [
       { role: 'user', content: 'Contact admin@domain.com or call 555-123-4567' },
       { role: 'assistant', content: 'Saving session conversation' },

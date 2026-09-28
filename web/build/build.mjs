@@ -425,8 +425,8 @@ function buildSubscribeHtml() {
       display: grid;
       place-items: center;
       padding: 24px;
-      background: #0b0e17;
-      color: #e4e4ec;
+      background: #121418;
+      color: #f8fafc;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
       line-height: 1.6;
     }
@@ -435,7 +435,7 @@ function buildSubscribeHtml() {
       font-size: 20px;
       font-weight: 800;
       margin-bottom: 22px;
-      color: #a78bfa;
+      color: #94a3b8;
     }
     h1 {
       margin: 0 0 12px;
@@ -444,11 +444,11 @@ function buildSubscribeHtml() {
     }
     p {
       margin: 0 auto 18px;
-      color: #a7adbd;
+      color: #94a3b8;
       font-size: 16px;
     }
     a {
-      color: #a78bfa;
+      color: #cbd5e1;
       font-weight: 700;
       text-decoration: none;
     }
@@ -457,8 +457,9 @@ function buildSubscribeHtml() {
       width: 30px;
       height: 30px;
       margin: 26px auto;
-      border: 3px solid rgba(167, 139, 250, 0.25);
-      border-top-color: #a78bfa;
+      border: 3px solid rgba(148, 163, 184, 0.25);
+      border-top-color: #94a3b8;
+      border-radius: 50%;
       border-radius: 50%;
       animation: spin 0.85s linear infinite;
     }

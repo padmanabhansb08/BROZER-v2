@@ -95,8 +95,8 @@ export class VisualDetector {
     }
 
     // 2. Real Built-in Local Glyph OCR Engine (zero network, standalone pixel-level character recognition)
-    if (imagePayload?.pixelData && Array.isArray(imagePayload.pixelData)) {
-      const ocrResult = LocalGlyphOCR.recognize(imagePayload.pixelData, width, height);
+    if (imagePayload?.pixelData && (Array.isArray(imagePayload.pixelData) || ArrayBuffer.isView(imagePayload.pixelData))) {
+      const ocrResult = await LocalGlyphOCR.recognize(imagePayload.pixelData, width, height);
       regions.push(...ocrResult);
     } else if (imagePayload?.mockRegions) {
       regions.push(...imagePayload.mockRegions);
@@ -177,61 +177,54 @@ export class LocalGlyphOCR {
    * @param {Array<number>} pixelData - Flat RGBA pixel array [r, g, b, a, ...]
    * @param {number} width - Image width in pixels
    * @param {number} height - Image height in pixels
+   * @param {Object} [options] - Additional OCR options / payload metadata
    * @returns {Array<Object>} List of recognized text regions with bounding box and confidence
    */
-  static recognize(pixelData, width, height) {
-    if (!pixelData || !Array.isArray(pixelData) || width <= 0 || height <= 0) {
+  static async recognize(pixelData, width, height, options = {}) {
+    if (!pixelData || (!Array.isArray(pixelData) && !ArrayBuffer.isView(pixelData)) || width <= 0 || height <= 0) {
       return [];
     }
-
-    // Step 1: Binarization & Non-background pixel scanning
-    const glyphPixels = [];
-    let minX = width, minY = height, maxX = 0, maxY = 0;
-
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const idx = (y * width + x) * 4;
-        const r = pixelData[idx];
-        const g = pixelData[idx + 1];
-        const b = pixelData[idx + 2];
-        const a = pixelData[idx + 3];
-
-        // Non-white pixel glyph check (text pixel)
-        const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-        if (luminance < 200 && a > 50) {
-          glyphPixels.push({ x, y });
-          if (x < minX) minX = x;
-          if (y < minY) minY = y;
-          if (x > maxX) maxX = x;
-          if (y > maxY) maxY = y;
-        }
-      }
-    }
-
-    if (glyphPixels.length === 0 || minX > maxX || minY > maxY) {
-      return [];
-    }
-
-    // Step 2: Character Glyphs Recognition & Word Assembly
-    const boxW = maxX - minX + 1;
-    const boxH = maxY - minY + 1;
-
-    const textString = LocalGlyphOCR._decodeGlyphPixels(glyphPixels, boxW, boxH);
-    const confidence = Math.min(0.98, Math.max(0.75, glyphPixels.length / (boxW * boxH * 0.8)));
-
-    return [
-      {
-        text: textString,
-        box: { x: minX, y: minY, width: boxW, height: boxH },
-        confidence
-      }
-    ];
+    
+    // We can just pass the whole pixelData directly to Tesseract instead of binarizing manually!
+    return await LocalGlyphOCR._decodeGlyphPixels(pixelData, width, height, { ...options, returnWords: true });
   }
 
-  static _decodeGlyphPixels(pixels, width, height) {
-    if (pixels.length > 500) {
-      return 'padmanabhan@example.com';
+  static async _decodeGlyphPixels(pixels, width, height, metadata = {}) {
+    if (typeof Tesseract === 'undefined') {
+      try {
+        if (typeof importScripts === 'function') {
+          importScripts(chrome.runtime.getURL('vendor/tesseract/tesseract.min.js'));
+        }
+      } catch (e) {
+        throw new Error('Real local OCR not available in this environment: ' + e.message);
+      }
     }
-    return 'sk-proj-1234567890abcdef123456';
+    if (typeof Tesseract === 'undefined') {
+      throw new Error('Real local OCR not available in this environment. Fake detection removed.');
+    }
+    const worker = await Tesseract.createWorker('eng', 1, {
+      workerPath: chrome.runtime.getURL('vendor/tesseract/worker.min.js'),
+      corePath: chrome.runtime.getURL('vendor/tesseract/tesseract-core-simd.js'),
+      langPath: chrome.runtime.getURL('vendor/tesseract'),
+      workerBlobURL: false,
+      logger: () => {}
+    });
+    
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+    const imgData = new ImageData(new Uint8ClampedArray(pixels), width, height);
+    ctx.putImageData(imgData, 0, 0);
+    
+    const { data } = await worker.recognize(canvas);
+    await worker.terminate();
+    
+    if (metadata.returnWords) {
+      return data.words.map(w => ({
+        text: w.text,
+        box: { x: w.bbox.x0, y: w.bbox.y0, width: w.bbox.x1 - w.bbox.x0, height: w.bbox.y1 - w.bbox.y0 },
+        confidence: w.confidence / 100
+      }));
+    }
+    return data.text;
   }
 }

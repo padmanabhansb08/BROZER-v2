@@ -348,6 +348,7 @@ export const AGENT_TOOLS = [
         properties: {
           text: { type: 'string', description: 'Visible text to match against clickable elements.' },
           textMatch: { type: 'string', enum: ['exact', 'prefix', 'contains'], description: 'Text matching mode for `text`. Default is `exact` (safest).' },
+          target_description: { type: 'string', description: 'Semantic description of the element to click (e.g. "Buy Now button"). Triggers OWL-ViT visual grounding to find the element coordinates. Used when other locators fail.' },
           selector: { type: 'string', description: 'CSS selector for the element to click' },
           index: { type: 'number', description: 'Index from get_interactive_elements result' },
           x: { type: 'number', description: 'X coordinate to click. coordinate_space is required whenever x/y are used.' },

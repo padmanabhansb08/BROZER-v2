@@ -5,7 +5,7 @@
  * the agent is operating on this tab, a "Stop BROZER" floating button,
  * and a large WebBrain-purple cursor/outline on the element currently
  * being acted on. The base indicator follows Anthropic's Claude-for-Chrome
- * extension pattern, recolored for WebBrain's accent (#6c63ff).
+ * extension pattern, recolored for WebBrain's accent (#64748b).
  *
  * Lifecycle messages from the service worker:
  *
@@ -62,21 +62,21 @@
       @keyframes webbrain-pulse {
         0% {
           box-shadow:
-            inset 0 0 10px rgba(108, 99, 255, 0.5),
-            inset 0 0 20px rgba(108, 99, 255, 0.3),
-            inset 0 0 30px rgba(108, 99, 255, 0.1);
+            inset 0 0 10px rgba(148, 163, 184, 0.5),
+            inset 0 0 20px rgba(148, 163, 184, 0.3),
+            inset 0 0 30px rgba(148, 163, 184, 0.1);
         }
         50% {
           box-shadow:
-            inset 0 0 15px rgba(108, 99, 255, 0.7),
-            inset 0 0 25px rgba(108, 99, 255, 0.5),
-            inset 0 0 35px rgba(108, 99, 255, 0.2);
+            inset 0 0 15px rgba(148, 163, 184, 0.7),
+            inset 0 0 25px rgba(148, 163, 184, 0.5),
+            inset 0 0 35px rgba(148, 163, 184, 0.2);
         }
         100% {
           box-shadow:
-            inset 0 0 10px rgba(108, 99, 255, 0.5),
-            inset 0 0 20px rgba(108, 99, 255, 0.3),
-            inset 0 0 30px rgba(108, 99, 255, 0.1);
+            inset 0 0 10px rgba(148, 163, 184, 0.5),
+            inset 0 0 20px rgba(148, 163, 184, 0.3),
+            inset 0 0 30px rgba(148, 163, 184, 0.1);
         }
       }
 
@@ -88,13 +88,13 @@
       @keyframes webbrain-target-ring {
         0%, 100% {
           box-shadow:
-            0 0 0 3px rgba(108, 99, 255, 0.18),
-            0 0 24px rgba(108, 99, 255, 0.28);
+            0 0 0 3px rgba(148, 163, 184, 0.18),
+            0 0 24px rgba(148, 163, 184, 0.28);
         }
         50% {
           box-shadow:
-            0 0 0 6px rgba(108, 99, 255, 0.10),
-            0 0 32px rgba(108, 99, 255, 0.38);
+            0 0 0 6px rgba(148, 163, 184, 0.10),
+            0 0 32px rgba(148, 163, 184, 0.38);
         }
       }
     `;
@@ -113,9 +113,9 @@
       transition: opacity 0.3s ease-in-out;
       animation: webbrain-pulse 2s ease-in-out infinite;
       box-shadow:
-        inset 0 0 10px rgba(108, 99, 255, 0.5),
-        inset 0 0 20px rgba(108, 99, 255, 0.3),
-        inset 0 0 30px rgba(108, 99, 255, 0.1);
+        inset 0 0 10px rgba(148, 163, 184, 0.5),
+        inset 0 0 20px rgba(148, 163, 184, 0.3),
+        inset 0 0 30px rgba(148, 163, 184, 0.1);
     `;
     return el;
   }
@@ -149,8 +149,8 @@
       transform: translateY(80px);
       padding: 11px 18px;
       background: #ffffff;
-      color: #1a1a2e;
-      border: 1px solid rgba(108, 99, 255, 0.30);
+      color: #121418;
+      border: 1px solid rgba(148, 163, 184, 0.30);
       border-radius: 12px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       font-size: 14px;
@@ -160,8 +160,8 @@
       align-items: center;
       justify-content: center;
       box-shadow:
-        0 24px 48px rgba(108, 99, 255, 0.24),
-        0 4px 14px rgba(108, 99, 255, 0.20);
+        0 24px 48px rgba(148, 163, 184, 0.24),
+        0 4px 14px rgba(148, 163, 184, 0.20);
       transition:
         transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
         opacity 0.3s ease,
@@ -199,9 +199,9 @@
       pointer-events: none;
       z-index: 2147483645;
       opacity: 0;
-      border: 2px solid rgba(108, 99, 255, 0.96);
+      border: 2px solid rgba(148, 163, 184, 0.96);
       border-radius: 10px;
-      background: rgba(108, 99, 255, 0.035);
+      background: rgba(148, 163, 184, 0.035);
       transition:
         opacity 0.16s ease,
         top 0.18s ease,
@@ -220,7 +220,7 @@
     el.innerHTML = `
       <svg width="48" height="56" viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M5 4L39 31L24 34L31 50L20 54L14 38L5 48V4Z"
-          fill="#6c63ff" stroke="white" stroke-width="3" stroke-linejoin="round"/>
+          fill="#64748b" stroke="white" stroke-width="3" stroke-linejoin="round"/>
         <path d="M24 34L31 50" stroke="rgba(20, 18, 48, 0.34)" stroke-width="2" stroke-linecap="round"/>
       </svg>
     `;
@@ -234,7 +234,7 @@
       z-index: 2147483646;
       opacity: 0;
       filter:
-        drop-shadow(0 14px 26px rgba(108, 99, 255, 0.38))
+        drop-shadow(0 14px 26px rgba(148, 163, 184, 0.38))
         drop-shadow(0 2px 4px rgba(20, 18, 48, 0.22));
       transition:
         opacity 0.16s ease,

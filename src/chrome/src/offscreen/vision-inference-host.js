@@ -545,6 +545,7 @@ const WEBGPU_MESSAGE_TYPES = new Set([
   'webgpu-dispose',
   'webgpu-probe',
   'webgpu-vision-chat',
+  'webgpu-vision-ground',
   'webgpu-vision-probe',
   'webgpu-vision-preload',
   'webgpu-vision-pause',
@@ -728,6 +729,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           messages: message.messages || [],
           options: message.options || {},
         }, { exclusive: true, runtime: message.runtime }));
+        return;
+      }
+      if (message.type === 'webgpu-vision-ground') {
+        const response = await sendVisionWorkerMessage('ground', {
+          imageUrl: message.imageUrl,
+          candidateLabels: message.candidateLabels,
+          threshold: message.threshold,
+        });
+        sendResponse(response);
         return;
       }
       const response = await sendVisionWorkerMessage('chat', {

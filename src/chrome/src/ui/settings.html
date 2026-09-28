@@ -10,13 +10,13 @@
   <script src="theme-bootstrap.js"></script>
   <style>
     :root {
-      --bg: #1a1a2e;
-      --bg2: #16213e;
-      --bg3: #1e2746;
-      --text: #e8e8e8;
-      --text2: #a0a0b8;
-      --accent: #6c63ff;
-      --accent2: #5a52d5;
+      --bg: #121418;
+      --bg2: #1a1d24;
+      --bg3: #242832;
+      --text: #f8fafc;
+      --text2: #94a3b8;
+      --accent: #64748b;
+      --accent2: #475569;
       --border: rgba(255,255,255,0.08);
       --success: #4caf50;
       --error: #f44336;
@@ -25,14 +25,14 @@
       color-scheme: dark;
     }
     :root[data-theme="light"] {
-      --bg: #f7f1e6;       /* warm cream */
-      --bg2: #fffdf8;      /* card */
-      --bg3: #fdf6e0;      /* input field */
-      --text: #2c1810;     /* espresso */
-      --text2: #6b5b47;    /* mocha */
-      --accent: #5b52e8;
-      --accent2: #4a42c4;
-      --border: rgba(89,55,25,0.15);
+      --bg: #f8fafc;
+      --bg2: #ffffff;
+      --bg3: #f1f5f9;
+      --text: #0f172a;
+      --text2: #475569;
+      --accent: #475569;
+      --accent2: #334155;
+      --border: rgba(15,23,42,0.12);
       --success: #2d8866;
       --error: #c5363c;
       --warning: #a85f00;
@@ -50,7 +50,7 @@
     h1 {
       font-size: 22px;
       margin-bottom: 6px;
-      background: linear-gradient(135deg, var(--accent), #a78bfa);
+      background: linear-gradient(135deg, var(--accent), #94a3b8);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -211,7 +211,7 @@
     }
     .settings-search input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(108,99,255,0.22);
+      box-shadow: 0 0 0 2px rgba(148, 163, 184,0.22);
     }
     .general-search-empty {
       color: var(--text2);
@@ -396,7 +396,7 @@
       border: 1px solid rgba(129, 140, 248, 0.34);
       border-radius: calc(var(--radius) - 2px);
       background:
-        linear-gradient(120deg, rgba(108, 99, 255, 0.12), rgba(56, 189, 248, 0.05)),
+        linear-gradient(120deg, rgba(148, 163, 184, 0.12), rgba(56, 189, 248, 0.05)),
         var(--bg);
     }
     .vision-local-option.enabled {
@@ -410,7 +410,7 @@
       place-items: center;
       color: #9da5ff;
       border-radius: 50%;
-      background: rgba(108, 99, 255, 0.14);
+      background: rgba(148, 163, 184, 0.14);
       border: 1px solid rgba(157, 165, 255, 0.35);
     }
     .vision-local-option.enabled .vision-local-iris {
@@ -482,7 +482,7 @@
       letter-spacing: 0.4px;
     }
     .provider-status-badge.active { color: #8fd896; background: rgba(76, 175, 80, 0.15); }
-    .provider-status-badge.selected { color: var(--accent); background: rgba(108, 99, 255, 0.15); }
+    .provider-status-badge.selected { color: var(--accent); background: rgba(148, 163, 184, 0.15); }
 
     /* Category badge — small uppercase pill next to the provider name so
        the user can see at a glance which category each provider belongs to. */
@@ -497,7 +497,7 @@
       color: var(--text2);
     }
     .provider-category-local  { background: rgba(76, 175, 80, 0.15); color: #8fd896; }
-    .provider-category-cloud  { background: rgba(108, 99, 255, 0.15); color: #a8a3ff; }
+    .provider-category-cloud  { background: rgba(148, 163, 184, 0.15); color: #a8a3ff; }
     .provider-category-router { background: rgba(255, 152, 0, 0.15); color: #ffc870; }
 
     /* Configured model — shown in the collapsed-card header so the user can
@@ -686,8 +686,8 @@
     .provider-compatibility-body {
       padding: 14px;
       margin-bottom: 12px;
-      background: rgba(108,99,255,0.055);
-      border: 1px solid rgba(108,99,255,0.16);
+      background: rgba(148, 163, 184,0.055);
+      border: 1px solid rgba(148, 163, 184,0.16);
       border-radius: 8px;
     }
     .provider-compatibility-body > p {
@@ -910,7 +910,7 @@
     }
     .loaded-model-option:hover {
       border-color: var(--accent);
-      background: rgba(108,99,255,0.12);
+      background: rgba(148, 163, 184,0.12);
     }
 
     .test-result {
@@ -969,7 +969,7 @@
     }
     .setting-input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(108,99,255,0.22);
+      box-shadow: 0 0 0 2px rgba(148, 163, 184,0.22);
     }
     .ui-scale-controls {
       display: flex;
@@ -1300,8 +1300,8 @@
     }
 
     .info-box {
-      background: rgba(108,99,255,0.08);
-      border: 1px solid rgba(108,99,255,0.2);
+      background: rgba(148, 163, 184,0.08);
+      border: 1px solid rgba(148, 163, 184,0.2);
       border-radius: var(--radius);
       padding: 12px 14px;
       margin-top: 20px;
@@ -1396,7 +1396,7 @@
         <span class="apocalypse-icon" aria-hidden="true">☢</span>
         <span data-i18n="st.display.apocalypse_mode.label"></span>
       </a>
-      <a class="support-link" href="https://webbrain.one/docs" target="_blank" rel="noopener noreferrer">
+      <a class="support-link" href="https://brozer.one/docs" target="_blank" rel="noopener noreferrer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         Support
       </a>
@@ -1686,7 +1686,7 @@
                 <div class="setting-label" id="cloud-bridge-label" data-i18n="st.display.cloud_bridge.label"></div>
                 <div class="setting-desc" id="cloud-bridge-desc">
                   <span data-i18n="st.display.cloud_bridge.desc"></span>
-                  <a class="cloud-bridge-docs-link" href="https://www.webbrain.one/docs/mcp/" target="_blank" rel="noopener noreferrer">More info →</a>
+                  <a class="cloud-bridge-docs-link" href="https://www.brozer.one/docs/mcp/" target="_blank" rel="noopener noreferrer">More info →</a>
                 </div>
               </div>
               <label class="toggle">

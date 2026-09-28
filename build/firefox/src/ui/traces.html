@@ -6,15 +6,15 @@
   <title>BROZER Traces</title>
   <style>
     :root {
-      --bg: #1a1a2e;
-      --bg2: #16213e;
-      --bg3: #1e2746;
-      --bg4: #2a3558;
-      --text: #e8e8e8;
-      --text2: #a0a0b8;
-      --text3: #6d6d87;
-      --accent: #6c63ff;
-      --accent2: #5a52d5;
+      --bg: #121418;
+      --bg2: #1a1d24;
+      --bg3: #242832;
+      --bg4: #2d323e;
+      --text: #f8fafc;
+      --text2: #94a3b8;
+      --text3: #64748b;
+      --accent: #64748b;
+      --accent2: #475569;
       --border: rgba(255,255,255,0.08);
       --success: #4caf50;
       --warning: #ff9800;
@@ -42,7 +42,7 @@
     }
     h1 {
       font-size: 18px;
-      background: linear-gradient(135deg, var(--accent), #a78bfa);
+      background: linear-gradient(135deg, var(--accent), #94a3b8);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -116,7 +116,7 @@
     }
     .run-item:hover { background: var(--bg2); }
     .run-item.selected { background: var(--bg3); border-color: var(--accent); }
-    .run-item.compare { background: rgba(108,99,255,0.15); border-color: var(--accent); }
+    .run-item.compare { background: rgba(148, 163, 184,0.15); border-color: var(--accent); }
     .run-item .run-title {
       font-size: 12px;
       font-weight: 500;
@@ -273,7 +273,7 @@
     }
     .conv-turn:hover { background: var(--bg3); color: var(--text); }
     .conv-turn.current {
-      background: rgba(108,99,255,0.18);
+      background: rgba(148, 163, 184,0.18);
       border-color: var(--accent);
       color: var(--text);
       cursor: default;
@@ -302,7 +302,7 @@
       margin: 2px 0 6px;
       border: 1px solid var(--border);
       border-radius: 8px;
-      background: rgba(22,33,62,0.42);
+      background: rgba(26, 29, 36,0.42);
       overflow: hidden;
     }
     .lineage-group-toggle {
@@ -425,7 +425,7 @@
       white-space: nowrap;
     }
     .trajectory-table tbody th { min-width: 220px; font-weight: 500; }
-    .trajectory-row.running { background: rgba(108,99,255,0.06); }
+    .trajectory-row.running { background: rgba(148, 163, 184,0.06); }
     .trajectory-row.error { background: rgba(239,68,68,0.08); }
     .trajectory-step,
     .trajectory-status,
@@ -469,7 +469,7 @@
     .event.llm_response { border-left: 3px solid var(--accent); }
     .event.streaming { border-left: 3px solid #22d3ee; }
     .event.tool { border-left: 3px solid #3fa7d6; }
-    .event.screenshot { border-left: 3px solid #a78bfa; padding: 8px; }
+    .event.screenshot { border-left: 3px solid #94a3b8; padding: 8px; }
     .event.error { border-left: 3px solid var(--error); color: var(--error); }
     .event.note { border-left: 3px solid var(--warning); }
     .event-head {
