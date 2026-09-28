@@ -147,7 +147,7 @@ test('PrivacyEngine - End-to-End Synthetic Payload PII Redaction Audit', async (
     },
     {
       role: 'user',
-      content: 'Please process john@example.com with phone +91 9876543210 using card 4532 0123 4567 8910 and API key sk-proj-1234567890abcdef1234 on URL https://api.example.com/v1?api_key=secret_token_123456'
+      content: 'Please process john@example.com with phone +91 9876543210 using card 4532 0123 4567 8910 and API key sk-proj-testkeyxyz1234567890 on URL https://api.example.com/v1?api_key=secret_token_123456'
     },
     {
       role: 'assistant',
@@ -188,7 +188,7 @@ test('PrivacyEngine - End-to-End Synthetic Payload PII Redaction Audit', async (
   assert.equal(deliveredStr.includes('+91 9876543210'), false, 'Raw phone must not exist');
   assert.equal(deliveredStr.includes('4532 0123 4567 8910'), false, 'Raw card must not exist');
   assert.equal(deliveredStr.includes('SuperSecret123!'), false, 'Raw password must not exist');
-  assert.equal(deliveredStr.includes('sk-proj-1234567890abcdef1234'), false, 'Raw API key must not exist');
+  assert.equal(deliveredStr.includes('sk-proj-testkeyxyz1234567890'), false, 'Raw API key must not exist');
   assert.equal(deliveredStr.includes('secret_token_123456'), false, 'Raw secret URL param must not exist');
 
   // Assert placeholders exist
@@ -202,7 +202,7 @@ test('PrivacyEngine - End-to-End Synthetic Payload PII Redaction Audit', async (
 });
 
 test('PrivacyEngine - Provider Entry Raw Input Verification (Senior Audit Assertion)', async () => {
-  const rawInput = 'my email is padmanabhan@example.com';
+  const rawInput = 'my email is alice@example.com';
   const messages = [{ role: 'user', content: rawInput }];
 
   let chatEntryPayload = null;
@@ -225,14 +225,14 @@ test('PrivacyEngine - Provider Entry Raw Input Verification (Senior Audit Assert
   await decorated.chat(messages);
   assert.equal(chatEntryPayload[0].content, 'my email is <EMAIL_1>');
   const chatPayloadStr = JSON.stringify(chatEntryPayload);
-  assert.equal(chatPayloadStr.includes('padmanabhan@example.com'), false, 'padmanabhan@example.com === 0 occurrences');
+  assert.equal(chatPayloadStr.includes('alice@example.com'), false, 'alice@example.com === 0 occurrences');
   assert.equal(chatPayloadStr.includes('<EMAIL_1>'), true, '<EMAIL_1> >= 1 occurrence');
 
   // Test chatStream entry
   for await (const chunk of decorated.chatStream(messages)) {}
   assert.equal(streamEntryPayload[0].content, 'my email is <EMAIL_1>');
   const streamPayloadStr = JSON.stringify(streamEntryPayload);
-  assert.equal(streamPayloadStr.includes('padmanabhan@example.com'), false, 'padmanabhan@example.com === 0 occurrences');
+  assert.equal(streamPayloadStr.includes('alice@example.com'), false, 'alice@example.com === 0 occurrences');
   assert.equal(streamPayloadStr.includes('<EMAIL_1>'), true, '<EMAIL_1> >= 1 occurrence');
 });
 

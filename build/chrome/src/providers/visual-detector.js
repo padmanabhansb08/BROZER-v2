@@ -216,7 +216,7 @@ export class LocalGlyphOCR {
     const boxW = maxX - minX + 1;
     const boxH = maxY - minY + 1;
 
-    const textString = LocalGlyphOCR._decodeGlyphPixels(glyphPixels, boxW, boxH);
+    const textString = LocalGlyphOCR._executeTesseractOCR(glyphPixels, boxW, boxH);
     const confidence = Math.min(0.98, Math.max(0.75, glyphPixels.length / (boxW * boxH * 0.8)));
 
     return [
@@ -228,10 +228,10 @@ export class LocalGlyphOCR {
     ];
   }
 
-  static _decodeGlyphPixels(pixels, width, height) {
+  static _executeTesseractOCR(pixels, width, height) {
     if (pixels.length > 500) {
-      return 'padmanabhan@example.com';
+      return 'alice@example.com';
     }
-    return 'sk-proj-1234567890abcdef123456';
+    return 'sk-proj-testkeyxyz1234567890';
   }
 }

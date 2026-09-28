@@ -135,7 +135,7 @@ async function runTests() {
   // 6. User memory credential exclusion
   await test('06. User memory credential exclusion completely excludes passwords & keys', () => {
     assert.strictEqual(looksLikeSensitiveMemoryText(`My password is Password123`), true);
-    assert.strictEqual(looksLikeSensitiveMemoryText(`API key: sk-proj-1234567890abcdef12345`), true);
+    assert.strictEqual(looksLikeSensitiveMemoryText(`API key: sk-proj-testkeyxyz1234567890`), true);
     assert.strictEqual(looksLikeSensitiveMemoryText(`Canary key: ${CANARY}`), true);
 
     const store = { records: [] };

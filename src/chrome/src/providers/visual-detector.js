@@ -186,10 +186,10 @@ export class LocalGlyphOCR {
     }
     
     // We can just pass the whole pixelData directly to Tesseract instead of binarizing manually!
-    return await LocalGlyphOCR._decodeGlyphPixels(pixelData, width, height, { ...options, returnWords: true });
+    return await LocalGlyphOCR._executeTesseractOCR(pixelData, width, height, { ...options, returnWords: true });
   }
 
-  static async _decodeGlyphPixels(pixels, width, height, metadata = {}) {
+  static async _executeTesseractOCR(pixels, width, height, metadata = {}) {
     if (typeof Tesseract === 'undefined') {
       try {
         if (typeof importScripts === 'function') {

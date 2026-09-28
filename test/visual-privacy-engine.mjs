@@ -34,7 +34,7 @@ async function runTests() {
       imageWidth: 200,
       imageHeight: 100,
       regions: [
-        { text: 'User email: padmanabhan@example.com', box: { x: 10, y: 10, width: 100, height: 20 }, confidence: 0.95 }
+        { text: 'User email: alice@example.com', box: { x: 10, y: 10, width: 100, height: 20 }, confidence: 0.95 }
       ]
     }));
 
@@ -115,7 +115,7 @@ async function runTests() {
       imageWidth: 400,
       imageHeight: 200,
       regions: [
-        { text: 'Key: sk-proj-1234567890abcdef123456', box: { x: 5, y: 5, width: 150, height: 30 }, confidence: 0.97 }
+        { text: 'Key: sk-proj-testkeyxyz1234567890', box: { x: 5, y: 5, width: 150, height: 30 }, confidence: 0.97 }
       ]
     }));
 
@@ -448,7 +448,7 @@ async function runTests() {
     const ocrRegions = LocalGlyphOCR.recognize(pixelGrid, width, height);
 
     assert.equal(ocrRegions.length, 1);
-    assert.equal(ocrRegions[0].text, 'padmanabhan@example.com');
+    assert.equal(ocrRegions[0].text, 'alice@example.com');
 
     // Run ImageRedactor expand & clamp box (+5px padding)
     const rawBox = ocrRegions[0].box;
@@ -490,7 +490,7 @@ async function runTests() {
       scanComplete: true,
       imageWidth: 200,
       imageHeight: 100,
-      regions: [{ text: 'API_KEY = sk-proj-1234567890abcdef123456', box: { x: 5, y: 5, width: 80, height: 20 }, confidence: 0.95 }]
+      regions: [{ text: 'API_KEY = sk-proj-testkeyxyz1234567890', box: { x: 5, y: 5, width: 80, height: 20 }, confidence: 0.95 }]
     }));
 
     let serializedPayload = '';
@@ -511,7 +511,7 @@ async function runTests() {
       {
         role: 'user',
         content: [
-          { type: 'text', text: 'Account email padmanabhan@example.com and key sk-proj-1234567890abcdef123456:' },
+          { type: 'text', text: 'Account email alice@example.com and key sk-proj-testkeyxyz1234567890:' },
           { type: 'image_url', image_url: { url: samplePngUrl } }
         ]
       }
@@ -520,9 +520,9 @@ async function runTests() {
     await mockProvider.chat(sensitiveInput);
 
     // Assert 0 occurrences of raw sensitive email in serialized outbound call
-    assert.equal(serializedPayload.includes('padmanabhan@example.com'), false);
+    assert.equal(serializedPayload.includes('alice@example.com'), false);
     // Assert 0 occurrences of raw sensitive API key in serialized outbound call
-    assert.equal(serializedPayload.includes('sk-proj-1234567890abcdef123456'), false);
+    assert.equal(serializedPayload.includes('sk-proj-testkeyxyz1234567890'), false);
     // Assert placeholders inserted into text
     assert.equal(serializedPayload.includes('<EMAIL_1>'), true);
     assert.equal(serializedPayload.includes('<API_KEY_1>'), true);
@@ -538,7 +538,7 @@ async function runTests() {
     const height = 100;
     const screenshotPixels = new Array(width * height * 4).fill(255); // White background
 
-    // Render RED text glyph pixels for padmanabhan@example.com inside box (x:20..120, y:30..60)
+    // Render RED text glyph pixels for alice@example.com inside box (x:20..120, y:30..60)
     for (let y = 30; y < 60; y++) {
       for (let x = 20; x < 120; x++) {
         const idx = (y * width + x) * 4;
@@ -553,7 +553,7 @@ async function runTests() {
     const ocrRegions = LocalGlyphOCR.recognize(screenshotPixels, width, height);
 
     assert.equal(ocrRegions.length, 1);
-    assert.equal(ocrRegions[0].text, 'padmanabhan@example.com'); // Real OCR recognized email
+    assert.equal(ocrRegions[0].text, 'alice@example.com'); // Real OCR recognized email
     assert.equal(ocrRegions[0].box.x, 20);
     assert.equal(ocrRegions[0].box.y, 30);
     assert.equal(ocrRegions[0].box.width, 100);
@@ -582,7 +582,7 @@ async function runTests() {
       {
         role: 'user',
         content: [
-          { type: 'text', text: 'Screenshot containing padmanabhan@example.com:' },
+          { type: 'text', text: 'Screenshot containing alice@example.com:' },
           { type: 'image_url', image_url: { url: samplePngUrl } }
         ]
       }
@@ -594,7 +594,7 @@ async function runTests() {
 
     // Assertions:
     // 1. Raw email text absent from serialized provider input
-    assert.equal(finalPayloadStr.includes('padmanabhan@example.com'), false);
+    assert.equal(finalPayloadStr.includes('alice@example.com'), false);
     // 2. Sanitized text placeholder present
     assert.equal(finalPayloadStr.includes('<EMAIL_1>'), true);
     // 3. Sanitized image block present

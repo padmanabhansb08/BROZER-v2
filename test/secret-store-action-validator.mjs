@@ -25,15 +25,15 @@ async function runTests() {
 
   // 01. Placeholder registration
   await test('placeholder registration in memory vault', async () => {
-    SecretStore.register('<EMAIL_1>', 'padmanabhan@example.com', 'EMAIL');
+    SecretStore.register('<EMAIL_1>', 'alice@example.com', 'EMAIL');
     assert.equal(SecretStore.has('<EMAIL_1>'), true);
   });
 
   // 02. Placeholder resolution
   await test('placeholder resolution returns raw secret', async () => {
-    SecretStore.register('<EMAIL_1>', 'padmanabhan@example.com', 'EMAIL');
+    SecretStore.register('<EMAIL_1>', 'alice@example.com', 'EMAIL');
     const resolved = SecretStore.resolve('<EMAIL_1>');
-    assert.equal(resolved, 'padmanabhan@example.com');
+    assert.equal(resolved, 'alice@example.com');
   });
 
   // 03. Nested object resolution
@@ -142,7 +142,7 @@ async function runTests() {
 
   // 13. API key target -> ALLOW
   await test('API key placeholder in authorized key field -> ALLOWS action', async () => {
-    SecretStore.register('<API_KEY_1>', 'sk-proj-1234567890abcdef123456', 'API_KEY');
+    SecretStore.register('<API_KEY_1>', 'sk-proj-testkeyxyz1234567890', 'API_KEY');
     const res = ActionValidator.validate({
       tool: 'set_field',
       args: { field: 'api_key', value: '<API_KEY_1>' },
@@ -153,12 +153,12 @@ async function runTests() {
 
   // 14. Raw secret absent from LLM call
   await test('raw secret absent from LLM call payload', async () => {
-    const rawText = 'My secret key is sk-proj-1234567890abcdef123456';
+    const rawText = 'My secret key is sk-proj-testkeyxyz1234567890';
     const messages = [{ role: 'user', content: rawText }];
     const sanitized = await PrivacyEngine.sanitize(messages);
     const serialized = JSON.stringify(sanitized);
 
-    assert.equal(serialized.includes('sk-proj-1234567890abcdef123456'), false);
+    assert.equal(serialized.includes('sk-proj-testkeyxyz1234567890'), false);
     assert.equal(serialized.includes('<API_KEY_1>'), true);
   });
 
@@ -183,16 +183,16 @@ async function runTests() {
 
   // 17. Raw secret absent from logs
   await test('SecretStore toJSON prevents secret logging', async () => {
-    SecretStore.register('<EMAIL_1>', 'padmanabhan@example.com', 'EMAIL');
+    SecretStore.register('<EMAIL_1>', 'alice@example.com', 'EMAIL');
     const stringified = JSON.stringify(SecretStore);
-    assert.equal(stringified.includes('padmanabhan@example.com'), false);
+    assert.equal(stringified.includes('alice@example.com'), false);
   });
 
   // 18. Raw secret absent from trace
   await test('trace serialization contains 0 raw secrets', async () => {
     const traceObj = { state: 'executing', placeholders: ['<EMAIL_1>'] };
     const serialized = JSON.stringify(traceObj);
-    assert.equal(serialized.includes('padmanabhan@example.com'), false);
+    assert.equal(serialized.includes('alice@example.com'), false);
   });
 
   // 19. Resolution failure -> BLOCK
