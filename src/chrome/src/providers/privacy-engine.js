@@ -101,6 +101,28 @@ export function decorateProviderWithPrivacyEngine(provider) {
     };
   }
 
+  const originalGround = provider.ground;
+  if (typeof originalGround === 'function') {
+    provider.ground = async function (imageBuffer, text, options) {
+      // Create a dummy message structure to run through the standard sanitizer,
+      // ensuring visual PII in the image buffer is redacted before grounding.
+      const messages = [{
+        role: 'user',
+        content: [
+          { type: 'image_url', image_url: { url: `data:image/png;base64,${imageBuffer.toString('base64')}` } },
+          { type: 'text', text: text }
+        ]
+      }];
+      const sanitizedMessages = await PrivacyEngine.sanitize(messages, options);
+      
+      // Extract the redacted image data URL back out
+      const sanitizedImageContent = sanitizedMessages[0].content.find(c => c.type === 'image_url');
+      const sanitizedDataUrl = sanitizedImageContent.image_url.url;
+      
+      return originalGround.call(this, sanitizedDataUrl, text, options);
+    };
+  }
+
   provider._privacyEngineDecorated = true;
   return provider;
 }
