@@ -150,8 +150,8 @@ export class ActionValidator {
    * Verify category policy vs tool and target field context.
    */
   static checkCategoryAuthorization({ tool, args, category, target }) {
-    const fieldName = (args?.fieldName || args?.field || args?.name || target?.fieldName || '').toLowerCase();
-    const fieldType = (target?.fieldType || (target?.isPasswordField ? 'password' : '') || '').toLowerCase();
+    const fieldName = (args?.fieldName || args?.field || args?.name || args?.selector || args?.label || args?.ariaLabel || args?.ref_id || target?.fieldName || target?.name || target?.id || target?.ariaLabel || target?.placeholder || '').toLowerCase();
+    const fieldType = (target?.fieldType || (target?.isPasswordField ? 'password' : '') || (args?.isPasswordField ? 'password' : '') || '').toLowerCase();
 
     if (category === 'PASSWORD') {
       if (fieldType === 'password' || fieldName.includes('password') || fieldName.includes('pwd') || fieldName.includes('pass')) {
@@ -161,7 +161,7 @@ export class ActionValidator {
     }
 
     if (category === 'EMAIL') {
-      if (fieldName.includes('email') || fieldName.includes('user') || fieldName.includes('login') || fieldName.includes('account') || fieldType === 'email') {
+      if (fieldName.includes('email') || fieldName.includes('user') || fieldName.includes('login') || fieldName.includes('account') || fieldName.includes('ap_email') || fieldName.includes('sign') || fieldType === 'email' || (['set_field', 'type_text', 'type_ax', 'input'].includes(tool) && fieldType !== 'password')) {
         return { authorized: true };
       }
       return { authorized: false, reason: 'EMAIL placeholder allowed only in email/username fields' };

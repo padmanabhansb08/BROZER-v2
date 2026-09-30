@@ -214,28 +214,25 @@
   }
 
   function createTargetCursor() {
-    const el = document.createElement('div');
-    el.id = 'webbrain-agent-target-cursor';
-    el.setAttribute('aria-hidden', 'true');
+    const el = document.createElement("div");
+    el.id = "webbrain-agent-target-cursor";
+    el.setAttribute("aria-hidden", "true");
     el.innerHTML = `
-      <svg width="48" height="56" viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M5 4L39 31L24 34L31 50L20 54L14 38L5 48V4Z"
-          fill="#64748b" stroke="white" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M24 34L31 50" stroke="rgba(20, 18, 48, 0.34)" stroke-width="2" stroke-linecap="round"/>
-      </svg>
+      <div style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+        <div style="position: absolute; inset: -4px; border-radius: 50%; background: radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, rgba(99, 102, 241, 0) 70%); animation: webbrain-target-pop 0.3s ease-out;"></div>
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAPpSURBVGhD7dhvTBNnHAfwx6Jji/8A2YwmlviiuMQXaiTxzWaWaDYVrH9CwhuzERcXDEriCxNA2JZtpr5QnKRoAI0mJljTQHiBJjW37QXlX2VH0hA5Qg+FVjrOq+uVPtdQKM/ynJSN36hCez0w6Se5kPSePr/v9wq9UoRSUlJSUv4vXa/XZ8AH3wfpbW1thW63u5vjOCs8uWIZDIat7e3tPwqC4CSzenp6quC6FaempuYzl8t12+fzPY8Gp6ampsKNjY0H4fqVYi3DMN+OjIxYZVme/G/wKEEQBhBC6+ETl5XRaNzS2tpa7PV6e2FgaHBwsBE+f9mUl5cbWJa9KknSSxg0FpvNdgbuozVdU1PTV4IgPA4Gg3/DgG+DMf6rrKxsG9xQK1k2m+2Czyc6YLDF8ng87XDTpDOZTLs5jqsVRfFZNMjZ0vNEn7OdXKqqJhjL81O+RV9f3y9w/2RZ09zcXORyue5jjIPRALIsk8NHCghCiHy0doPy8+q1mvkpY5ieniYWi+UkHKSqnJwcfWdn5zm32/0HDBAMBmfDryJZ2ZvJxsxskpb2AXlgeQiXLsjn8/F5eXlZcKYqGhoa9rEsWy2K4gs4mMIYk0NKeJ0Snh706v/082W4NCae51vg3ERtsFgsX/I8/yDWTYcKh8PkxMlCJXBm9maSuekT5VUoMB4nQYzh8pgYhimDAeISvemMjY39CYcs5NGjx8qVz8j6WLnyurR0UnD0GAmFQnBpTLIsvy4qKjLALEvGMEzpUm461N27995c/U3010ZHdu/ZS7C8+Hceanx83EnfGGCeJRseHr4DN3+XV69Ekl9wTCmx49OdpKOzCy5R/sAHBgbgw3N6e3tNMEtchoaGzHDzxZBDIfIbw5DARACeUpz6ulgpeKnqe3hKUV9ffwBmiUu8Bd7lm+LTSgF6VFX/MO9cIBBwV1ZWboVZ4pKsAvQGd/3XWoJWrZ4t8e8rMTo6+jvMEbdkFYgy190kCKXNvRKT4XDEbrdfhDniluwCVF3drbkStidPpux2+y6YI25aFKBu1JrJ/v1fkK7u7iGn06neNxBaFYjiOO46zJAQrQu0tLQUwgwJ0bIAxljMz8/fDjMkRMsCXq/3KUJoNcyQEC0LdHR0qP/llZYFzGbz53B+wrQq4Pf7X1RUVGTD+QnTqkB/f38DnK0KLQrMzMzQ/76+g7NVoUWBiYkJqaSkJBfOVoUWBTweD/30qYOzVaFFAZZlr8C5qkl2gUgkErFarUY4VzU8z9fDoWqSJEnIzc3dAueqxuFwmPx+v1uSpFG1D7qvw+GogzPVtg4htJF+qZWEg+77IRyYkrKM/gE11sXqJw9vVAAAAABJRU5ErkJggg==" width="34" height="34" style="position: relative; z-index: 2; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));" alt="BROZER">
+      </div>
     `;
     el.style.cssText = `
       position: fixed;
       top: 0;
       left: 0;
-      width: 48px;
-      height: 56px;
+      width: 44px;
+      height: 44px;
       pointer-events: none;
       z-index: 2147483646;
       opacity: 0;
-      filter:
-        drop-shadow(0 14px 26px rgba(148, 163, 184, 0.38))
-        drop-shadow(0 2px 4px rgba(20, 18, 48, 0.22));
+      filter: drop-shadow(0 6px 14px rgba(99, 102, 241, 0.45));
       transition:
         opacity 0.16s ease,
         transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);

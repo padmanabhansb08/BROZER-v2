@@ -16,6 +16,7 @@ let visionRuntimeModelKey = '';
 let visionRuntimeOwner = '';
 let visionRuntimeLoadPromise = null;
 let visionRuntimeLoadKey = '';
+let groundingRuntime = null;
 let textRuntime = null;
 let textRuntimeKey = '';
 let textRuntimeModelKey = '';
@@ -299,8 +300,10 @@ async function loadLibrary() {
     }
     libraryVersion = library.env?.version || library.VERSION || 'unknown';
     if (library.env) {
-      library.env.allowLocalModels = false;
-      library.env.allowRemoteModels = true;
+      library.env.allowLocalModels = true;
+      library.env.allowRemoteModels = false;
+      const extensionBase = workerConfig.transformersUrl.split('vendor/')[0];
+      library.env.localModelPath = extensionBase + 'vendor/models/';
       library.env.useBrowserCache = true;
       library.env.useWasmCache = false;
       library.env.fetch = controlledFetch;
@@ -1228,6 +1231,52 @@ async function runVision(payload, requestId) {
   noteWebgpuExecutionSuccess();
   return String(decoded?.[0] || '').trim();
   } finally {
+    if (stoppingCriteria) activeVisionGenerations.delete(requestId);
+  }
+}
+
+async function getGroundingRuntime() {
+  if (groundingRuntime) return groundingRuntime;
+  const library = await loadLibrary();
+  const pipeline = await library.pipeline('zero-shot-object-detection', 'Xenova/owlvit-base-patch32', {
+    device: 'webgpu',
+    // Owl-ViT doesn't need to report progress identically to the text downloads unless requested,
+    // but we can pass localFilesOnly if we want strict offline enforcement.
+    // However, the worker sets `env.allowLocalModels = false; env.allowRemoteModels = true;` in `loadLibrary`.
+  });
+  groundingRuntime = { library, pipeline };
+  return groundingRuntime;
+}
+
+async function runGrounding(payload, requestId) {
+  const imageUrl = payload?.imageUrl;
+  const candidateLabels = payload?.candidateLabels || [];
+  if (!imageUrl) throw new Error('No image URL was specified.');
+  if (candidateLabels.length === 0) throw new Error('No candidate labels were specified.');
+  
+  const runtime = await getGroundingRuntime();
+  
+  let outputs;
+  try {
+    outputs = await runtime.pipeline(imageUrl, candidateLabels, { threshold: payload.threshold || 0.15 });
+  } catch (error) {
+    if (isWebGpuExecutionFailure(error)) throw await handleWebGpuExecutionFailure(error);
+    throw error;
+  }
+  
+  const detections = outputs.map(out => ({
+    label: out.label,
+    score: out.score,
+    box: {
+      xmin: out.box.xmin,
+      ymin: out.box.ymin,
+      xmax: out.box.xmax,
+      ymax: out.box.ymax
+    }
+  }));
+  
+  return { detections };
+}
     activeVisionGenerations.delete(requestId);
     cancelledVisionGenerations.delete(requestId);
   }
@@ -1647,6 +1696,11 @@ self.addEventListener('message', async event => {
         queuedVisionGenerations.delete(id);
         cancelledVisionGenerations.delete(id);
       }
+      return;
+    }
+    if (type === 'ground') {
+      const result = await enqueueModelOperation(() => runGrounding(payload, id));
+      self.postMessage({ id, ok: true, detections: result.detections });
       return;
     }
     if (type === 'text-chat') {

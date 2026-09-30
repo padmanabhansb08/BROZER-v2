@@ -41327,26 +41327,59 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
             messages.push({ role: 'assistant', content: finalResponse });
             break;
           }
-          // Retry once after a short delay for transient errors (rate limits, network).
-          this._logDebug({ type: 'llm_error_retrying', step: steps, error: e.message });
-          if (runId) await trace.recordLLMRetry(runId, steps, { delayMs: 2000, code: this._traceErrorCodeFor(e) });
-          await new Promise(r => setTimeout(r, 2000));
-          try {
-            const useTools2 = provider.supportsTools && tools.length > 0;
-            const chatOpts2 = {
-              tools: useTools2 ? tools : undefined,
-              temperature: plannerTemperature,
+          // Resilient multi-attempt retry loop for rate limits (429, RESOURCE_EXHAUSTED) & transient network errors
+          let currentError = e;
+          let retrySuccess = false;
+          const maxRetries = 5;
+
+          for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            if (this._checkAbort(tabId)) throw currentError;
+
+            // Detect wait duration from API error (e.g. "Please retry in 7.024s", "retry_after: 8", etc.)
+            let waitMs = 2500 * attempt;
+            const retryMatch = String(currentError?.message || '').match(/retry in ([0-9.]+)\s*s/i) ||
+                               String(currentError?.message || '').match(/retry after ([0-9.]+)/i);
+            if (retryMatch && parseFloat(retryMatch[1])) {
+              waitMs = Math.ceil(parseFloat(retryMatch[1]) * 1000) + 1200; // Add 1.2s safety buffer
+            } else if (String(currentError?.message || '').includes('429') || String(currentError?.message || '').includes('RESOURCE_EXHAUSTED')) {
+              waitMs = Math.max(waitMs, 8000); // Wait at least 8 seconds on 429
+            }
+
+            const waitSec = Math.ceil(waitMs / 1000);
+            onUpdate('thinking', {
+              step: steps,
+              note: `Rate limit reached. Automatically waiting ${waitSec}s before resuming (attempt ${attempt}/${maxRetries})...`
+            });
+            this._logDebug({ type: 'llm_error_retrying', step: steps, attempt, waitMs, error: currentError.message });
+            if (runId) await trace.recordLLMRetry(runId, steps, { delayMs: waitMs, code: this._traceErrorCodeFor(currentError) });
+            await new Promise(r => setTimeout(r, waitMs));
+
+            if (this._checkAbort(tabId)) throw currentError;
+
+            try {
+              const useTools2 = provider.supportsTools && tools.length > 0;
+              const chatOpts2 = {
+                tools: useTools2 ? tools : undefined,
+                temperature: plannerTemperature,
                 maxTokens: mainMaxTokens,
-              ...(completionToolChoice ? { toolChoice: completionToolChoice } : {}),
-            };
-            result = await chatMainTurn(this._pruneOldImages(modelMessagesForRun(), provider), chatOpts2, { tabId, generationName: 'main' });
-            this._logDebug({ type: 'llm_response_after_retry', step: steps, content: result.content, toolCalls: result.toolCalls });
-            if (runId) trace.recordStepEnd(runId, steps, this._traceStepEndForResult(result, { retried: true }));
-          } catch (e2) {
-            if (this._checkAbort(tabId)) throw e2;
-            this._logDebug({ type: 'llm_error_final', step: steps, error: e2.message });
-            if (this._isCostAllowanceError(e2)) {
-              finalResponse = e2.message;
+                ...(completionToolChoice ? { toolChoice: completionToolChoice } : {}),
+              };
+              result = await chatMainTurn(this._pruneOldImages(modelMessagesForRun(), provider), chatOpts2, { tabId, generationName: 'main' });
+              this._logDebug({ type: 'llm_response_after_retry', step: steps, attempt, content: result.content, toolCalls: result.toolCalls });
+              if (runId) trace.recordStepEnd(runId, steps, this._traceStepEndForResult(result, { retried: true }));
+              retrySuccess = true;
+              break;
+            } catch (retryErr) {
+              currentError = retryErr;
+              if (this._checkAbort(tabId)) throw retryErr;
+              if (this._isCostAllowanceError(retryErr)) break;
+            }
+          }
+
+          if (!retrySuccess) {
+            this._logDebug({ type: 'llm_error_final', step: steps, error: currentError.message });
+            if (this._isCostAllowanceError(currentError)) {
+              finalResponse = currentError.message;
               _traceStatus = 'cost_limit';
               traceFailureCode = 'COST_LIMIT';
               if (runId) trace.recordStepEnd(runId, steps, { ok: false, code: 'COST_LIMIT' });
@@ -41354,11 +41387,11 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
               onUpdate('warning', { message: finalResponse });
               break;
             }
-            traceFailureCode = this._traceErrorCodeFor(e2);
+            traceFailureCode = this._traceErrorCodeFor(currentError);
             _traceStatus = 'error';
             if (runId) trace.recordStepEnd(runId, steps, { ok: false, code: traceFailureCode });
-            onUpdate('error', { message: e2.message });
-            finalResponse = `Error communicating with LLM: ${e2.message}`;
+            onUpdate('error', { message: currentError.message });
+            finalResponse = `Error communicating with LLM: ${currentError.message}`;
             messages.push({ role: 'assistant', content: finalResponse });
             break;
           }

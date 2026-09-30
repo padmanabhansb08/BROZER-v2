@@ -156,6 +156,14 @@
       "matches": [
         "<all_urls>"
       ]
+    },
+    {
+      "resources": [
+        "vendor/tesseract/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "short_name": "BROZER"

@@ -11415,7 +11415,7 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
       // Every target probe and the eventual dispatch must use the same CSS
       // point. Validate capture provenance before any DOM/iframe preflight.
       const coordinates = argumentValidation.ok
-        ? this._prepareClickCoordinates(tabId, fnName, argumentValidation.args || fnArgs)
+        ? await this._prepareClickCoordinates(tabId, fnName, argumentValidation.args || fnArgs)
         : null;
       const preparationFailure = argumentValidation.ok ? coordinates.block : argumentValidation.result;
       if (preparationFailure) {
@@ -15132,11 +15132,50 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
     }
   }
 
-  _prepareClickCoordinates(tabId, name, args = {}) {
+  async _prepareClickCoordinates(tabId, name, args = {}) {
     let coordinatePoint = null;
     // Canonicalize coordinate clicks before toolbar recovery probes them.
     // The preflight binding and the eventual dispatch must resolve the same
     // CSS-pixel point, especially when the model clicked a downscaled image.
+    if (name === 'click' && args?.target_description && !args?.selector && args?.x == null && args?.y == null) {
+      try {
+        const provider = this.providerManager.getActive();
+        if (typeof provider?.ground === 'function') {
+          // Hydrate the current observation explicitly instead of relying on a stale model turn
+          const rawScreenshot = await this._captureTabScreenshot(tabId, { format: 'png' });
+          if (rawScreenshot) {
+            const captureId = `owlvit_${tabId}_${Date.now()}_${secureRandomBase36Token(4)}`;
+            // Register capture metadata BEFORE grounding to guarantee provenance binding
+            this.screenshotCaptures.set(tabId, {
+              captureId,
+              imageWidth: rawScreenshot.width || 0,
+              imageHeight: rawScreenshot.height || 0,
+              cssWidth: rawScreenshot.cssWidth || 0,
+              cssHeight: rawScreenshot.cssHeight || 0
+            });
+            
+            // Call ground() on the decorated provider. The PrivacyEngine decorator will sanitize the image.
+            const groundResult = await provider.ground(rawScreenshot, args.target_description, {
+              imageWidth: rawScreenshot.width,
+              imageHeight: rawScreenshot.height
+            });
+            if (groundResult?.ok && groundResult.detections && groundResult.detections.length === 1) {
+              const box = groundResult.detections[0].box;
+              const cx = (box.xmin + box.xmax) / 2;
+              const cy = (box.ymin + box.ymax) / 2;
+              args = { ...args, x: cx, y: cy, coordinate_space: 'screenshot', capture_id: captureId };
+            } else if (groundResult?.ok && groundResult.detections && groundResult.detections.length > 1) {
+              return { block: { success: false, dispatched: false, noDispatch: true, error: `Ambiguous visual target: ${groundResult.detections.length} matches found for "${args.target_description}". Try a more specific description or use a selector.` } };
+            } else {
+              return { block: { success: false, dispatched: false, noDispatch: true, error: `Target not found visually: "${args.target_description}".` } };
+            }
+          }
+        }
+      } catch (e) {
+        return { block: { success: false, dispatched: false, noDispatch: true, error: `Visual grounding failed due to an internal error.` } };
+      }
+    }
+
     if (name === 'click' && args?.x != null && args?.y != null) {
       const coordinateSpace = String(args.coordinate_space || '').trim().toLowerCase();
       if (coordinateSpace !== 'screenshot' && coordinateSpace !== 'css') {
@@ -32613,8 +32652,8 @@ Rules: no prose intro, no conclusion, no "this screenshot shows...", no layout d
         error: phase3Validation.error || '[REDACTED: Action validation failed]'
       };
     }
-    // args = SecretStore.resolvePlaceholders(args, phase3Validation.authorizedPlaceholders);
-    const coordinates = this._prepareClickCoordinates(tabId, name, args);
+    args = SecretStore.resolvePlaceholders(args, phase3Validation.authorizedPlaceholders);
+    const coordinates = await this._prepareClickCoordinates(tabId, name, args);
     if (coordinates.block) return coordinates.block;
     args = coordinates.args;
     const coordinatePoint = coordinates.point;

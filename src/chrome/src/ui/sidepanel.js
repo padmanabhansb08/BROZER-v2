@@ -1,3 +1,18 @@
+function safeStartViewTransition(cb) {
+  if (!document.startViewTransition || document.visibilityState === 'hidden' || document.hidden) {
+    cb();
+    return;
+  }
+  try {
+    const t = document.startViewTransition(() => {
+      try { cb(); } catch (e) { console.warn('[ViewTransition] callback error:', e); }
+    });
+    if (t?.ready) t.ready.catch(() => {});
+    if (t?.finished) t.finished.catch(() => {});
+  } catch (err) {
+    cb();
+  }
+}
 /**
  * BROZER Side Panel — Chat UI logic.
  * Default: compact history in chat plus the live label; click for status-only mode.
@@ -2303,17 +2318,17 @@ function enqueueQueuedComposerMessage(tabId, text) {
   if (sameTabId(currentTabId, numericTabId)) {
     saveInputDraftForTab(numericTabId, '');
     hideSlashCommandAutocomplete();
-    if (document.startViewTransition && inputEl.value !== '') {
-      document.startViewTransition(() => {
+    if (inputEl.value !== '') {
+    safeStartViewTransition(() => {
         inputEl.value = '';
         autoResizeInput();
         syncSendButtonState();
       });
-    } else {
-      inputEl.value = '';
-      autoResizeInput();
-      syncSendButtonState();
-    }
+  } else {
+    inputEl.value = '';
+    autoResizeInput();
+    syncSendButtonState();
+  }
   }
   return true;
 }
@@ -2558,8 +2573,8 @@ async function renderClearedConversationForTab(tabId, { allowCacheClearFailure =
   syncProgressDisplayMode();
   currentAssistantEl = null;
   hideActivity();
-  if (document.startViewTransition && inputEl.value !== '') {
-    document.startViewTransition(() => {
+  if (inputEl.value !== '') {
+    safeStartViewTransition(() => {
       inputEl.value = '';
       autoResizeInput();
       syncSendButtonState();
@@ -5498,7 +5513,10 @@ async function refreshRecommendedActions() {
       btn.className = 'recommended-action-chip';
       btn.textContent = action.label;
       btn.dataset.actionId = action.id;
-  );
+      btn.dataset.prompt = action.prompt;
+      btn.addEventListener('click', () => runRecommendedAction(actionForClick));
+      recommendedActionsListEl.appendChild(btn);
+    });
     recommendedActionsEl.classList.toggle('hidden', actions.length === 0);
     animateWebbrainPromotionOnce();
   } catch {
@@ -14384,17 +14402,17 @@ inputEl.addEventListener('blur', () => setTimeout(hideSlashCommandAutocomplete, 
 
 if (clearInputBtn) {
   clearInputBtn.addEventListener('click', () => {
-    if (document.startViewTransition && inputEl.value !== '') {
-      document.startViewTransition(() => {
+    if (inputEl.value !== '') {
+    safeStartViewTransition(() => {
         inputEl.value = '';
         handleInput();
         inputEl.focus();
       });
-    } else {
-      inputEl.value = '';
-      handleInput();
-      inputEl.focus();
-    }
+  } else {
+    inputEl.value = '';
+    autoResizeInput();
+    syncSendButtonState();
+  }
   });
 }
 document.addEventListener('wb-locale-changed', () => {
@@ -14733,7 +14751,7 @@ init();
 // --- MOTION HELPER ---
 let isTransitioning = false;
 export function runWithViewTransition(updateFn) {
-  if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (!document.startViewTransition || document.visibilityState === 'hidden' || document.hidden || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     return updateFn();
   }
   if (isTransitioning) {
@@ -14741,16 +14759,27 @@ export function runWithViewTransition(updateFn) {
   }
   isTransitioning = true;
   let updateError = null;
-  const transition = document.startViewTransition(() => {
-    try {
-      updateFn();
-    } catch (e) {
-      updateError = e;
+  let transition = null;
+  try {
+    transition = document.startViewTransition(() => {
+      try {
+        updateFn();
+      } catch (e) {
+        updateError = e;
+      }
+    });
+    if (transition?.ready) transition.ready.catch(() => {});
+    if (transition?.finished) {
+      transition.finished
+        .catch(() => {})
+        .finally(() => { isTransitioning = false; });
+    } else {
+      isTransitioning = false;
     }
-  });
-  transition.finished.finally(() => {
+  } catch (e) {
     isTransitioning = false;
-  });
+    return updateFn();
+  }
   if (updateError) throw updateError;
   return transition;
 }
@@ -14844,7 +14873,7 @@ function resetOutputInspector() {
   if (!outputInspectorEl) return;
   const sections = ['observation', 'privacy-engine', 'visual-privacy', 'sanitized-output', 'model-boundary'];
   for (const s of sections) {
-    const el = outputInspectorEl.querySelector(\`#inspect-\${s}\`);
+    const el = outputInspectorEl.querySelector(`#inspect-${s}`);
     if (el) {
       el.classList.remove('active', 'done', 'failed');
       const content = el.querySelector('.inspector-section-content');
@@ -14857,7 +14886,7 @@ function resetOutputInspector() {
 
 function updateOutputInspectorSection(sectionId, state, htmlContent = '') {
   if (!outputInspectorEl) return;
-  const el = outputInspectorEl.querySelector(\`#inspect-\${sectionId}\`);
+  const el = outputInspectorEl.querySelector(`#inspect-${sectionId}`);
   if (!el) return;
   
   el.classList.remove('active', 'done', 'failed');
@@ -14883,11 +14912,11 @@ chrome.runtime.onMessage.addListener((msg) => {
       updateOutputInspectorSection('privacy-engine', 'active', 'Scanning observation...');
     } else if (msg.status === 'complete') {
       const sanitizedCount = msg.categories.length;
-      let html = \`<div>✓ Inspection complete</div><div class="inspector-muted">\${sanitizedCount} sensitive values detected</div>\`;
+      let html = `<div>✓ Inspection complete</div><div class="inspector-muted">${sanitizedCount} sensitive values detected</div>`;
       if (sanitizedCount > 0) {
         html += '<ul class="inspector-list">';
         msg.categories.forEach(cat => {
-          html += \`<li>\${escapeHtml(cat.name)}<br/><span class="inspector-placeholder">\${escapeHtml(cat.placeholder)}</span></li>\`;
+          html += `<li>${escapeHtml(cat.name)}<br/><span class="inspector-placeholder">${escapeHtml(cat.placeholder)}</span></li>`;
         });
         html += '</ul>';
       }
@@ -14905,11 +14934,11 @@ chrome.runtime.onMessage.addListener((msg) => {
     } else if (msg.status === 'complete') {
       let html = '<div>✓ Screenshot inspected</div>';
       if (msg.redactedCount > 0) {
-        html += \`<div class="inspector-muted">\${msg.redactedCount} sensitive regions detected</div>\`;
+        html += `<div class="inspector-muted">${msg.redactedCount} sensitive regions detected</div>`;
         if (msg.previewDataUrl) {
-          html += \`<div class="inspector-preview-box"><img src="\${msg.previewDataUrl}" class="inspector-preview-img" alt="sanitized preview" /></div>\`;
+          html += `<div class="inspector-preview-box"><img src="${msg.previewDataUrl}" class="inspector-preview-img" alt="sanitized preview" /></div>`;
         }
-        html += \`<div class="inspector-muted">\${msg.redactedCount} / \${msg.redactedCount} regions redacted</div>\`;
+        html += `<div class="inspector-muted">${msg.redactedCount} / ${msg.redactedCount} regions redacted</div>`;
       } else {
          html += '<div class="inspector-muted">0 sensitive regions detected</div>';
       }

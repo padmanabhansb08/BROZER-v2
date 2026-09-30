@@ -447,10 +447,7 @@ const pinCoachmarkDismissed = (async function initPinCoachmark() {
 
     try {
       const { providers = {}, active } = await sendToBackground('get_providers');
-      if (active === 'webbrain_cloud' && providers.webbrain_cloud?.enabled !== false) {
-        showCloudReady();
-        return;
-      }
+
       const localProviderIds = Object.keys(providers)
         .filter((id) => providers[id]?.category === 'local' || LOCAL_PROVIDER_ORDER.includes(id))
         .sort((a, b) => providerSortIndex(a) - providerSortIndex(b) || a.localeCompare(b));
@@ -735,7 +732,6 @@ const storeReviewFeedbackEl = document.getElementById('store-review-feedback');
 const scheduledJobsEl = document.getElementById('scheduled-jobs');
 const stopBtn = document.getElementById('btn-stop');
 const RECOMMENDED_ACTIONS_COLLAPSED_KEY = 'recommendedActionsCollapsed';
-const WEBBRAIN_PROMOTION_ACTION_IDS = new Set(['tweet-webbrain', 'post-webbrain-linkedin']);
 const PLACEHOLDER_ROTATION_INTERVAL_MS = 10_000;
 const ASK_PLACEHOLDER_KEYS = [
   'sp.input.ask_placeholder',
@@ -1215,7 +1211,7 @@ const failedConversationClearRecoveryTabs = new Set();
 let recommendationsRequestId = 0;
 let providerSelectionRequestId = 0;
 let providerTestRequestId = 0;
-let selectedProviderId = 'webbrain_cloud';
+let selectedProviderId = 'webgpu';
 let standaloneWebgpuEnabled = false;
 let standaloneWebgpuReady = false;
 let standaloneWebgpuActive = false;
@@ -5502,10 +5498,6 @@ async function refreshRecommendedActions() {
       btn.className = 'recommended-action-chip';
       btn.textContent = action.label;
       btn.dataset.actionId = action.id;
-      if (WEBBRAIN_PROMOTION_ACTION_IDS.has(action.id)) {
-        btn.classList.add('recommended-action-chip-promotion');
-        btn.prepend(createWebbrainPromotionIcon(action.id));
-      }
       btn.dataset.prompt = action.prompt;
       btn.addEventListener('click', () => runRecommendedAction(actionForClick));
       recommendedActionsListEl.appendChild(btn);
@@ -7347,21 +7339,8 @@ async function loadProviders() {
     providerPickerMenu?.replaceChildren();
     providerPickerLabelById.clear();
 
-    const cloudConfig = res.providers.webbrain_cloud || { label: 'BROZER NAVIGATOR' };
-    const cloudLabel = cloudConfig.label || 'BROZER NAVIGATOR';
-    const cloudGroup = document.createElement('optgroup');
-    cloudGroup.label = t('sp.providers.no_setup_group');
-    const cloudOption = document.createElement('option');
-    cloudOption.value = 'webbrain_cloud';
-    cloudOption.textContent = `${cloudLabel} — ${t('sp.providers.no_setup')}`;
-    cloudGroup.appendChild(cloudOption);
-    providerSelect.appendChild(cloudGroup);
-    providerPickerLabelById.set('webbrain_cloud', cloudLabel);
-    appendProviderPickerGroup(cloudGroup.label);
-    appendProviderPickerOption('webbrain_cloud', cloudLabel, t('sp.providers.no_setup'));
-
     const configuredEntries = Object.entries(res.providers)
-      .filter(([id, config]) => id !== 'webbrain_cloud' && config?.configured === true);
+      .filter(([id, config]) => config?.configured === true);
     if (configuredEntries.length) {
       const activeGroup = document.createElement('optgroup');
       activeGroup.label = t('sp.providers.active_group');
@@ -7384,8 +7363,8 @@ async function loadProviders() {
     providerSelect.appendChild(moreOption);
     appendProviderPickerOption(MORE_PROVIDERS_OPTION_VALUE, t('sp.providers.more'), '');
 
-    const selectableProviderIds = new Set(['webbrain_cloud', ...configuredEntries.map(([id]) => id)]);
-    selectedProviderId = selectableProviderIds.has(res.active) ? res.active : 'webbrain_cloud';
+    const selectableProviderIds = new Set(['webgpu', ...configuredEntries.map(([id]) => id)]);
+    selectedProviderId = selectableProviderIds.has(res.active) ? res.active : (configuredEntries[0]?.[0] || 'webgpu');
     providerSelect.value = selectedProviderId;
     syncProviderPickerButton();
     syncStandaloneWebgpuUi();
@@ -7452,7 +7431,7 @@ async function refreshStandaloneWebgpuStatus() {
 }
 
 function isWebBrainCloudProviderSelected() {
-  return providerSelect?.value === 'webbrain_cloud';
+  return false;
 }
 
 function markSelectedProviderUntested() {
@@ -7469,12 +7448,7 @@ function markSelectedProviderFailed(error) {
 async function testConnection(options = {}) {
   const providerId = options.providerId || providerSelect.value;
   const requestId = ++providerTestRequestId;
-  if (options.skipWebBrainCloud && providerId === 'webbrain_cloud') {
-    if (requestId === providerTestRequestId && providerSelect.value === providerId) {
-      markSelectedProviderUntested();
-    }
-    return;
-  }
+
   statusDot.className = 'status-dot connecting';
   try {
     const res = await sendToBackground('test_provider', {
@@ -14873,7 +14847,7 @@ function resetOutputInspector() {
   if (!outputInspectorEl) return;
   const sections = ['observation', 'privacy-engine', 'visual-privacy', 'sanitized-output', 'model-boundary'];
   for (const s of sections) {
-    const el = outputInspectorEl.querySelector(\`#inspect-\${s}\`);
+    const el = outputInspectorEl.querySelector(`#inspect-${s}`);
     if (el) {
       el.classList.remove('active', 'done', 'failed');
       const content = el.querySelector('.inspector-section-content');
@@ -14886,7 +14860,7 @@ function resetOutputInspector() {
 
 function updateOutputInspectorSection(sectionId, state, htmlContent = '') {
   if (!outputInspectorEl) return;
-  const el = outputInspectorEl.querySelector(\`#inspect-\${sectionId}\`);
+  const el = outputInspectorEl.querySelector(`#inspect-${sectionId}`);
   if (!el) return;
   
   el.classList.remove('active', 'done', 'failed');
@@ -14912,11 +14886,11 @@ chrome.runtime.onMessage.addListener((msg) => {
       updateOutputInspectorSection('privacy-engine', 'active', 'Scanning observation...');
     } else if (msg.status === 'complete') {
       const sanitizedCount = msg.categories.length;
-      let html = \`<div>✓ Inspection complete</div><div class="inspector-muted">\${sanitizedCount} sensitive values detected</div>\`;
+      let html = `<div>✓ Inspection complete</div><div class="inspector-muted">${sanitizedCount} sensitive values detected</div>`;
       if (sanitizedCount > 0) {
         html += '<ul class="inspector-list">';
         msg.categories.forEach(cat => {
-          html += \`<li>\${escapeHtml(cat.name)}<br/><span class="inspector-placeholder">\${escapeHtml(cat.placeholder)}</span></li>\`;
+          html += `<li>${escapeHtml(cat.name)}<br/><span class="inspector-placeholder">${escapeHtml(cat.placeholder)}</span></li>`;
         });
         html += '</ul>';
       }
@@ -14934,11 +14908,11 @@ chrome.runtime.onMessage.addListener((msg) => {
     } else if (msg.status === 'complete') {
       let html = '<div>✓ Screenshot inspected</div>';
       if (msg.redactedCount > 0) {
-        html += \`<div class="inspector-muted">\${msg.redactedCount} sensitive regions detected</div>\`;
+        html += `<div class="inspector-muted">${msg.redactedCount} sensitive regions detected</div>`;
         if (msg.previewDataUrl) {
-          html += \`<div class="inspector-preview-box"><img src="\${msg.previewDataUrl}" class="inspector-preview-img" alt="sanitized preview" /></div>\`;
+          html += `<div class="inspector-preview-box"><img src="${msg.previewDataUrl}" class="inspector-preview-img" alt="sanitized preview" /></div>`;
         }
-        html += \`<div class="inspector-muted">\${msg.redactedCount} / \${msg.redactedCount} regions redacted</div>\`;
+        html += `<div class="inspector-muted">${msg.redactedCount} / ${msg.redactedCount} regions redacted</div>`;
       } else {
          html += '<div class="inspector-muted">0 sensitive regions detected</div>';
       }
