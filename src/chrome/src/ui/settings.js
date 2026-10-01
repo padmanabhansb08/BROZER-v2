@@ -75,7 +75,7 @@ import {
 import { AUTO_GROUP_TABS_KEY } from '../tab-group-preference.js';
 
 const VISION_UI_PROVIDER_IDS = new Set(['ollama', ...AUTO_VISION_PROVIDER_IDS]);
-const EASY_CLI_PROXY_GUIDE_URL = 'https://webbrain.one/docs/easy-cli-proxy/';
+const EASY_CLI_PROXY_GUIDE_URL = 'https://github.com/padmanabhansb08/BROZER-v2';
 const SUBSCRIPTION_GUIDE_PRODUCTS = Object.freeze({
   openai: 'ChatGPT/Codex',
   anthropic: 'Claude',
@@ -3553,7 +3553,7 @@ function renderProviders() {
            <p>${escapeHtml(t('st.providers.ollama_warning.restart'))}</p>
            <pre><code>OLLAMA_ORIGINS="${escapeHtml(extensionOrigin)}" ollama serve</code></pre>
            <p>${escapeHtml(t('st.providers.ollama_warning.base_url'))}</p>
-           <a href="https://www.webbrain.one/blog/ollama-launch-handoff"
+           <a href="https://github.com/padmanabhansb08/BROZER-v2"
               target="_blank" rel="noopener noreferrer">${escapeHtml(t('st.providers.ollama_warning.link'))} ↗</a>
          </aside>`
       : '';
