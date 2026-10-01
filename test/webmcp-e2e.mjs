@@ -359,9 +359,9 @@ async function runExtensionClientSmoke(context, fixtureUrl) {
     extensionId = String(loaded.id || '');
     assert.match(extensionId, /^[a-p]{32}$/, 'Chrome did not return a valid unpacked extension ID.');
     const installed = await browserCdp.send('Extensions.getExtensions');
-    const webBrain = installed.extensions.find(extension => extension.id === extensionId);
-    assert.equal(webBrain?.enabled, true, 'Chrome loaded the WebBrain extension in a disabled state.');
-    assert.equal(path.resolve(webBrain.path), EXTENSION_PATH);
+    const brozerExt = installed.extensions.find(extension => extension.id === extensionId);
+    assert.equal(brozerExt?.enabled, true, 'Chrome loaded the BROZER extension in a disabled state.');
+    assert.equal(path.resolve(brozerExt.path), EXTENSION_PATH);
 
     harness = await context.newPage();
     await harness.goto(`chrome-extension://${extensionId}/src/ui/settings.html`);
@@ -505,7 +505,7 @@ async function runExtensionClientSmoke(context, fixtureUrl) {
     assert.equal(stalePreparation.error?.noDispatch, true);
 
     console.log(
-      `PASS: WebBrain extension ${webBrain.version} enforced feature/mode gates and exercised `
+      `PASS: BROZER extension ${brozerExt.version} enforced feature/mode gates and exercised `
       + 'paginated, cross-frame WebMCP discovery, invocation, failure, and stale IDs '
       + 'through Agent + CDPClient.',
     );
@@ -557,7 +557,7 @@ async function main() {
     );
     await withPhaseTimeout(
       () => runExtensionClientSmoke(context, fixtureServer.url),
-      'WebBrain extension WebMCP smoke test',
+      'BROZER extension WebMCP smoke test',
     );
   } finally {
     if (context) await context.close();

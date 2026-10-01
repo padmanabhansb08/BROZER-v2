@@ -3,7 +3,7 @@ import { PrivacyEngine, decorateProviderWithPrivacyEngine } from '../src/chrome/
 import { VisualDetector, LocalGlyphOCR } from '../src/chrome/src/providers/visual-detector.js';
 import { ImageRedactor } from '../src/chrome/src/providers/image-redactor.js';
 
-console.log('=== WebBrain Phase 2 Visual Privacy Engine Test Suite ===\n');
+console.log('=== BROZER Phase 2 Visual Privacy Engine Test Suite ===\n');
 
 const validSampleBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
 const samplePngUrl = `data:image/png;base64,${validSampleBase64}`;
