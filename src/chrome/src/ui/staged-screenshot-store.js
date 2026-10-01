@@ -27,7 +27,7 @@ function normalizeRecord(attachment) {
       || (modelDataUrl && !/^data:image\/(?:png|jpeg);base64,/i.test(modelDataUrl))
       || !(Number.isFinite(size) && size > 0)) return null;
   const deliveryState = attachment?.deliveryState === 'sending' ? 'sending' : 'pending';
-  const name = PrivacyEngine.sanitizeText(String(attachment?.name || 'webbrain-screenshot.png')).slice(0, 240);
+  const name = PrivacyEngine.sanitizeText(String(attachment?.name || 'brozer-screenshot.png')).slice(0, 240);
   const requestId = attachment?.requestId ? PrivacyEngine.sanitizeText(String(attachment.requestId)).slice(0, 200) : '';
   return {
     version: 1,

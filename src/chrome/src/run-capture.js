@@ -20,7 +20,7 @@ function runCaptureTimestamp(date = new Date()) {
 
 function buildRunScreenshotFilenames(saveAs, date = new Date()) {
   const requested = sanitizeRunCaptureSaveAs(saveAs);
-  const stem = (requested.replace(/\.png$/i, '') || `webbrain-run-${runCaptureTimestamp(date)}`).slice(0, 170);
+  const stem = (requested.replace(/\.png$/i, '') || `brozer-run-${runCaptureTimestamp(date)}`).slice(0, 170);
   return {
     before: `${stem}-before.png`,
     after: `${stem}-after.png`,
@@ -30,7 +30,7 @@ function buildRunScreenshotFilenames(saveAs, date = new Date()) {
 function buildRunRecordingFilename(saveAs) {
   const requested = sanitizeRunCaptureSaveAs(saveAs);
   if (!requested) return null;
-  const stem = requested.replace(/\.webm$/i, '').replace(/[. ]+$/g, '') || 'webbrain-recording';
+  const stem = requested.replace(/\.webm$/i, '').replace(/[. ]+$/g, '') || 'brozer-recording';
   return `${stem.slice(0, 175)}.webm`;
 }
 

@@ -352,8 +352,8 @@ export class ProviderManager {
     const hadLegacyClaudeSubscription = Object.hasOwn(data.providers || {}, 'claude_subscription');
     const rawStoredProviders = data.providers || {};
     const stored = this._migrateStoredProviderConfigs(rawStoredProviders);
-    const legacyActiveProviderId = ['webbrain', 'openai_subscription'].includes(data.activeProvider)
-      ? WEBBRAIN_CLOUD_PROVIDER_ID
+    const legacyActiveProviderId = ['webbrain', 'openai_subscription', 'webbrain_cloud'].includes(data.activeProvider)
+      ? BROZER_CLOUD_PROVIDER_ID
       : data.activeProvider;
     // Field-level merge: defaults provide the full shape (including new
     // fields like apiKeyUrl), stored values override individual fields
@@ -417,16 +417,16 @@ export class ProviderManager {
     // token bundle here — otherwise a previously-signed-in user's raw
     // access/refresh tokens would sit in storage with no UI path to clear them.
     if (hadLegacyClaudeSubscription) await signOutClaude();
-    if (configs[WEBBRAIN_CLOUD_PROVIDER_ID]) {
-      configs[WEBBRAIN_CLOUD_PROVIDER_ID].deviceGuid = await this._getDeviceGuid(data[WEBBRAIN_DEVICE_GUID_KEY]);
-      configs[WEBBRAIN_CLOUD_PROVIDER_ID].helpImproveWebBrain = data[HELP_IMPROVE_WEBBRAIN_KEY] !== false;
+    if (configs[BROZER_CLOUD_PROVIDER_ID]) {
+      configs[BROZER_CLOUD_PROVIDER_ID].deviceGuid = await this._getDeviceGuid(data[BROZER_DEVICE_GUID_KEY] || data[LEGACY_WEBBRAIN_DEVICE_GUID_KEY]);
+      configs[BROZER_CLOUD_PROVIDER_ID].helpImproveBrozer = (data[HELP_IMPROVE_BROZER_KEY] ?? data[LEGACY_HELP_IMPROVE_WEBBRAIN_KEY]) !== false;
     }
     const defaultProviderId = this._fallbackProviderId(configs);
-    this.activeProviderId = (legacyActiveProviderId && legacyActiveProviderId !== WEBBRAIN_CLOUD_PROVIDER_ID)
+    this.activeProviderId = (legacyActiveProviderId && configs[legacyActiveProviderId])
       ? legacyActiveProviderId
       : defaultProviderId;
     if (!configs[this.activeProviderId]) this.activeProviderId = defaultProviderId;
-    if (this.activeProviderId !== defaultProviderId && configs[this.activeProviderId]?.configured !== true) {
+    if (this.activeProviderId !== defaultProviderId && this.activeProviderId !== BROZER_CLOUD_PROVIDER_ID && configs[this.activeProviderId]?.configured !== true) {
       this.activeProviderId = defaultProviderId;
       providerStateMigrated = true;
     }

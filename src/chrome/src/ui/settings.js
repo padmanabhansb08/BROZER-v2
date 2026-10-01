@@ -2229,7 +2229,7 @@ if (btnExportUserMemory) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `webbrain-user-memory-${Date.now()}.json`;
+    a.download = `brozer-user-memory-${Date.now()}.json`;
     document.body.appendChild(a);
     try { a.click(); } finally {
       a.remove();

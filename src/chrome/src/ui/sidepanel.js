@@ -1107,7 +1107,7 @@ function runCaptureTimestamp(date = new Date()) {
 
 function buildRunScreenshotFilenames(saveAs, date = new Date()) {
   const requested = sanitizeRunCaptureSaveAs(saveAs);
-  const stem = (requested.replace(/\.png$/i, '') || `webbrain-run-${runCaptureTimestamp(date)}`).slice(0, 170);
+  const stem = (requested.replace(/\.png$/i, '') || `brozer-run-${runCaptureTimestamp(date)}`).slice(0, 170);
   return {
     before: `${stem}-before.png`,
     after: `${stem}-after.png`,
@@ -1117,7 +1117,7 @@ function buildRunScreenshotFilenames(saveAs, date = new Date()) {
 function buildRunRecordingFilename(saveAs) {
   const requested = sanitizeRunCaptureSaveAs(saveAs);
   if (!requested) return null;
-  const stem = requested.replace(/\.webm$/i, '').replace(/[. ]+$/g, '') || 'webbrain-recording';
+  const stem = requested.replace(/\.webm$/i, '').replace(/[. ]+$/g, '') || 'brozer-recording';
   return `${stem.slice(0, 175)}.webm`;
 }
 
@@ -4348,7 +4348,7 @@ function savedWorkflowDownloadFilename(name) {
     .replace(/[^A-Za-z0-9._-]+/g, '-')
     .replace(/^[.-]+|[.-]+$/g, '')
     .slice(0, 120) || 'workflow';
-  return `${stem}.webbrain-workflow.json`;
+  return `${stem}.brozer-workflow.json`;
 }
 
 async function exportSavedWorkflow(id, tabId = currentTabId) {
@@ -4395,7 +4395,7 @@ async function importSavedWorkflowDefinition(definition, tabId = currentTabId) {
 function requestSavedWorkflowFile(tabId) {
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = '.json,.webbrain-workflow.json,application/json';
+  input.accept = '.json,.brozer-workflow.json,.webbrain-workflow.json,application/json';
   input.addEventListener('change', () => {
     const file = input.files?.[0];
     if (!file) return;
@@ -8500,7 +8500,7 @@ async function parseSlashCommands(text, tabId = currentTabId, options = {}) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `webbrain-config-${Date.now()}.json`;
+      a.download = `brozer-config-${Date.now()}.json`;
       document.body.appendChild(a);
       try {
         a.click();
@@ -8539,7 +8539,7 @@ async function parseSlashCommands(text, tabId = currentTabId, options = {}) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `webbrain-traces-${Date.now()}.md`;
+    a.download = `brozer-traces-${Date.now()}.md`;
     document.body.appendChild(a);
     try {
       a.click();
@@ -8578,7 +8578,7 @@ async function parseSlashCommands(text, tabId = currentTabId, options = {}) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `webbrain-chat-${Date.now()}.md`;
+    a.download = `brozer-chat-${Date.now()}.md`;
     document.body.appendChild(a);
     try {
       a.click();

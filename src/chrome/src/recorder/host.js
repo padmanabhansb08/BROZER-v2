@@ -35,7 +35,7 @@ import {
 
 let recordingState = { active: false };
 const RECORDING_STATE_KEY = 'recordingState';
-const RECORDING_SAFETY_ALARM_NAME = 'webbrain-recording-safety-cap';
+const RECORDING_SAFETY_ALARM_NAME = 'brozer-recording-safety-cap';
 export const MAX_RECORDING_MS = 2 * 60 * 60 * 1000; // 2 hours
 let recordingSafetyTimeout = null;
 let recordingStateReady = null;
@@ -49,7 +49,7 @@ function normalizeRecordingFilename(value) {
     .replace(/[<>:"|?*]/g, '-')
     .replace(/[. ]+$/g, '');
   if (!filename || filename === '.' || filename === '..') return null;
-  const stem = filename.replace(/\.webm$/i, '').replace(/[. ]+$/g, '') || 'webbrain-recording';
+  const stem = filename.replace(/\.webm$/i, '').replace(/[. ]+$/g, '') || 'brozer-recording';
   return `${stem.slice(0, 175)}.webm`;
 }
 
@@ -487,7 +487,7 @@ export async function stopTabRecording(opts = {}) {
     .replace(/[:.]/g, '-')
     .replace(/T/, '_')
     .slice(0, 19);
-  const filename = recordingState.filename || `webbrain-recording-${stamp}.webm`;
+  const filename = recordingState.filename || `brozer-recording-${stamp}.webm`;
   const wantTranscribeAfter = !!recordingState.transcribeAfter;
   const savingRecordingId = recordingState.recordingId;
   clearRecordingSafetyWatchdog();

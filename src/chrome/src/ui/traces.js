@@ -835,8 +835,8 @@ document.getElementById('btn-export').addEventListener('click', async () => {
     const a = document.createElement('a');
     a.href = url;
     a.download = isSession
-      ? `webbrain-session-${safeFilenamePart(sessionId, 'session')}.json`
-      : `webbrain-trace-${run.model || 'unknown'}-${run.runId}.json`;
+      ? `brozer-session-${safeFilenamePart(sessionId, 'session')}.json`
+      : `brozer-trace-${run.model || 'unknown'}-${run.runId}.json`;
     document.body.appendChild(a);
     try {
       a.click();
