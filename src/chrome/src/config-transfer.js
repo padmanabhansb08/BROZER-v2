@@ -26,6 +26,7 @@ export const DEFAULT_CONFIG_SETTINGS = Object.freeze({
   verboseMode: false,
   selectionShortcutEnabled: true,
   [AUTO_GROUP_TABS_KEY]: true,
+  helpImproveBrozer: true,
   helpImproveWebBrain: true,
   screenshotFallback: true,
   maxAgentSteps: 130,
@@ -62,7 +63,7 @@ export const DEFAULT_CONFIG_SETTINGS = Object.freeze({
   askBeforeConsequentialActions: true,
   wb_permissions: [],
   providers: {},
-  activeProvider: 'webbrain_cloud',
+  activeProvider: 'brozer_cloud',
   visionModel: null,
   transcriptionModel: null,
   profileEnabled: false,
@@ -290,6 +291,7 @@ export function mergeConfigPatchSettings(current = {}, patch = {}) {
   // Cloud provisioning owns this provider's credentials, endpoint and device
   // identity. A portable export may contain a stale copy, so never let it
   // replace the runtime's current WebBrain Compass configuration.
+  delete patchProviders.brozer_cloud;
   delete patchProviders.webbrain_cloud;
   merged.providers = { ...currentProviders, ...patchProviders };
   return merged;

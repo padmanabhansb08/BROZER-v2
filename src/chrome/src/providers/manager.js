@@ -77,14 +77,21 @@ import {
   loadVisionConnectionTestImage,
 } from './connection-test-assets.js';
 
-const WEBBRAIN_CLOUD_PROVIDER_ID = 'webbrain_cloud';
-const WEBBRAIN_CLOUD_PROVIDER_LABEL = 'BROZER NAVIGATOR';
+const BROZER_CLOUD_PROVIDER_ID = 'brozer_cloud';
+const LEGACY_WEBBRAIN_CLOUD_PROVIDER_ID = 'webbrain_cloud';
+const WEBBRAIN_CLOUD_PROVIDER_ID = BROZER_CLOUD_PROVIDER_ID;
+const BROZER_CLOUD_PROVIDER_LABEL = 'BROZER NAVIGATOR';
+const WEBBRAIN_CLOUD_PROVIDER_LABEL = BROZER_CLOUD_PROVIDER_LABEL;
 const DUPLICATE_PROVIDER_SUFFIX = '__duplicate';
 const LOCAL_MODEL_LIST_PROVIDER_IDS = ['llamacpp', 'ollama', 'lmstudio', 'jan', 'vllm', 'sglang', 'localai', 'gpt4all', 'local_openai_proxy', 'unsloth'];
 const WEBBRAIN_CLOUD_CONTEXT_WINDOW = 1000000;
 const WEBBRAIN_CLOUD_LEGACY_CONTEXT_WINDOW = 256000;
-const WEBBRAIN_DEVICE_GUID_KEY = 'webbrainDeviceGuid';
-const HELP_IMPROVE_WEBBRAIN_KEY = 'helpImproveWebBrain';
+const BROZER_DEVICE_GUID_KEY = 'brozerDeviceGuid';
+const LEGACY_WEBBRAIN_DEVICE_GUID_KEY = 'webbrainDeviceGuid';
+const WEBBRAIN_DEVICE_GUID_KEY = BROZER_DEVICE_GUID_KEY;
+const HELP_IMPROVE_BROZER_KEY = 'helpImproveBrozer';
+const LEGACY_HELP_IMPROVE_WEBBRAIN_KEY = 'helpImproveWebBrain';
+const HELP_IMPROVE_WEBBRAIN_KEY = HELP_IMPROVE_BROZER_KEY;
 const OPENROUTER_DEFAULT_MODEL = 'openrouter/free';
 const OPENROUTER_LEGACY_DEFAULT_MODEL = 'stepfun/step-3.7-flash';
 const OPENAI_DEFAULT_MODEL = 'gpt-5.6-terra';
@@ -490,11 +497,11 @@ export class ProviderManager {
 
   _defaultConfigs() {
     const defaults = {
-      webbrain_cloud: {
+      brozer_cloud: {
         type: 'openai',
         category: 'cloud',
-        label: WEBBRAIN_CLOUD_PROVIDER_LABEL,
-        providerName: 'webbrain-cloud',
+        label: BROZER_CLOUD_PROVIDER_LABEL,
+        providerName: 'brozer-cloud',
         baseUrl: 'https://api.webbrain.one/v1',
         model: 'brozer-navigator 1.0',
         contextWindow: WEBBRAIN_CLOUD_CONTEXT_WINDOW,
@@ -1092,29 +1099,35 @@ export class ProviderManager {
         delete migrated[id].supportsVision;
       }
     }
+    // Seamlessly migrate legacy webbrain_cloud stored provider config to brozer_cloud
+    if (migrated.webbrain_cloud && !migrated.brozer_cloud) {
+      migrated.brozer_cloud = {
+        ...migrated.webbrain_cloud,
+        label: BROZER_CLOUD_PROVIDER_LABEL,
+        providerName: 'brozer-cloud',
+      };
+      delete migrated.webbrain_cloud;
+    }
     // The managed provider name is shipped UI, not a user customization. Older
     // releases persisted the complete config, so migrate their stored label.
     if (
-      migrated[WEBBRAIN_CLOUD_PROVIDER_ID]
-      && migrated[WEBBRAIN_CLOUD_PROVIDER_ID].label !== WEBBRAIN_CLOUD_PROVIDER_LABEL
+      migrated[BROZER_CLOUD_PROVIDER_ID]
+      && migrated[BROZER_CLOUD_PROVIDER_ID].label !== BROZER_CLOUD_PROVIDER_LABEL
     ) {
-      migrated[WEBBRAIN_CLOUD_PROVIDER_ID] = {
-        ...migrated[WEBBRAIN_CLOUD_PROVIDER_ID],
-        label: WEBBRAIN_CLOUD_PROVIDER_LABEL,
+      migrated[BROZER_CLOUD_PROVIDER_ID] = {
+        ...migrated[BROZER_CLOUD_PROVIDER_ID],
+        label: BROZER_CLOUD_PROVIDER_LABEL,
       };
     }
-    // Existing installs stored omitToolsWhenImagesPresent:true for WebBrain
-    // Compass, which suppressed native tools on every screenshot turn and broke
-    // tool calling. Force it off so the saved config picks up the new default.
-    if (migrated.webbrain_cloud?.omitToolsWhenImagesPresent) {
-      migrated.webbrain_cloud = {
-        ...migrated.webbrain_cloud,
+    if (migrated.brozer_cloud?.omitToolsWhenImagesPresent) {
+      migrated.brozer_cloud = {
+        ...migrated.brozer_cloud,
         omitToolsWhenImagesPresent: false,
       };
     }
-    if (Number(migrated.webbrain_cloud?.contextWindow) === WEBBRAIN_CLOUD_LEGACY_CONTEXT_WINDOW) {
-      migrated.webbrain_cloud = {
-        ...migrated.webbrain_cloud,
+    if (Number(migrated.brozer_cloud?.contextWindow) === WEBBRAIN_CLOUD_LEGACY_CONTEXT_WINDOW) {
+      migrated.brozer_cloud = {
+        ...migrated.brozer_cloud,
         contextWindow: WEBBRAIN_CLOUD_CONTEXT_WINDOW,
       };
     }

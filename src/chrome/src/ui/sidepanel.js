@@ -245,7 +245,7 @@ const pinCoachmarkDismissed = (async function initPinCoachmark() {
 (async function initOnboarding() {
   // Coachmark setup errors resolve as no-op so the model/safety wizard still runs.
   await pinCoachmarkDismissed.catch(() => {});
-  const stored = await chrome.storage.local.get(['onboardingComplete', 'helpImproveWebBrain']);
+  const stored = await chrome.storage.local.get(['onboardingComplete', 'helpImproveBrozer', 'helpImproveWebBrain']);
   if (stored.onboardingComplete) return;
 
   const overlay = document.getElementById('onboarding');
@@ -274,7 +274,7 @@ const pinCoachmarkDismissed = (async function initPinCoachmark() {
   let localModelChoices = [];
   let selectedLocalModelIndex = 0;
   let cloudReady = false;
-  let persistedHelpImprove = stored.helpImproveWebBrain !== false;
+  let persistedHelpImprove = (stored.helpImproveBrozer ?? stored.helpImproveWebBrain) !== false;
   let helpImproveSavePromise = Promise.resolve(true);
 
   if (helpImproveCheckbox) {

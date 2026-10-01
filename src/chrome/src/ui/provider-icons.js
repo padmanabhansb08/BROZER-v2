@@ -11,6 +11,7 @@ import {
 } from '../providers/provider-catalog.js';
 
 export const PROVIDER_ICON_FILES = {
+  brozer_cloud: 'webbrain_cloud.png',
   webbrain_cloud: 'webbrain_cloud.png',
   llamacpp: 'llamacpp.svg',
   ollama: 'ollama.svg',
@@ -79,6 +80,7 @@ export function providerIconHtml(id, label, className = 'provider-icon', opts = 
 
 /** Short display name for a known provider id (sniff hints, menus). */
 export const PROVIDER_SHORT_LABELS = {
+  brozer_cloud: 'BROZER NAVIGATOR',
   webbrain_cloud: 'BROZER NAVIGATOR',
   llamacpp: 'llama.cpp',
   ollama: 'Ollama',

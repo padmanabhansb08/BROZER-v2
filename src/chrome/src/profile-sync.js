@@ -9,7 +9,7 @@ const API = 'https://api.webbrain.one/v1/sync';
 const ITERATIONS = 600000;
 const NON_PORTABLE_PROVIDER_ID = 'webgpu';
 const PORTABLE_ACTIVE_PROVIDER_KEY = 'profileSyncPortableActiveProvider';
-const DEFAULT_PORTABLE_ACTIVE_PROVIDER = 'webbrain_cloud';
+const DEFAULT_PORTABLE_ACTIVE_PROVIDER = 'brozer_cloud';
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 const b64 = bytes => {

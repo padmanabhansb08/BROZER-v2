@@ -1190,7 +1190,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     createContextMenus().catch(() => {});
   }
   if (PROFILE_SYNC_DATA_KEYS.some((key) => changes[key])) profileSync.noteChanges(changes).catch(() => {});
-  if (changes.providers || changes.activeProvider || changes.helpImproveWebBrain) providerManager.load().catch(() => {});
+  if (changes.providers || changes.activeProvider || changes.helpImproveBrozer || changes.helpImproveWebBrain) providerManager.load().catch(() => {});
   if (changes.webbrainCloudBridgeEnabled || changes.webbrainCloudBridgeUrl) {
     cloudRunController.syncBridge().catch(() => {});
   }
@@ -3928,14 +3928,14 @@ async function handleMessage(msg, sender) {
     // --- Provider Management ---
     case 'set_help_improve_preference': {
       if (typeof msg.enabled !== 'boolean') throw new Error('enabled must be a boolean');
-      const stored = await chrome.storage.local.get('helpImproveWebBrain');
-      const previousEnabled = stored.helpImproveWebBrain !== false;
-      await chrome.storage.local.set({ helpImproveWebBrain: msg.enabled });
+      const stored = await chrome.storage.local.get(['helpImproveBrozer', 'helpImproveWebBrain']);
+      const previousEnabled = (stored.helpImproveBrozer ?? stored.helpImproveWebBrain) !== false;
+      await chrome.storage.local.set({ helpImproveBrozer: msg.enabled, helpImproveWebBrain: msg.enabled });
       try {
         await providerManager.load();
       } catch (error) {
         if (previousEnabled !== msg.enabled) {
-          await chrome.storage.local.set({ helpImproveWebBrain: previousEnabled }).catch(() => {});
+          await chrome.storage.local.set({ helpImproveBrozer: previousEnabled, helpImproveWebBrain: previousEnabled }).catch(() => {});
         }
         throw error;
       }
