@@ -5,7 +5,7 @@
 > **Branch:** `main`  
 > **Package Version:** `36.5.0`  
 > **License:** GPL-3.0-or-later  
-> **Post-Remediation Status:** 0 unexpected active references found by the repository-wide rule-based scan  
+> **Post-Remediation Status:** The repository-wide rule-based scan reports 0 unexpected active WebBrain references, with remaining occurrences confined to explicitly classified compatibility, external-protocol, vendor/provenance, regression-test, and audit-documentation boundaries  
 
 ---
 
@@ -65,6 +65,6 @@ BROZER-v2 Codebase Classification
 
 ## Conclusion & Verification Audit Finding
 
-**Final Finding:** 0 unexpected active references found by the repository-wide rule-based scan.
+**Final Finding:** The repository-wide rule-based scan reports 0 unexpected active WebBrain references, with remaining occurrences confined to explicitly classified compatibility, external-protocol, vendor/provenance, regression-test, and audit-documentation boundaries.
 
 All active user-facing UI labels, default export filenames, and primary state keys operate strictly under BROZER-v2 identity. All remaining WebBrain strings serve explicit, approved roles in backward-compatible state migration, external server protocol contracts, or third-party vendor compliance.
