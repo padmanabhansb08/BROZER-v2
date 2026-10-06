@@ -633,3 +633,210 @@ html[data-theme="dark"] .bz-shell #btn-clear:hover {
   border-top: 1px solid var(--bz-hairline);
   border-bottom: 0;
 }
+
+/* ─────────────────────────────────────────────────────────
+   OUTPUT INSPECTOR MODAL & DIAGNOSTICS OVERLAY
+   ───────────────────────────────────────────────────────── */
+.output-inspector {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  background: var(--bz-bg);
+  color: var(--bz-text);
+  font-family: var(--bz-font);
+  font-size: 12px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.output-inspector.hidden {
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+}
+
+.inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--bz-hairline);
+  background: var(--bz-surface);
+  flex-shrink: 0;
+}
+
+.inspector-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bz-text-muted);
+}
+
+.inspector-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bz-text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.inspector-close:hover {
+  background: var(--bz-hairline);
+  color: var(--bz-text);
+}
+
+.inspector-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inspector-section {
+  background: var(--bz-surface);
+  border: 1px solid var(--bz-hairline);
+  border-radius: 8px;
+  padding: 12px 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.inspector-section.active {
+  border-color: rgba(66, 133, 244, 0.5);
+  box-shadow: 0 0 0 1px rgba(66, 133, 244, 0.2);
+}
+
+.inspector-section.done {
+  border-color: rgba(52, 168, 83, 0.4);
+}
+
+.inspector-section.failed {
+  border-color: rgba(234, 67, 53, 0.5);
+  background: rgba(234, 67, 53, 0.04);
+}
+
+.inspector-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.inspector-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--bz-text);
+}
+
+.inspector-status-icon {
+  font-size: 13px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inspector-section.done .inspector-status-icon {
+  color: #34a853;
+}
+
+.inspector-section.failed .inspector-status-icon {
+  color: var(--bz-danger);
+}
+
+.inspector-section-content {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--bz-text-muted);
+  word-break: break-word;
+}
+
+.inspector-connector {
+  width: 2px;
+  height: 10px;
+  margin: 0 auto;
+  background: var(--bz-hairline);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.inspector-divider {
+  margin: 12px 0;
+  border: 0;
+  border-top: 1px dashed var(--bz-hairline);
+}
+
+.inspector-muted {
+  font-size: 11px;
+  color: var(--bz-text-faint);
+  margin-top: 2px;
+}
+
+.inspector-error {
+  color: var(--bz-danger);
+  font-weight: 500;
+}
+
+.inspector-list {
+  margin: 6px 0 0 0;
+  padding-left: 18px;
+}
+
+.inspector-list li {
+  margin-bottom: 4px;
+}
+
+.inspector-placeholder {
+  font-family: var(--bz-mono);
+  font-size: 10px;
+  background: var(--bz-hairline);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: var(--bz-text);
+}
+
+.inspector-preview-box {
+  margin-top: 8px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--bz-hairline);
+  max-width: 100%;
+}
+
+.inspector-preview-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+@keyframes inspector-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.shimmer-icon {
+  display: inline-block;
+  animation: inspector-spin 1.2s linear infinite;
+  color: #4285f4;
+}
+
